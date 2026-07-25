@@ -76,13 +76,22 @@ class doi(object):
                 doi._n = 0
             doi.dois.update(self._add_these_dois)
             doi._n += 1
-            retvals = func(*args, **kwargs)
-            doi._n -= 1
-            if doi._n == 0:
-                # We have reached the point where the original `dois` argument
-                # was passed. Create a new set such that subsequent calls don't
-                # contaminate the bibliography.
-                doi.dois = set()
-            return retvals
+            try:
+                # The bookkeeping must be unwound even if the wrapped
+                # function raises; otherwise the class-level state stays
+                # permanently corrupted and all subsequent analysis calls
+                # silently dump DOIs into the caller's set.
+                return func(*args, **kwargs)
+            finally:
+                doi._n -= 1
+                if doi._n == 0:
+                    # We have reached the point where the original `dois`
+                    # argument was passed. Create a new set such that
+                    # subsequent calls don't contaminate the bibliography.
+                    doi.dois = set()
 
+        # Mark the wrapper so that `register_function` can detect that a
+        # function already records DOIs (checking the function name does
+        # not work because functools.wraps restores the original name)
+        func_with_doi.__has_doi__ = True
         return func_with_doi

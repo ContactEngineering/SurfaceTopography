@@ -63,9 +63,12 @@ class ScanLineAlignedTopography(DecoratedUniformTopography):
         topography : Topography
             2D topography to align.
         direction : str, optional
-            Scan line direction: 'x' (rows, default) or 'y' (columns).
-            'x' means each row is a scan line (fast scan in x-direction).
-            For AFM, 'x' is typically the fast scan direction.
+            Direction along which the scan lines run: 'x' (default) or 'y'.
+            'x' means each scan line runs along the x direction (fast scan
+            in x), i.e. each line has constant y. For AFM, 'x' is typically
+            the fast scan direction. Note that the first index of the height
+            array is the x index in this library, so scan lines along x are
+            *columns* of the height array.
         mode : str, optional
             Method for computing line centers during alignment:
             - 'median': Use median for robust offset alignment (default).
@@ -85,6 +88,8 @@ class ScanLineAlignedTopography(DecoratedUniformTopography):
                              "2D topographies")
         if degree < 0:
             raise ValueError("Polynomial degree must be non-negative")
+        if direction not in ('x', 'y'):
+            raise ValueError("Direction must be 'x' or 'y'")
         super().__init__(topography, info=info)
         self._direction = direction
         self._mode = mode
@@ -167,8 +172,11 @@ class ScanLineAlignedTopography(DecoratedUniformTopography):
         heights : ndarray
             2D array of height values.
         """
-        # Transpose if aligning columns instead of rows
-        if self._direction == 'y':
+        # The first array index is the x index in this library. A scan line
+        # running along the x direction therefore corresponds to a *column*
+        # heights[:, j] of the height array; transpose so that the loop below
+        # (which iterates over the first index) walks over scan lines.
+        if self._direction == 'x':
             heights = heights.T
 
         nx, ny = heights.shape
@@ -237,8 +245,9 @@ class ScanLineAlignedTopography(DecoratedUniformTopography):
         if self._line_coeffs is None:
             self._compute_alignment(heights)
 
-        # Transpose if aligning columns instead of rows
-        if self._direction == 'y':
+        # See note in `_compute_alignment`: scan lines along x are columns
+        # of the height array
+        if self._direction == 'x':
             heights = heights.T
 
         nx, ny = heights.shape
@@ -253,7 +262,7 @@ class ScanLineAlignedTopography(DecoratedUniformTopography):
             heights[i, :] += self._offsets[i]
 
         # Transpose back if we transposed earlier
-        if self._direction == 'y':
+        if self._direction == 'x':
             heights = heights.T
 
         return heights

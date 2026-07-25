@@ -37,7 +37,7 @@ import numpy as np
 import zstandard
 from numpy.lib.stride_tricks import as_strided
 
-from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile
+from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile, UnsupportedFormatFeature
 from ..UniformLineScanAndTopography import Topography
 from .binary import decode
 from .common import OpenFromAny
@@ -80,10 +80,13 @@ def _read_array(f, dtype=np.dtype("<i4")):
             raw_data, shape=(width, height), strides=(dtype.itemsize, row_bytes)
         )
     else:
+        # Each pixel stores `nb_entries` consecutive values: the stride
+        # along the width is the full element, along the height a row, and
+        # the last axis walks the values within one element
         array_data = as_strided(
             raw_data,
             shape=(width, height, nb_entries),
-            strides=(dtype.itemsize, element_size, row_bytes),
+            strides=(element_size, row_bytes, dtype.itemsize),
         )
     return array_data
 
@@ -175,7 +178,13 @@ This reader open ZON files that are written by some Keyence instruments.
                 width, height, element_size = unpack(
                     "iii", self.open(z, self._HEIGHT_DATA_UUID).read(12)
                 )
-                assert element_size == 4
+                if element_size != 4:
+                    # Note: a proper exception rather than an assert, which
+                    # would vanish under `python -O`
+                    raise UnsupportedFormatFeature(
+                        f"Expected height data with an element size of 4 bytes, "
+                        f"but found {element_size} bytes."
+                    )
                 self._channels += [
                     ChannelInfo(
                         self,
@@ -240,7 +249,13 @@ This reader open ZON files that are written by some Keyence instruments.
             physical_sizes, channel_info.physical_sizes
         )
 
-        info.update(channel_info.info)
+        # Merge file metadata with user-provided info; do not mutate the
+        # `info` argument (updating the mutable default dictionary would
+        # leak metadata into all subsequent calls), and let user-provided
+        # entries take precedence like in the other readers
+        _info = channel_info.info.copy()
+        _info.update(info)
+        info = _info
 
         if unit is not None:
             raise MetadataAlreadyFixedByFile("unit")

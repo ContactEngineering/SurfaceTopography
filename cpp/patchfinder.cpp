@@ -49,10 +49,12 @@ static const std::vector<std::pair<int, int>> default_stencil = {
 
 void fill_patch(Eigen::Index nx, Eigen::Index ny, const RowMajorXXb &map,
                 std::ptrdiff_t i0, std::ptrdiff_t j0, int p, bool periodic,
-                const std::vector<std::pair<int, int>> &stencil, RowMajorXXi &id)
+                const std::vector<std::pair<int, int>> &stencil, RowMajorXXi &id,
+                Stack &stack)
 {
-    Stack stack(DEFAULT_STACK_SIZE);
-
+    /* The caller passes a shared stack that is reused across patches;
+       it is empty on entry and drained again before this function
+       returns, so no per-patch allocation is necessary. */
     stack.push(i0, j0);
     id(i0, j0) = p;
 
@@ -61,11 +63,13 @@ void fill_patch(Eigen::Index nx, Eigen::Index ny, const RowMajorXXb &map,
         stack.pop_bottom(i, j);
 
         for (const auto &[di, dj] : stencil) {
-            // Periodic boundary conditions
+            // Periodic boundary conditions. Note: user-provided stencils
+            // can contain offsets larger than the grid dimensions; a single
+            // `if` would wrap only one period and index out of bounds.
             std::ptrdiff_t jj = j + dj;
             if (periodic) {
-                if (jj < 0) jj += ny;
-                if (jj > ny - 1) jj -= ny;
+                while (jj < 0) jj += ny;
+                while (jj > ny - 1) jj -= ny;
             } else {
                 if (jj < 0) continue;
                 if (jj > ny - 1) continue;
@@ -74,8 +78,8 @@ void fill_patch(Eigen::Index nx, Eigen::Index ny, const RowMajorXXb &map,
             // Periodic boundary conditions
             std::ptrdiff_t ii = i + di;
             if (periodic) {
-                if (ii < 0) ii += nx;
-                if (ii > nx - 1) ii -= nx;
+                while (ii < 0) ii += nx;
+                while (ii > nx - 1) ii -= nx;
             } else {
                 if (ii < 0) continue;
                 if (ii > nx - 1) continue;
@@ -115,11 +119,15 @@ std::tuple<int, RowMajorXXi> assign_patch_numbers(
     RowMajorXXi id = RowMajorXXi::Zero(nx, ny);
     int p = 0;
 
+    /* Allocate the flood-fill stack once; allocating it inside fill_patch
+       would malloc/free the buffer for every individual patch. */
+    Stack stack(DEFAULT_STACK_SIZE);
+
     for (Eigen::Index i = 0; i < nx; ++i) {
         for (Eigen::Index j = 0; j < ny; ++j) {
             if (map(i, j) && id(i, j) == 0) {
                 p++;
-                fill_patch(nx, ny, map, i, j, p, periodic, stencil, id);
+                fill_patch(nx, ny, map, i, j, p, periodic, stencil, id, stack);
             }
         }
     }
@@ -177,7 +185,7 @@ std::tuple<int, RowMajorXXi> assign_segment_numbers(Eigen::Ref<RowMajorXXb> map)
 
 
 void track_distance(Eigen::Index nx, Eigen::Index ny, const RowMajorXXb &map,
-                    RowMajorXXd &dist, RowMajorXXi &next)
+                    RowMajorXXd &dist)
 {
     Stack stack(DEFAULT_STACK_SIZE);
 
@@ -210,7 +218,6 @@ void track_distance(Eigen::Index nx, Eigen::Index ny, const RowMajorXXb &map,
         // Is i0, j0 closer than what is currently stored?
         if (d < dist(i, j)) {
             dist(i, j) = d;
-            next(i, j) = i0 * ny + j0;
 
             // Loop over all neighbors
             for (int joff = -1; joff <= 1; ++joff) {
@@ -247,11 +254,8 @@ RowMajorXXd distance_map(Eigen::Ref<RowMajorXXb> map)
     // This stores the distance to the closest point on the contour
     RowMajorXXd dist = RowMajorXXd::Constant(nx, ny, nx * ny);
 
-    // This stores the index of the closest point
-    RowMajorXXi next = RowMajorXXi::Constant(nx, ny, nx * ny);
-
     // Track distances from contact edge
-    track_distance(nx, ny, map, dist, next);
+    track_distance(nx, ny, map, dist);
 
     return dist;
 }

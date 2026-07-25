@@ -71,12 +71,14 @@ def test_gwyddion_metadata(file_format_examples):
 
     assert t.unit == "m"
 
-    np.testing.assert_allclose(t.rms_height_from_area(), 8.355506e-09, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 7.14371e-09, rtol=1e-6)
+    # Note: this file contains undefined data points; sums and means are
+    # normalized by the number of *defined* points
+    np.testing.assert_allclose(t.rms_height_from_area(), 8.356451162720974e-09, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 7.115125208610971e-09, rtol=1e-6)
 
     t = t.detrend("curvature")
-    np.testing.assert_allclose(t.rms_height_from_area(), 6.499288e-09, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 6.429779e-09, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_area(), 6.500515512793928e-09, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 6.43099193553545e-09, rtol=1e-6)
 
 
 def test_gwyddion_undefined(file_format_examples):

@@ -222,9 +222,13 @@ def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=
     nx, ny = self.nb_grid_pts
     sx, sy = self.physical_sizes
 
-    # The factor of two comes from the fact that the short cutoff is estimated
-    # from the curvature but the ACF is the slope, see 10.1016/j.apsadv.2021.100190
-    short_cutoff = self.short_reliability_cutoff(np.mean(self.pixel_size)) if reliable else np.mean(self.pixel_size)
+    # The factor of two (below, in the `min_radius` arguments) comes from the
+    # fact that the short cutoff is estimated from the curvature but the ACF
+    # is the slope, see 10.1016/j.apsadv.2021.100190. The lower bound of two
+    # pixels mirrors the profile ACF (`autocorrelation_from_profile`), which
+    # uses the same convention.
+    short_cutoff = self.short_reliability_cutoff(2 * np.mean(self.pixel_size)) if reliable \
+        else 2 * np.mean(self.pixel_size)
 
     # Compute FFT and normalize
     if self.is_periodic:
@@ -239,7 +243,7 @@ def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=
         # Radial average
         r_val, r_edges, A_val, _ = resample_radial(A_xy, physical_sizes=(sx, sy), nb_points=nb_points,
                                                    nb_points_per_decade=nb_points_per_decade, collocation=collocation,
-                                                   min_radius=short_cutoff, max_radius=(sx + sy) / 4,
+                                                   min_radius=short_cutoff / 2, max_radius=(sx + sy) / 4,
                                                    method=resampling_method)
     else:
         p = self.heights()
@@ -263,7 +267,7 @@ def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=
         # Radial average
         r_val, r_edges, A_val, _ = resample_radial(A_xy, physical_sizes=(sx, sy), collocation=collocation,
                                                    nb_points=nb_points, nb_points_per_decade=nb_points_per_decade,
-                                                   min_radius=short_cutoff, max_radius=(sx + sy) / 2, full=False,
+                                                   min_radius=short_cutoff / 2, max_radius=(sx + sy) / 2, full=False,
                                                    method=resampling_method)
 
     if return_map:

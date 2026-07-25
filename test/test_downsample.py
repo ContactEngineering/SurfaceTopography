@@ -48,6 +48,9 @@ def test_downsample_nth():
     t_down = t.downsample(2, mode="nth")
     assert t_down.nb_grid_pts == (5, 4)
     assert t_down.physical_sizes == (sx, sy)
+    # Pixel size must grow by the downsampling factor
+    np.testing.assert_allclose(t_down.pixel_size, (2 * sx / nx, 2 * sy / ny))
+    np.testing.assert_allclose(t_down.area_per_pt, 4 * sx * sy / (nx * ny))
 
     expected_heights = heights[::2, ::2]
     np.testing.assert_allclose(t_down.heights(), expected_heights)
@@ -92,6 +95,17 @@ def test_downsample_non_integer_multiple():
     assert t_down.nb_grid_pts == (5, 4)
     expected_heights = heights[:10, :8][::2, ::2]
     np.testing.assert_allclose(t_down.heights(), expected_heights)
+    # Pixel size is factor times the parent pixel size; since trailing
+    # points are dropped, the physical size shrinks accordingly
+    np.testing.assert_allclose(t_down.pixel_size, (2 * sx / nx, 2 * sy / ny))
+    np.testing.assert_allclose(
+        t_down.physical_sizes, (5 * 2 * sx / nx, 4 * 2 * sy / ny)
+    )
+    # Positions must coincide with the positions of the retained samples
+    x, y = t_down.positions()
+    xp, yp = t.positions()
+    np.testing.assert_allclose(x, xp[:10, :8][::2, ::2])
+    np.testing.assert_allclose(y, yp[:10, :8][::2, ::2])
 
     t_down = t.downsample(2, mode="average")
     assert t_down.nb_grid_pts == (5, 4)

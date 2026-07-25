@@ -76,12 +76,17 @@ class SelfAffine(AbstractIsotropicRoughness):
         qL = self.longcut_wavevector
         qr = self.rolloff_wavevector
 
-        return np.where(
-            np.logical_and(q < qs, q > qL),
-            np.where(q < qr,
-                     self.cr,
-                     self.cr * (q / qr) ** (-2 - 2 * self.hurst_exponent)),
-            0)
+        # Note: only evaluate the power law where it applies; evaluating it
+        # at q = 0 (e.g. through np.where) would produce division warnings
+        # and infinities
+        q = np.asarray(q, dtype=float)
+        C = np.zeros_like(q)
+        inside = np.logical_and(q < qs, q > qL)
+        plateau = np.logical_and(inside, q < qr)
+        decay = np.logical_and(inside, q >= qr)
+        C[plateau] = self.cr
+        C[decay] = self.cr * (q[decay] / qr) ** (-2 - 2 * self.hurst_exponent)
+        return C
 
     def power_spectrum_profile(self, q):
         # TODO:  I think this is only the simplified formula.
@@ -215,7 +220,11 @@ class SelfAffine(AbstractIsotropicRoughness):
         if shortcut_wavevector > rolloff_wavevector and longcut_wavevector < shortcut_wavevector:
             # self-affine region
             if self.hurst_exponent == order:
-                self_affine = c0 / (2 * np.pi) * np.log(shortcut_wavevector / rolloff_wavevector)
+                # The self-affine region spans from the larger of the
+                # rolloff and longcut wavevectors to the shortcut
+                # wavevector, like in the general-order branch below
+                self_affine = c0 / (2 * np.pi) * np.log(
+                    shortcut_wavevector / max(rolloff_wavevector, longcut_wavevector))
             else:
                 self_affine = (c0 / (2 * np.pi)
                                * (shortcut_wavevector ** (2 * (order - self.hurst_exponent))
@@ -253,14 +262,21 @@ class SelfAffine(AbstractIsotropicRoughness):
         dx = pixel_size
         sx = nx * dx
 
-        c0 = self.cr * (2 * np.pi / self.rolloff_wavelength) ** (2 + 2 * self.hurst_exponent)
+        # Build a model with the (possibly overridden) cutoffs and hand its
+        # PSD to the Fourier synthesis. This honors shortcut, rolloff *and*
+        # longcut; passing `c0`/`long_cutoff` instead would only describe
+        # the rolloff knee and silently ignore `longcut_wavelength`.
+        model = SelfAffine(cr=self.cr,
+                           rolloff_wavelength=self.rolloff_wavelength,
+                           hurst_exponent=self.hurst_exponent,
+                           longcut_wavelength=longcut_wavelength,
+                           shortcut_wavelength=shortcut_wavelength,
+                           unit=self.unit)
 
         np.random.seed(seed)
         roughness = fourier_synthesis((n_pixels, n_pixels), (sx, sx),
-                                      hurst=self.hurst_exponent,
-                                      c0=c0,
-                                      short_cutoff=shortcut_wavelength,
-                                      long_cutoff=self.rolloff_wavelength,
+                                      psd=model.power_spectrum_isotropic,
+                                      short_cutoff=shortcut_wavelength if shortcut_wavelength > 0 else None,
                                       unit=self.unit,
                                       **kwargs
                                       )

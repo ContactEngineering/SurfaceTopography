@@ -53,8 +53,10 @@ def checkerboard_detrend_profile(self, subdivisions, tol=1e-6):
     subdivisions : int
         Number of subdivisions.
     tol : float
-        Tolerance for searching for existing data points at domain boundaries.
-        (Default: 1e-6)
+        Tolerance for searching for existing data points at domain
+        boundaries, relative to the width of a subdivision. (An absolute
+        tolerance would silently misbehave depending on the length unit of
+        the position data.) (Default: 1e-6)
 
     Returns
     -------
@@ -65,6 +67,9 @@ def checkerboard_detrend_profile(self, subdivisions, tol=1e-6):
         return [self.detrend()]
 
     x, y = self.positions_and_heights()
+
+    # Convert the relative tolerance into an absolute one
+    atol = tol * (x[-1] - x[0]) / subdivisions
 
     subdivided_line_scans = []
     for i in range(subdivisions):
@@ -82,7 +87,7 @@ def checkerboard_detrend_profile(self, subdivisions, tol=1e-6):
         # Put additional data points on the left and right boundaries, if there
         # is none already in the data set at exactly those points
 
-        if sub_ileft != 0 and sub_xleft < x[sub_ileft] - tol:
+        if sub_ileft != 0 and sub_xleft < x[sub_ileft] - atol:
             # Linear interpolation to boundary point
             sub_yleft = y[sub_ileft - 1] + (sub_xleft - x[sub_ileft - 1]) / (
                         x[sub_ileft] - x[sub_ileft - 1]) * (
@@ -91,7 +96,7 @@ def checkerboard_detrend_profile(self, subdivisions, tol=1e-6):
             sub_x = np.append([sub_xleft], sub_x)
             sub_y = np.append([sub_yleft], sub_y)
 
-        if sub_iright != len(x) and sub_xright > x[sub_iright - 1] + tol:
+        if sub_iright != len(x) and sub_xright > x[sub_iright - 1] + atol:
             # Linear interpolation to boundary point
             sub_yright = y[sub_iright - 1] + (
                         sub_xright - x[sub_iright - 1]) / (
@@ -151,14 +156,19 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
         raise ValueError('`variable_bandwidth_from_profile` does not support resampling.')
 
     magnification = 1
-    min_nb_grid_pts, = self.nb_grid_pts
     magnifications = []
     bandwidths = []
     rms_heights = []
-    while min_nb_grid_pts >= nb_grid_pts_cutoff:
+    while True:
         subdivided_line_scans = self.checkerboard_detrend_profile(magnification)
         min_nb_grid_pts = min(
             [line.nb_grid_pts[0] for line in subdivided_line_scans])
+        # Check the actual subdivision *before* recording it; otherwise the
+        # last recorded magnification can contain segments with fewer than
+        # `nb_grid_pts_cutoff` points (a detrended two-point segment has an
+        # rms height of exactly zero), biasing the smallest-bandwidth datum.
+        if min_nb_grid_pts < nb_grid_pts_cutoff:
+            break
         magnifications += [magnification]
         bandwidths += [subdivided_line_scans[0].physical_sizes[0]]
         rms_heights += [

@@ -27,8 +27,16 @@
 
 import numpy as np
 
-from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
-from ..Support.UnitConversion import mangle_length_unit_utf8
+from ..Exceptions import (
+    CorruptFile,
+    MetadataAlreadyFixedByFile,
+    UnsupportedFormatFeature,
+)
+from ..Support.UnitConversion import (
+    get_unit_conversion_factor,
+    is_length_unit,
+    mangle_length_unit_utf8,
+)
 from ..UniformLineScanAndTopography import Topography
 from .common import OpenFromAny
 from .Reader import ChannelInfo, ReaderBase
@@ -72,40 +80,48 @@ well as its units.
 
     def process_header(self):
         with OpenFromAny(self.file_path, 'rb') as f:
-            self.lines = f.readlines()
+            # Note: the header is delimited by a magic line, so its length is
+            # only known after scanning the lines. The lines are a local
+            # variable and are dropped when this method returns; only the byte
+            # offset of the data block is stored, so that the reader does not
+            # pin the whole file in memory for its lifetime.
+            lines = f.readlines()
 
             # Find out if image or spectroscopy
-            if self.lines[0] == image_head:
+            if lines[0] == image_head:
                 self.is_image = True
-            elif self.lines[0] == spec_head:
+            elif lines[0] == spec_head:
                 self.is_image = False
             else:
                 raise CorruptFile
 
             # Find the start of the height data and denote data type
-            if magic_data in self.lines:
-                header_size = self.lines.index(magic_data)
+            if magic_data in lines:
+                header_size = lines.index(magic_data)
                 self.data_type = 'text'
-            elif magic_data_binary in self.lines:
-                header_size = self.lines.index(magic_data_binary)
+            elif magic_data_binary in lines:
+                header_size = lines.index(magic_data_binary)
                 self.data_type = 'binary'
-            elif magic_data_binary32 in self.lines:
-                header_size = self.lines.index(magic_data_binary32)
+            elif magic_data_binary32 in lines:
+                header_size = lines.index(magic_data_binary32)
                 self.data_type = 'binary32'
-            elif magic_data_ascii in self.lines:
-                header_size = self.lines.index(magic_data_ascii)
+            elif magic_data_ascii in lines:
+                header_size = lines.index(magic_data_ascii)
                 self.data_type = 'ascii'
             else:
                 raise CorruptFile
 
             # Save start of data for later reading of the matrix
             self.data_start = header_size + 1
+            # Byte offset of the data block, relative to the start of the file
+            self._data_start_offset = sum(
+                len(line) for line in lines[:self.data_start])
 
             # Create mifile from header, reading out meta data and channel info
             if self.is_image:
-                self.mifile = read_header_image(self.lines[1:header_size])
+                self.mifile = read_header_image(lines[1:header_size])
             else:  # TODO
-                self.mifile = read_header_spect(self.lines[1:header_size])
+                self.mifile = read_header_spect(lines[1:header_size])
 
             # Reformat the metadata
             for buf in self.mifile.channels:
@@ -114,8 +130,22 @@ well as its units.
                 buf.meta['range'] = buf.meta.pop('bufferRange')
                 buf.meta['label'] = buf.meta.pop('bufferLabel')
 
-            self._physical_sizes = float(self.mifile.meta['xLength']), float(self.mifile.meta['yLength'])
+            # `xLength` and `yLength` are always given in meters
+            self._physical_sizes_in_m = float(self.mifile.meta['xLength']), float(self.mifile.meta['yLength'])
             self._nb_grid_pts = int(self.mifile.meta['xPixels']), int(self.mifile.meta['yPixels'])
+
+    def _physical_sizes_in_unit(self, unit):
+        """
+        Return the lateral physical sizes, converted from meters (the unit of
+        `xLength`/`yLength` in the file) to `unit` if `unit` is a length unit.
+        For channels whose data is not a height (e.g. deflection in V), the
+        lateral sizes are reported in meters since there is no meaningful
+        conversion.
+        """
+        if unit is not None and is_length_unit(unit):
+            fac = get_unit_conversion_factor('m', unit)
+            return tuple(fac * s for s in self._physical_sizes_in_m)
+        return self._physical_sizes_in_m
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, unit=None, info={}, periodic=False,
@@ -130,42 +160,49 @@ well as its units.
 
         output_channel = self.mifile.channels[channel_index]
 
-        buffer = b''.join(self.lines[self.data_start:])
-        buffer = [chr(_) for _ in buffer]
+        if not self.is_image:
+            raise UnsupportedFormatFeature(
+                'Spectroscopy MI files are not supported.')
 
         # Read height data
-        if self.is_image:
-            if self.data_type == 'binary':
-                dt = "i2"
-                encode_length = 2
-                type_range = 32768
-            elif self.data_type == 'binary32':
-                dt = "i4"
-                encode_length = 4
-                type_range = 2147483648
-            else:  # text or ascii
-                type_range = 32768
+        if self.data_type == 'binary':
+            dt = "<i2"
+            encode_length = 2
+            type_range = 32768
+        elif self.data_type == 'binary32':
+            dt = "<i4"
+            encode_length = 4
+            type_range = 2147483648
+        else:  # text or ascii
+            raise UnsupportedFormatFeature(
+                'MI files with text (ASCII) data are not supported.')
 
-            start = int(self.mifile.xres) * int(
-                self.mifile.yres) * encode_length * channel_index
-            end = int(self.mifile.xres) * int(
-                self.mifile.yres) * encode_length * (channel_index + 1)
+        # Read the data block on demand; the reader only stores its offset.
+        # (The seek is relative to the position the stream had when it was
+        # handed to this reader, which is where `process_header` started
+        # reading.)
+        with OpenFromAny(self.file_path, 'rb') as f:
+            f.seek(f.tell() + self._data_start_offset)
+            buffer = f.read()
 
-            data = ''.join(buffer[start:end])
-            out = np.frombuffer(str.encode(data, "raw_unicode_escape"), dt)
-            out = out.reshape((int(self.mifile.xres), int(self.mifile.yres)))
+        nx, ny = int(self.mifile.xres), int(self.mifile.yres)
+        start = nx * ny * encode_length * channel_index
+        end = nx * ny * encode_length * (channel_index + 1)
 
-            # Undo normalizing with range of data type
-            out = out / type_range
+        # The data is stored line by line, i.e. the buffer has C-order shape
+        # (ny, nx); the y (slow) index comes first.
+        out = np.frombuffer(buffer[start:end], dt).reshape((ny, nx))
 
-            # If scan direction is upwards, flip the height map vertically
-            if self.mifile.meta['scanUp']:
-                out = np.flip(out, 0)
+        # Undo normalizing with range of data type
+        out = out / type_range
 
-            # Multiply the heights with the bufferRange
-            out *= float(output_channel.meta['range'])
-        else:
-            pass  # TODO
+        # If scan direction is upwards, flip the height map vertically.
+        # (`scanUp` is a textual TRUE/FALSE flag.)
+        if self.mifile.meta['scanUp'] == 'TRUE':
+            out = np.flip(out, 0)
+
+        # Multiply the heights with the bufferRange
+        out = out * float(output_channel.meta['range'])
 
         joined_meta = {**self.mifile.meta, **output_channel.meta}
         info = info.copy()
@@ -180,7 +217,8 @@ well as its units.
         # imshow(t.heights().T) shows the image like gwyddion
         t = Topography(heights=out.T,
                        physical_sizes=self._check_physical_sizes(
-                           physical_sizes, self._physical_sizes),
+                           physical_sizes,
+                           self._physical_sizes_in_unit(output_channel.unit)),
                        unit=output_channel.unit, info=info, periodic=periodic)
         if height_scale_factor is not None:
             t = t.scale(height_scale_factor)
@@ -191,7 +229,7 @@ well as its units.
         return [ChannelInfo(self, i, name=channel.meta['name'],
                             dim=len(self._nb_grid_pts),
                             nb_grid_pts=self._nb_grid_pts,
-                            physical_sizes=self._physical_sizes,
+                            physical_sizes=self._physical_sizes_in_unit(channel.unit),
                             uniform=True,
                             unit=channel.unit,
                             info={'raw_metadata': {**self.mifile.meta, **channel.meta}})

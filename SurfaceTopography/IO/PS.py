@@ -29,7 +29,7 @@
 import io
 
 import numpy as np
-from tiffile import TiffFile, TiffFileError
+from tifffile import TiffFile, TiffFileError
 
 from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..Support.UnitConversion import get_unit_conversion_factor
@@ -207,8 +207,12 @@ TIFF-based file format of Park Systems instruments.
                 t = self._header['data_type']
                 dtype = np.int16 if t == self._DATA_TYPE_INT16 else \
                     np.int32 if t == self._DATA_TYPE_INT32 else np.single
+                # The data is stored line by line, i.e. the buffer has
+                # C-order shape (ny, nx). Transposing yields the (nx, ny)
+                # array with the x index first that `Topography` expects.
+                nx, ny = self._nb_grid_pts
                 height_data = \
-                    np.frombuffer(raw_data, dtype=dtype, count=np.prod(self._nb_grid_pts)).reshape(self._nb_grid_pts).T
+                    np.frombuffer(raw_data, dtype=dtype, count=nx * ny).reshape((ny, nx)).T
 
         _info = self._info.copy()
         _info.update(info)

@@ -48,8 +48,13 @@ def test_read(file_format_examples):
     assert surface.unit == 'm'
     assert surface.is_uniform
     assert surface.has_undefined_data
-    np.testing.assert_allclose(surface.rms_height_from_area(), 9.528212249587946e-05, rtol=1e-6)
-    np.testing.assert_allclose(surface.interpolate_undefined_data().rms_gradient(), 0.15300265543799388, rtol=1e-6)
+    # Note: this file contains 1.7% undefined data points. The reference
+    # value used to be 9.53e-05, which was an artifact of the mean height
+    # being normalized by the total instead of the defined point count (the
+    # heights sit at about -0.00572, so the resulting systematic offset
+    # dwarfed the true roughness of this surface).
+    np.testing.assert_allclose(surface.rms_height_from_area(), 2.3756839548083504e-07, rtol=1e-6)
+    np.testing.assert_allclose(surface.interpolate_undefined_data().rms_gradient(), 0.15300264662900961, rtol=1e-6)
     assert surface.info['instrument']['name'] == 'Mountains Map Technology Software (DIGITAL SURF, version 6.2)'
     assert surface.info['instrument']['vendor'] == 'DIGITAL SURF'
 

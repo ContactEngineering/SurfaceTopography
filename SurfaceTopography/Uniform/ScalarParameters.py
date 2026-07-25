@@ -57,14 +57,11 @@ def Rq(topography):
     if topography.is_domain_decomposed:
         raise NotImplementedError("`Rq` does not support MPI-decomposed topographies.")
 
-    n = np.prod(topography.nb_grid_pts)
-    reduction = Reduction(topography._communicator)
+    # Note: all means and sums must be normalized by the number of *defined*
+    # (unmasked) data points; masked points do not contribute to the sums
     profile = topography.heights()
     return np.sqrt(
-        reduction.sum(
-            (profile - reduction.sum(profile, axis=0) / topography.nb_grid_pts[0]) ** 2
-        )
-        / n
+        np.ma.sum((profile - np.ma.mean(profile, axis=0)) ** 2) / np.ma.count(profile)
     )
 
 
@@ -89,10 +86,11 @@ def Sq(topography):
             "Areal rms height can only be computed for topographies, not line scans."
         )
     elif topography.dim == 2:
-        n = np.prod(topography.nb_grid_pts)
-        reduction = Reduction(topography._communicator)
+        # Normalize by the number of *defined* (unmasked) data points
         profile = topography.heights()
-        return np.sqrt(reduction.sum((profile - reduction.sum(profile) / n) ** 2) / n)
+        return np.sqrt(
+            np.ma.sum((profile - np.ma.mean(profile)) ** 2) / np.ma.count(profile)
+        )
     else:
         raise ValueError(f"Cannot handle topographies of dimension {topography.dim}")
 

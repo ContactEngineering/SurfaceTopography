@@ -96,13 +96,21 @@ AL3D format of Alicona Imaging.
         invalid_pixel_value = float(self._header['InvalidPixelValue'])
         dtype = np.single
         nx, ny = int(self._header['Cols']), int(self._header['Rows'])
+        # The row stride is already in bytes (rows are padded to multiples
+        # of 8 bytes); do not multiply by the item size again, which would
+        # read four times too much data (into the texture image and beyond)
         rowstride = (nx * np.dtype(dtype).itemsize + 7) // 8 * 8
-        buffer = f.read(rowstride * ny * np.dtype(dtype).itemsize)
+        buffer = f.read(rowstride * ny)
         data = as_strided(np.frombuffer(buffer, dtype=dtype), shape=(ny, nx),
                           strides=(rowstride, np.dtype(dtype).itemsize))
         mask = np.isnan(data)
         if not np.isnan(invalid_pixel_value):
-            mask = np.logical_or(mask, np.abs(data - invalid_pixel_value) < self._INVALID_RELTOL * invalid_pixel_value)
+            # Note: the tolerance must be scaled with the magnitude of the
+            # marker; without abs() a negative marker would make the mask
+            # unconditionally false
+            mask = np.logical_or(
+                mask,
+                np.abs(data - invalid_pixel_value) < self._INVALID_RELTOL * np.abs(invalid_pixel_value))
         return np.ma.masked_array(data.T, mask=mask.T)
 
     @property

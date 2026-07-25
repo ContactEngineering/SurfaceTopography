@@ -40,8 +40,13 @@ def sinc(x):
 
 def dsinc(x):
     """Derivative of the sinc function, d/dx [sin(x)/x]."""
-    tol = 1e-6
-    x = np.asarray(x)
+    # Note: cos(x) - sinc(x) is formed by cancellation of two O(1) terms
+    # and loses accuracy for small x; the Taylor branch is accurate to
+    # machine precision up to about x = 1e-2, so the crossover sits where
+    # both branches are accurate. (A threshold of 1e-6 would leave a band
+    # with relative errors up to 1e-3 just above it.)
+    tol = 1e-2
+    x = np.asarray(x, dtype=float)
     small_values = np.abs(x) < tol
     if small_values.sum() > 0:
         ret = np.zeros_like(x)
@@ -106,7 +111,9 @@ def apply_window(x, y, window=None):
     """
     if window == 'hann':
         length = x.max() - x.min()
-        return (2 / 3) ** (1 / 2) * (1 - np.cos(2 * np.pi * x / length)) * y
+        # The window argument must be relative to the start of the scan;
+        # the x-coordinates do not necessarily start at zero.
+        return (2 / 3) ** (1 / 2) * (1 - np.cos(2 * np.pi * (x - x.min()) / length)) * y
     elif window is None or window == 'None':
         return y
     else:
@@ -206,8 +213,6 @@ def power_spectrum(self, reliable=True, algorithm='fft', wavevectors=None, nb_in
 
         y = apply_window(x, y, window=window)
         L = x[-1] - x[0]
-        if wavevectors is None:
-            wavevectors = 2 * np.pi * np.arange(int(L / np.diff(x).min())) / L
         y_q = np.zeros_like(wavevectors, dtype=complex)
         for x1, x2, y1, y2 in zip(x[:-1], x[1:], y[:-1], y[1:]):
             dx = x2 - x1

@@ -1,6 +1,41 @@
 Change log for SurfaceTopography
 ================================
 
+v1.23.0 (not yet released)
+--------------------------
+
+- BUG: Transposed and downsampled topographies report correct `pixel_size`; affected derivatives and PSDs for anisotropic pixels
+- BUG: Masked data is normalized by the number of defined points; changes `rms_height` and moments of files with undefined data
+- BUG: Power spectrum no longer halves the `q=0` entry when folding the +q and -q branches (#282)
+- BUG: Fixed reshape order for non-square scans in the DI, EZD, MI and PS readers
+- BUG: MI reader converts lateral sizes from meters to the requested unit
+- BUG: BCR reader treats `voidpixels` as a count and masks against format markers
+- BUG: Fixed channel selection in the NMM and OIR readers
+- BUG: Fixed EZD magic check (bytes vs. str, inverted logic)
+- BUG: ZAG container reader re-opens the ZIP file for each read
+- BUG: Rewrote the C++ moment kernels in exact polynomial form (sign errors, missing prefactors, division by zero)
+- BUG: `Bicubic.__call__` handles non-contiguous input arrays
+- BUG: Fixed bounds of the periodic 2D bearing area
+- BUG: `to_uniform()` interpolates at the correct positions for scans not starting at zero
+- BUG: Slope detrending uses the length-weighted slope
+- BUG: Hann window in the nonuniform power spectrum is origin invariant
+- BUG: `fourier_synthesis` zeroes the DC mode instead of setting it to `C(q=1)`
+- BUG: `make_sphere(..., periodic=True)` passes the periodic flag on
+- BUG: Fixed `direction` semantics of `scan_line_align`
+- BUG: Nonuniform `polyfit` solves in scan-centered coordinates; detrending no longer depends on the x origin
+- BUG: Fixed Nyquist handling in Fourier interpolation and for anisotropic pixels in `power_spectrum_from_area`
+- BUG: Registering an analysis function on a subclass no longer modifies the base class
+- BUG: Fixed scale-dependent curvature on log-spaced and reliability-trimmed grids
+- ENH: Bicubic interpolation computes spline coefficients on demand, instead of 128 bytes per pixel up front
+- ENH: Container PSD integration precomputes bandwidth intervals in one pass, instead of re-reading every file per topography
+- ENH: The IBW, MI and MNT readers no longer keep file data in memory after construction
+- ENH: Nonuniform height-height autocorrelation moved to a C++ kernel
+- ENH: Rigid-sphere scan vectorized over blocks of bounded memory
+- ENH: Gaussian process regression reuses a single Cholesky factorization
+- ENH: Flood-fill stack in the patch finder is allocated once per call, not once per patch
+- TST: Added property-based invariant tests for transposition, translation, scaling and origin invariance
+- MAINT: Removed broken `pytest-flake8` from the test dependencies; renamed `tiffile` to `tifffile`
+
 v1.22.0 (08May26)
 -----------------
 

@@ -26,8 +26,8 @@
 
 import logging
 import re
-from datetime import datetime
 
+import dateutil.parser
 import numpy as np
 import openpyxl
 
@@ -98,7 +98,7 @@ surface roughness testers.
 
             # check if positions are distributed uniformly
             _diff = np.diff(_x)
-            if np.all(np.isclose(_diff, _diff[0])):
+            if len(_diff) == 0 or np.all(np.isclose(_diff, _diff[0])):
                 self._uniform = True
             else:
                 self._uniform = False
@@ -135,9 +135,6 @@ surface roughness testers.
                         cell.value,
                     )
 
-            # try to infer heights unit from roughness metrics
-            _h_unit = _roughness_metrics_list[0]["unit"]
-
             # get creation date
             _date_string = _metadata["E2"].value
 
@@ -148,6 +145,14 @@ surface roughness testers.
             _cut_off_string = _metadata["E48"].value
             _cut_off_dict = cut_off_regex.match(_cut_off_string).groupdict()
             _x_unit = _cut_off_dict["unit"]
+
+            # try to infer heights unit from roughness metrics; fall back to
+            # the lateral unit if no roughness metrics are present in the
+            # spreadsheet
+            if len(_roughness_metrics_list) > 0:
+                _h_unit = _roughness_metrics_list[0]["unit"]
+            else:
+                _h_unit = _x_unit
 
             # convert x unit to h unit
             self._x = _x * get_unit_conversion_factor(_x_unit, _h_unit)
@@ -160,7 +165,10 @@ surface roughness testers.
             self._physical_sizes = np.max(self._x)
 
             self._info = {
-                "acquisition_time": datetime.strptime(_date_string, "%d-%b-%Y"),
+                # Note: `dateutil` parses month names independent of the
+                # current locale (datetime.strptime with '%b' fails on
+                # non-English locales for the same file)
+                "acquisition_time": dateutil.parser.parse(_date_string, dayfirst=True),
                 "instrument": {"vendor": "Mitutoyo"},
                 "raw_metadata": {
                     "roughness_metrics": _roughness_metrics_list,
@@ -182,6 +190,7 @@ surface roughness testers.
                     info=self._info,
                 )
             ]
+            wb.close()
 
     # Return list of channels (here only a single one)
     @property

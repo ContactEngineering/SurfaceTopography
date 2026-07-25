@@ -116,7 +116,7 @@ Import filter for Zygo DATX, an HDF5-based format.
                 category = x_converter[0]
                 unit = x_converter[1]
                 values = x_converter[-1]
-                if category != b'LateralCat' and unit != b'Pixels':
+                if category != b'LateralCat' or unit != b'Pixels':
                     raise UnsupportedFormatFeature('DATX reader only supports `LateralCat` with `Pixels` unit for '
                                                    'X converter.')
                 physical_sizes_x = self._nb_grid_pts[0] * values[1]  # in units of meters!
@@ -124,7 +124,7 @@ Import filter for Zygo DATX, an HDF5-based format.
                 category = y_converter[0]
                 unit = y_converter[1]
                 values = y_converter[-1]
-                if category != b'LateralCat' and unit != b'Pixels':
+                if category != b'LateralCat' or unit != b'Pixels':
                     raise UnsupportedFormatFeature('DATX reader only supports `LateralCat` with `Pixels` unit for '
                                                    'Y converter.')
                 physical_sizes_y = self._nb_grid_pts[1] * values[1]  # in units of meters!
@@ -133,7 +133,7 @@ Import filter for Zygo DATX, an HDF5-based format.
                 height_unit = z_converter[1]
                 values = z_converter[-1]
                 if category != b'HeightCat':
-                    raise UnsupportedFormatFeature('DATX reader only supports `LateralCat` for Z converter.')
+                    raise UnsupportedFormatFeature('DATX reader only supports `HeightCat` for Z converter.')
                 height_unit = mangle_length_unit_utf8(height_unit.decode('ascii'))
 
                 if height_unit != self._unit:

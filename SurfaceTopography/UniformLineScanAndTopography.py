@@ -478,7 +478,14 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
 
     @property
     def pixel_size(self):
-        return self.parent_topography.pixel_size
+        # Derive the pixel size from the physical sizes and number of grid
+        # points of the decorated topography itself, not of the parent.
+        # Decorators that change the geometry (e.g. transposition or
+        # downsampling) override `physical_sizes` and `nb_grid_pts`, and the
+        # pixel size must remain consistent with those.
+        return tuple(
+            s / n for s, n in zip(self.physical_sizes, self.nb_grid_pts)
+        )
 
     @property
     def unit(self):
@@ -487,11 +494,8 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
         else:
             return self._unit
 
-    @property
-    def info(self):
-        info = self.parent_topography.info
-        info.update(self._info.model_dump(exclude_none=True))
-        return info
+    # Note: `info` is merged with the parent topography's dictionary in the
+    # `DecoratedTopography` base class
 
     @property
     def physical_sizes(self):
@@ -518,7 +522,7 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
 
     @property
     def area_per_pt(self):
-        return self.parent_topography.area_per_pt
+        return np.prod(self.pixel_size)
 
     def positions(self, **kwargs):
         return self.parent_topography.positions(**kwargs)
@@ -576,19 +580,9 @@ class ScaledUniformTopography(DecoratedUniformTopography):
         return get_unit_conversion_factor(self.parent_topography.unit, self.unit)
 
     @property
-    def pixel_size(self):
-        """Compute rescaled pixel sizes."""
-        return tuple(self.position_scale_factor * s for s in super().pixel_size)
-
-    @property
     def physical_sizes(self):
         """Compute rescaled physical sizes."""
         return tuple(self.position_scale_factor * s for s in super().physical_sizes)
-
-    @property
-    def area_per_pt(self):
-        """Compute rescaled physical sizes."""
-        return np.prod(self.pixel_size)
 
     def positions(self, **kwargs):
         """Compute the rescaled positions."""
@@ -700,11 +694,29 @@ class TransposedUniformTopography(DecoratedUniformTopography):
             sx, sy = self.parent_topography.physical_sizes
             return sy, sx
 
+    @property
+    def nb_subdomain_grid_pts(self):
+        if self.dim == 1:
+            return self.parent_topography.nb_subdomain_grid_pts
+        else:
+            nx, ny = self.parent_topography.nb_subdomain_grid_pts
+            return ny, nx
+
+    @property
+    def subdomain_locations(self):
+        if self.dim == 1:
+            return self.parent_topography.subdomain_locations
+        else:
+            ix, iy = self.parent_topography.subdomain_locations
+            return iy, ix
+
     def heights(self):
         """Computes the rescaled profile."""
         return self.parent_topography.heights().T
 
     def positions(self, **kwargs):
+        if self.dim == 1:
+            return self.parent_topography.positions(**kwargs)
         X, Y = self.parent_topography.positions(**kwargs)
         return Y.T, X.T
 
@@ -736,14 +748,19 @@ class TranslatedTopography(DecoratedUniformTopography):
         return self._offset
 
     @offset.setter
-    def offset(self, offset, offsety=None):
-        if offsety is None:
-            self._offset = offset
-        else:
-            self._offset = (offset, offsety)
+    def offset(self, offset):
+        # Note: property setters receive exactly one value; a second
+        # parameter would be unreachable
+        self._offset = offset
 
     def heights(self):
         """Computes the translated profile."""
+        if self.dim == 1:
+            # Line scans have a single offset; accept scalars as well as
+            # (possibly longer, from the default value) tuples
+            offset = self.offset
+            offsetx = offset[0] if np.ndim(offset) > 0 else offset
+            return np.roll(self.parent_topography.heights(), offsetx, axis=0)
         offsetx, offsety = self.offset
         return np.roll(
             np.roll(self.parent_topography.heights(), offsetx, axis=0), offsety, axis=1
@@ -764,7 +781,7 @@ class CompoundTopography(DecoratedUniformTopography):
 
         super().__init__(topography_a, info=info)
 
-        def combined_val(prop_a, prop_b, propname):
+        def check_combined_val(prop_a, prop_b, propname):
             """
             topographies can have a fixed or dynamic, adaptive nb_grid_pts (or
             other attributes). This function assures that -- if this function
@@ -775,20 +792,19 @@ class CompoundTopography(DecoratedUniformTopography):
             prop_b   -- field of other topography
             propname -- field identifier (for error messages only)
             """
-            if prop_a is None:
-                return prop_b
-            else:
-                if prop_b is not None:
-                    assert prop_a == prop_b, "{} incompatible:{} <-> {}".format(
-                        propname, prop_a, prop_b
-                    )
-                return prop_a
+            # Note: raise a proper exception; an `assert` would vanish under
+            # `python -O` and allow silent superposition of incompatible
+            # grids
+            if prop_a is not None and prop_b is not None and prop_a != prop_b:
+                raise ValueError(
+                    "{} incompatible: {} <-> {}".format(propname, prop_a, prop_b)
+                )
 
-        self._dim = combined_val(topography_a.dim, topography_b.dim, "dim")
-        self._nb_grid_pts = combined_val(
+        check_combined_val(topography_a.dim, topography_b.dim, "dim")
+        check_combined_val(
             topography_a.nb_grid_pts, topography_b.nb_grid_pts, "nb_grid_pts"
         )
-        self._size = combined_val(
+        check_combined_val(
             topography_a.physical_sizes, topography_b.physical_sizes, "physical_sizes"
         )
         self.parent_topography_a = topography_a

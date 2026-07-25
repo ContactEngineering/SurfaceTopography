@@ -255,8 +255,8 @@ DSC.
         return [
             ChannelInfo(
                 self,
-                0,  # Channel index
-                name=f"Scan {i+1}",  # There is only a single channel
+                i,  # Channel index; each scan is exposed as its own channel
+                name=f"Scan {i+1}",
                 dim=2,
                 nb_grid_pts=self._nb_grid_pts,
                 physical_sizes=self._physical_sizes,

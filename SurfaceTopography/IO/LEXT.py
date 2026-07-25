@@ -29,7 +29,7 @@ import enum
 
 import dateutil.parser
 import xmltodict
-from tiffile import TiffFile, TiffFileError
+from tifffile import TiffFile, TiffFileError
 
 from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography

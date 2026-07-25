@@ -123,13 +123,19 @@ class Uniform2DBearingArea(UniformBearingArea):
         self._is_periodic = is_periodic
 
         if self._is_periodic:
+            # Note: `np.roll` needs explicit axes; with a tuple shift and no
+            # axis it would flatten the array and roll by the sum of the
+            # shifts.
+            h10 = np.roll(h, -1, axis=0)
+            h01 = np.roll(h, -1, axis=1)
+            h11 = np.roll(h, (-1, -1), axis=(0, 1))
             self._el_min_heights = np.sort(np.ma.compressed([
-                np.minimum(np.minimum(h, np.roll(h, (-1, 0))), np.roll(h, (0, -1))),
-                np.minimum(np.minimum(np.roll(h, (-1, -1)), np.roll(h, (-1, 0))), np.roll(h, (0, -1)))
+                np.minimum(np.minimum(h, h10), h01),
+                np.minimum(np.minimum(h11, h10), h01)
             ]))
             self._el_max_heights = np.sort(np.ma.compressed([
-                np.maximum(np.maximum(h, np.roll(h, (-1, 0))), np.roll(h, (0, -1))),
-                np.maximum(np.maximum(np.roll(h, (-1, -1)), np.roll(h, (-1, 0))), np.roll(h, (0, -1)))
+                np.maximum(np.maximum(h, h10), h01),
+                np.maximum(np.maximum(h11, h10), h01)
             ]))
         else:
             self._el_min_heights = np.sort(np.ma.compressed([

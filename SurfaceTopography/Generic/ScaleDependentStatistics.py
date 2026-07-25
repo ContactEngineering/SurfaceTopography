@@ -128,7 +128,13 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
     d = self.derivative(n=n, scale_factor=scale_factor, distance=distance, interpolation=interpolation,
                         progress_callback=progress_callback)
     if distance is None:
-        distance = scale_factor * np.mean(self.physical_sizes)
+        # The scale factor scales the stencil of the derivative, i.e. the
+        # physical distance is scale_factor * n * pixel_size (see
+        # `Uniform.Derivative.derivative`, which converts distances to scale
+        # factors via scale_factor = distance / (n * px)). Note that scale
+        # factors are only supported for uniform topographies, so
+        # `pixel_size` is guaranteed to exist here.
+        distance = np.asarray(scale_factor) * n * np.mean(self.pixel_size)
     if self.dim == 1:
         try:
             if scale_factor is not None:
@@ -159,6 +165,7 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
             retvals = np.array([func(dx, dy) for dx, dy in zip(*d)])
         except TypeError:
             # If there is a single distance, the reliability analysis is skipped
+            d = list(d)  # may be a tuple, which does not support item assignment
             for i in range(0, len(d)):
                 if len(d[i]) < threshold:
                     d[i] = np.nan
@@ -166,6 +173,7 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
 
     short_cutoff = self.short_reliability_cutoff() if reliable else None
     if short_cutoff is not None:
+        distance = np.asarray(distance)
         mask = distance > short_cutoff * n / 2
         if mask.sum() == 0:
             raise NoReliableDataError('Dataset contains no reliable data.')

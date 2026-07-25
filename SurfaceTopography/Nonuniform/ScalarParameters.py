@@ -63,15 +63,22 @@ def moment(topography, alpha):
 
     Returns
     -------
-    moment : float or array
-        Root-mean square height.
+    moment : float
+        Moment of order `alpha` of the heights.
     """  # noqa: E501
     x, h = topography.positions_and_heights()
     dx = np.diff(x)
     if len(x) <= 1:
         return 0.0
     L = x[-1] - x[0]
-    return 1 / (alpha + 1) * np.sum(dx * (h[1:] ** (alpha + 1) - h[:-1] ** (alpha + 1)) / (h[1:] - h[:-1])) / L
+    # The quotient (h2^(alpha+1) - h1^(alpha+1)) / (h2 - h1) given in the
+    # docstring equals the complete homogeneous symmetric polynomial of
+    # degree alpha in h1 and h2. The polynomial form is exact for equal
+    # heights (where the quotient is 0/0, e.g. for quantized instrument
+    # data) and avoids cancellation for nearly equal heights.
+    h1, h2 = h[:-1], h[1:]
+    s = sum(h1 ** k * h2 ** (alpha - k) for k in range(alpha + 1))
+    return np.sum(dx * s) / ((alpha + 1) * L)
 
 
 def rms_height(self):
@@ -144,7 +151,7 @@ def rms_slope(self):
 
 def rms_curvature(self):
     r"""
-    Computes root-mean square slope fluctuation of the line scan:
+    Computes root-mean square curvature fluctuation of the line scan:
 
     Parameters
     ----------
@@ -153,8 +160,8 @@ def rms_curvature(self):
 
     Returns
     -------
-    rms_slope : float
-        Root-mean square slope.
+    rms_curvature : float
+        Root-mean square curvature.
     """
     x = self.positions()
     d2 = self.derivative(n=2)
@@ -168,9 +175,14 @@ def rms_curvature(self):
 NonuniformLineScanInterface.register_function(
     'mean', lambda self: _SurfaceTopography.nonuniform_mean(*self.positions_and_heights()))
 NonuniformLineScanInterface.register_function('moment', moment)
-NonuniformLineScanInterface.register_function('rms_height_from_profile', rms_height, deprecated=True)
+# Note: The `rms_*_from_profile` names are not marked as deprecated here
+# (although they used to carry an inactive `deprecated` flag): they are the
+# primary names of the corresponding uniform analysis functions, so
+# deprecating only the nonuniform variants would make generic code warn
+# depending on the data type it happens to operate on.
+NonuniformLineScanInterface.register_function('rms_height_from_profile', rms_height)
 NonuniformLineScanInterface.register_function('Rq', rms_height)
-NonuniformLineScanInterface.register_function('rms_slope_from_profile', rms_slope, deprecated=True)
+NonuniformLineScanInterface.register_function('rms_slope_from_profile', rms_slope)
 NonuniformLineScanInterface.register_function('Rdq', rms_slope)
-NonuniformLineScanInterface.register_function('rms_curvature_from_profile', rms_curvature, deprecated=True)
+NonuniformLineScanInterface.register_function('rms_curvature_from_profile', rms_curvature)
 NonuniformLineScanInterface.register_function('Rddq', rms_curvature)

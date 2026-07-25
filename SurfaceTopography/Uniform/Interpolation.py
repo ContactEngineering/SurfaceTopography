@@ -50,7 +50,10 @@ def interpolate_linear(self):
         if not periodic:
             if np.any(scaled_x < 0) or np.any(scaled_x > nx-1):
                 raise ValueError('Cannot interpolate outside of physical domain for nonperiodic line scans.')
-        int_x = np.array(scaled_x, dtype=int)
+        # Note: `floor` (not truncation towards zero) is required so that
+        # negative positions on periodic line scans interpolate rather than
+        # extrapolate
+        int_x = np.array(np.floor(scaled_x), dtype=int)
         frac_x = scaled_x - int_x
         return (1 - frac_x) * heights[int_x % nx] + frac_x * heights[(int_x + 1) % nx]
 
@@ -62,8 +65,11 @@ def interpolate_linear(self):
         if not periodic:
             if np.any(scaled_x < 0) or np.any(scaled_x > nx-1) or np.any(scaled_y < 0) or np.any(scaled_y > ny-1):
                 raise ValueError('Cannot interpolate outside of physical domain for nonperiodic topographies.')
-        int_x = np.array(scaled_x, dtype=int)
-        int_y = np.array(scaled_y, dtype=int)
+        # Note: `floor` (not truncation towards zero) is required so that
+        # negative positions on periodic topographies interpolate rather
+        # than extrapolate
+        int_x = np.array(np.floor(scaled_x), dtype=int)
+        int_y = np.array(np.floor(scaled_y), dtype=int)
         frac_x = scaled_x - int_x
         frac_y = scaled_y - int_y
 
@@ -164,7 +170,7 @@ def interpolate_bicubic(self, derivative='fourier'):
 
             interp_derxx = interp_derxx / dx ** 2
             interp_deryy = interp_deryy / dy ** 2
-            interp_derxy = interp_derxx / dx / dy
+            interp_derxy = interp_derxy / dx / dy
 
             return interp_field, interp_derx, interp_dery, interp_derxx, interp_deryy, interp_derxy
 
@@ -201,13 +207,17 @@ def interpolate_fourier(self, nb_grid_pts):
     # the entries at the nyquist frequency are the superposition of the
     # positive and negative frequency. When we increase the fourier domain, we
     # will split that again between positive and negative, therefore we divide
-    # the value by two and copy it to the corresponding negative vector
-    if ny % 2 == 0:
+    # the value by two and copy it to the corresponding negative vector.
+    # Note: this splitting must only happen in directions that are actually
+    # enlarged; if the grid size in a direction is unchanged, the entry
+    # remains the (folded) Nyquist entry of the output spectrum and halving
+    # it would corrupt the data.
+    if ny % 2 == 0 and nb_grid_pts[1] > ny:
         # the nyquist frequency also contains the symmetric and will be
         # twice too big when the symmetric will be included
         smallspectrum[:, -1] = smallspectrum[:, -1] / 2
 
-    if nx % 2 == 0:
+    if nx % 2 == 0 and nb_grid_pts[0] > nx:
         # the nyquist frequency also contains the symmetric and will be
         # twice too big when the symmetric will be included
         smallspectrum[int(nx / 2), :] = smallspectrum[int(nx / 2), :] / 2
@@ -223,7 +233,7 @@ def interpolate_fourier(self, nb_grid_pts):
     # To ensure the same behaviour in the x direction
     # (see test_fourier_interpolate_transpose_symmetry`)`
     # we have to mirror the entries at the niquist frequency by hand
-    if snx % 2 == 0:
+    if snx % 2 == 0 and nb_grid_pts[0] > nx:
         bigspectrum[i, :sny] = smallspectrum[i, :sny]
 
     return Topography(np.fft.irfft2(bigspectrum, s=nb_grid_pts)
@@ -240,6 +250,9 @@ class MirrorStichedTopography(DecoratedUniformTopography):
     """
 
     def __init__(self, parent_topography, info={}):
+        if parent_topography.dim != 2:
+            raise ValueError('Mirror stitching is only implemented for '
+                             'topographies (not line scans).')
         if parent_topography.communicator.Get_size() > 1:
             raise (NotImplementedError("MirrorStichedTopography "
                                        "not domain decomposable"))
@@ -257,6 +270,16 @@ class MirrorStichedTopography(DecoratedUniformTopography):
     def nb_grid_pts(self):
         return [2 * s for s in self.parent_topography.nb_grid_pts]
 
+    @property
+    def nb_subdomain_grid_pts(self):
+        # This class is serial only (see constructor); the subdomain is the
+        # full (mirrored) domain, not the parent's subdomain
+        return self.nb_grid_pts
+
+    @property
+    def subdomain_locations(self):
+        return (0, 0)
+
     def heights(self):
         h = self.parent_topography.heights()
         return np.block([[h[:, :], h[:, ::-1]],
@@ -264,15 +287,17 @@ class MirrorStichedTopography(DecoratedUniformTopography):
 
     def positions(self):
         nx, ny = self.nb_grid_pts
-        lnx, lny = self.nb_subdomain_grid_pts
         sx, sy = self.physical_sizes
-        return np.meshgrid(
-            (self.subdomain_locations[0] + np.arange(lnx)) * sx / nx,
-            (self.subdomain_locations[1] + np.arange(lny)) * sy / ny,
-            indexing='ij')
+        return np.meshgrid(np.arange(nx) * sx / nx,
+                           np.arange(ny) * sy / ny,
+                           indexing='ij')
 
 
-Topography.register_function("mirror_stitch", MirrorStichedTopography)
-Topography.register_function("interpolate_linear", interpolate_linear)
-Topography.register_function("interpolate_bicubic", interpolate_bicubic)
+# Note: these are registered on the interface (rather than on `Topography`)
+# because decorated topographies do not derive from `Topography`; the
+# 2D-only functions carry explicit dimension checks with clear error
+# messages for line scans
+UniformTopographyInterface.register_function("mirror_stitch", MirrorStichedTopography)
+UniformTopographyInterface.register_function("interpolate_linear", interpolate_linear)
+UniformTopographyInterface.register_function("interpolate_bicubic", interpolate_bicubic)
 UniformTopographyInterface.register_function('interpolate_fourier', interpolate_fourier)

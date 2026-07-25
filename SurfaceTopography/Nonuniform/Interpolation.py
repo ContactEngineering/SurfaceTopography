@@ -42,7 +42,7 @@ def interpolate_linear(self):
 
 def interpolate_cubic(self):
     r"""
-    Returns a linear interpolation function based on the topography's heights.
+    Returns a cubic interpolation function based on the topography's heights.
     """
     if self.is_reentrant:
         raise ReentrantDataError('This topography is reentrant (i.e. it contains overhangs). Interpolation is not '

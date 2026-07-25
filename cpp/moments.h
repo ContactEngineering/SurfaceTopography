@@ -32,11 +32,18 @@ template <int order>
 class _LineScanMoment {
 public:
     static double eval(double h1, double h2) {
-        if (std::abs(h2 - h1) < 1e-12) {
-            return 0;
+        /* (order+1) times the mean of h^order over a segment with linearly
+           interpolated end point heights h1 and h2. Analytically this is
+           (h2^(order+1) - h1^(order+1)) / (h2 - h1), which equals the
+           complete homogeneous symmetric polynomial of degree `order` in h1
+           and h2. The polynomial form is exact for equal heights (where the
+           quotient is 0/0) and does not suffer from cancellation for nearly
+           equal heights. */
+        double sum{0};
+        for (int k{0}; k <= order; k++) {
+            sum += std::pow(h1, k) * std::pow(h2, order - k);
         }
-        // This is the generic expression, but it has numerical issues when h1 and h2 are close to each other
-        return (std::pow(h2, order+1) - std::pow(h1, order+1)) / (h2 - h1);
+        return sum;
     }
 };
 
@@ -67,7 +74,7 @@ public:
 
 
 template <int order>
-double nonuniform_moment(Eigen::Ref<Eigen::ArrayXd> topography_x, Eigen::Ref<Eigen::ArrayXd> topography_h,
+double nonuniform_moment(Eigen::Ref<const Eigen::ArrayXd> topography_x, Eigen::Ref<const Eigen::ArrayXd> topography_h,
                          double ref_h) {
     if (topography_x.size() != topography_h.size()) {
         throw std::runtime_error("`topography_x` and `topography_h` must have the same size");
@@ -80,7 +87,7 @@ double nonuniform_moment(Eigen::Ref<Eigen::ArrayXd> topography_x, Eigen::Ref<Eig
     double moment{0};
 
     /* Compute moment */
-    for (int i{0}; i < topography_x.size()-1; i++) {
+    for (Eigen::Index i{0}; i < topography_x.size()-1; i++) {
         const double hi{topography_h(i) - ref_h}, hi1{topography_h(i+1) - ref_h};
         double dx = topography_x(i+1) - topography_x(i);
         moment += dx * _LineScanMoment<order>::eval(hi, hi1);
@@ -91,14 +98,15 @@ double nonuniform_moment(Eigen::Ref<Eigen::ArrayXd> topography_x, Eigen::Ref<Eig
 
 
 template <int order>
-double uniform1d_moment(Eigen::Ref<Eigen::ArrayXd> topography_h, bool periodic, double ref_h) {
+double uniform1d_moment(Eigen::Ref<const Eigen::ArrayXd> topography_h, bool periodic, double ref_h) {
     /* Accumulator for moment */
     double moment{0};
-    int physical_size{0};
+    /* Note: 64-bit counter; an `int` would overflow for large grids */
+    std::int64_t physical_size{0};
 
     /* Compute moment */
     const auto maxi{periodic ? topography_h.size() : topography_h.size()-1};
-    for (int i{0}; i < maxi; i++) {
+    for (Eigen::Index i{0}; i < maxi; i++) {
         const auto i1{i < topography_h.size()-1 ? i+1 : 0};
         const double hi{topography_h(i) - ref_h}, hi1{topography_h(i1) - ref_h};
         /* Check for NaNs and only add if there are no NaNs */
@@ -115,80 +123,45 @@ double uniform1d_moment(Eigen::Ref<Eigen::ArrayXd> topography_h, bool periodic, 
 template <int order>
 class _TriangleMoment {
 public:
-    static double eval(double h1_in, double h2_in, double h3_in) {
-        double h1{h1_in}, h2{h2_in}, h3{h3_in};
-
-        /* Sort h1, h2, h3 in ascending order */
-        if (h1 > h2)  std::swap(h1, h2);
-        if (h2 > h3)  std::swap(h2, h3);
-        if (h1 > h2)  std::swap(h1, h2);
-
-        /* Compute moment */
-        return ((std::pow(h2, order+2) - std::pow(h1, order+2)) / (h2 - h1) +
-                (std::pow(h3, order+2) - std::pow(h2, order+2)) / (h3 - h2)) / (order + 2) -
-               (h1*(std::pow(h2, order+1) - std::pow(h1, order+1)) / (h2 - h1) +
-                h3*(std::pow(h3, order+1) - std::pow(h2, order+1)) / (h3 - h2)) / (order + 1);
-    }
-};
-
-template <>
-class _TriangleMoment<1> {
-public:
     static double eval(double h1, double h2, double h3) {
-        /* Sort h1, h2, h3 in ascending order */
-        if (h1 > h2)  std::swap(h1, h2);
-        if (h2 > h3)  std::swap(h2, h3);
-        if (h1 > h2)  std::swap(h1, h2);
-
-        /* Compute moment */
-        return (4*h2*h2 - h1*h1 - h3*h3 - h1*h2 - h2*h3) / 6;
-    }
-};
-
-template <>
-class _TriangleMoment<2> {
-public:
-    static double eval(double h1, double h2, double h3) {
-        /* Sort h1, h2, h3 in ascending order */
-        if (h1 > h2)  std::swap(h1, h2);
-        if (h2 > h3)  std::swap(h2, h3);
-        if (h1 > h2)  std::swap(h1, h2);
-
-        /* Compute moment */
-        return (6*h2*h2*h2 - h1*h1*h1 - h3*h3*h3 - h1*h1*h2 - h1*h2*h2 - h2*h2*h3 - h2*h3*h3) / 12;
-    }
-};
-
-template <>
-class _TriangleMoment<3> {
-public:
-    static double eval(double h1, double h2, double h3) {
-        /* Sort h1, h2, h3 in ascending order */
-        if (h1 > h2)  std::swap(h1, h2);
-        if (h2 > h3)  std::swap(h2, h3);
-        if (h1 > h2)  std::swap(h1, h2);
-
-        /* Compute moment */
-        return (8*h2*h2*h2*h2 - h1*h1*h1*h1 - h3*h3*h3*h3 - h1*h1*h1*h2 - h1*h1*h2*h2 - h1*h2*h2*h2 - h2*h2*h2*h3 -
-                h2*h2*h3*h3 - h2*h3*h3*h3) / 20;
+        /* Mean of h^order over a triangle whose corner heights are h1, h2
+           and h3 (linear interpolation). Using the barycentric integral
+           formula
+               int_T l1^i l2^j l3^k dA = 2 A i! j! k! / (i+j+k+2)!
+           the mean evaluates to
+               <h^order> = 2 / ((order+1) (order+2)) * H_order(h1, h2, h3)
+           where H_order is the complete homogeneous symmetric polynomial of
+           degree `order`. This expression is exact, requires no sorting of
+           the corner heights and remains valid for degenerate (equal
+           height) corners. */
+        double sum{0};
+        for (int i{0}; i <= order; i++) {
+            for (int j{0}; j <= order - i; j++) {
+                sum += std::pow(h1, i) * std::pow(h2, j) * std::pow(h3, order - i - j);
+            }
+        }
+        return 2 * sum / ((order + 1) * (order + 2));
     }
 };
 
 
 template <int order>
-double uniform2d_moment(Eigen::Ref<RowMajorXXd> topography_h, bool periodic, double ref_h) {
+double uniform2d_moment(Eigen::Ref<const RowMajorXXd> topography_h, bool periodic, double ref_h) {
     /* Number of grid points for looping */
     const auto nx{periodic ? topography_h.rows() : topography_h.rows()-1};
     const auto ny{periodic ? topography_h.cols() : topography_h.cols()-1};
 
     /* Accumulator for moment */
     double moment{0};
-    int projected_area{0};
+    /* Note: 64-bit counter; an `int` would overflow at 2^31 triangles,
+       i.e. maps larger than 32768 x 32768 pixels */
+    std::int64_t projected_area{0};
 
-    /* Compute moment. Loop assumes column-major storage */
-    for (int x{0}; x < nx; x++) {
+    /* Compute moment. The inner loop runs over the last (fast) index of the
+       row-major storage. */
+    for (Eigen::Index x{0}; x < nx; x++) {
         const auto x1{x < topography_h.rows()-1 ? x+1 : 0};
-        for (int y{0}; y < ny; y++) {
+        for (Eigen::Index y{0}; y < ny; y++) {
             const auto y1{y < topography_h.cols()-1 ? y+1 : 0};
             const double h00{topography_h(x, y)};
             const double h10{topography_h(x1, y)};

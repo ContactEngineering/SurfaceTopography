@@ -49,24 +49,30 @@ on the physical size of the topography map as well as its units.
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
+        # Note: igor2 has no partial-read support, so the wave data is
+        # loaded here as well - but only the metadata is kept on the
+        # reader; the data itself is dropped when this method returns and
+        # loaded again in `topography()`. Readers are long-lived metadata
+        # handles and must not pin the full data in memory.
+        self._file_path = file_path
         with OpenFromAny(file_path, 'rb') as f:
             file = loadibw(f)
 
         if file['version'] != 5:
             raise RuntimeError('Only IBW version 5 is supported!')
 
-        self.data = file['wave']
+        data = file['wave']
 
         # the first two labels are of x and y axis. we cannot read those
         self._channel_names = [channel.decode() for channel in
-                               self.data['labels'][2][1:]]
+                               data['labels'][2][1:]]
         self._default_channel = 0
 
         #
         # Read physical sizes from file, since all data
         # has already been loaded, we can calculate it here
         #
-        height_data = self.data['wData']
+        height_data = data['wData']
 
         # TODO is it always like this?
         assert len(height_data.shape) == 3, \
@@ -89,9 +95,9 @@ on the physical size of the topography map as well as its units.
         def decode_unit_entry(u):
             return u.tobytes().partition(b'\0')[0].decode('latin-1')
 
-        data_unit = decode_unit_entry(self.data['wave_header']['dataUnits'])
-        x_unit = decode_unit_entry(self.data['wave_header']['dimUnits'][0])
-        y_unit = decode_unit_entry(self.data['wave_header']['dimUnits'][1])
+        data_unit = decode_unit_entry(data['wave_header']['dataUnits'])
+        x_unit = decode_unit_entry(data['wave_header']['dimUnits'][0])
+        y_unit = decode_unit_entry(data['wave_header']['dimUnits'][1])
 
         # the following is not necessary, we could handle different units by
         # rescaling, however I'll leave it like this for now, print some
@@ -112,7 +118,7 @@ on the physical size of the topography map as well as its units.
         #
         # Decode sizes
         #
-        sfA = self.data['wave_header']['sfA']
+        sfA = data['wave_header']['sfA']
         self._physical_sizes = (nx * sfA[0], ny * sfA[1])
         # Comment in C header file on these fields: Index value for element e
         # of dimension d = sfA[d]*e + sfB[d]. sfB is left out here, because we
@@ -123,7 +129,7 @@ on the physical size of the topography map as well as its units.
         #
         instrument_info = {"vendor": "Asylum Research"}
         try:
-            note = self.data["note"].decode("latin-1")
+            note = data["note"].decode("latin-1")
             for line in note.splitlines():
                 if ":" in line:
                     key, value = line.split(":", 1)
@@ -190,7 +196,9 @@ on the physical size of the topography map as well as its units.
             raise RuntimeError(
                 'This reader does not support MPI parallelization.')
 
-        height_data = self.data['wData']
+        # Load the data on demand; the reader itself only holds metadata
+        with OpenFromAny(self._file_path, 'rb') as f:
+            height_data = loadibw(f)['wave']['wData']
         height_data = np.fliplr(height_data[:, :, channel_index].copy())
 
         if physical_sizes is None:

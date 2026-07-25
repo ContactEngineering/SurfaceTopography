@@ -24,6 +24,7 @@
 
 import logging
 import re
+from array import array
 from collections import defaultdict
 
 import numpy as np
@@ -44,7 +45,7 @@ from ..UniformLineScanAndTopography import Topography, UniformLineScan
 from .common import OpenFromAny
 from .Reader import ChannelInfo, ReaderBase
 
-_log = logging.Logger(__name__)
+_log = logging.getLogger(__name__)
 
 
 def read_text_header_hfm(fobj, unit, height_scale_factor):
@@ -223,7 +224,9 @@ def read_csv(fobj, sep=None, usecols=None, skiprows=0):
     for i in range(skiprows):
         fobj.readline()
     line = fobj.readline()
-    data = defaultdict(list)
+    # Accumulate raw doubles (8 bytes per value); lists of Python floats
+    # would need roughly four times the memory during parsing
+    data = defaultdict(lambda: array('d'))
     min_cols = None
     nb_cols = None
     if usecols is not None:
@@ -251,11 +254,11 @@ def read_csv(fobj, sep=None, usecols=None, skiprows=0):
             if usecols is None:
                 # If no columns are given, we return all columns
                 for key, value in enumerate(line):
-                    data[key] += [float(value)]
+                    data[key].append(float(value))
             else:
                 # If columns are given by the user, only collect the data from those colums
                 for i, key in enumerate(usecols):
-                    data[key] += [float(line[i])]
+                    data[key].append(float(line[i]))
         line = fobj.readline()
         nb_lines += 1
     if usecols is None:

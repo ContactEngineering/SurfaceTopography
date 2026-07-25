@@ -64,8 +64,9 @@ def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2, xto
         used to compute the reliability cutoff.
     """
     lower, upper = self.bandwidth()
-    # We need to normalize the bracket search to avoid numerical issues
-    fac = np.exp((np.log(lower) + np.log(upper) / 2))
+    # We need to normalize the bracket search to avoid numerical issues;
+    # this is the geometric mean of the two bandwidth limits
+    fac = np.exp((np.log(lower) + np.log(upper)) / 2)
 
     target_curvature = fac * safety_factor / tip_radius
 

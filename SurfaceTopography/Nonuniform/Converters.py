@@ -56,7 +56,9 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
             automatically computed from the mean grid spacing and
             `nb_interpolate` if set to None. (Default: None)
         padding : int, optional
-            Number of padding grid points, zeros appended to the data.
+            Number of padding grid points appended to the data; they hold
+            the value of the final data point (np.interp clamps to the
+            boundary values).
             (Default: 0)
         nb_interpolate : int, optional
             Number of grid points to between closest points on surface.
@@ -73,7 +75,7 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
 
         # This is populated with functions from the nonuniform topography, but
         # this is a uniform topography
-        self._functions = UniformLineScan._functions
+        self._functions = UniformLineScan._all_functions()
 
     def _update_nb_points_and_pixel_size(self):
         """Automatically compute `nb_points` and `pixel_size` if it is None"""
@@ -161,8 +163,13 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
     def heights(self):
         """ Computes the rescaled profile.
         """
-        x = self.positions()
-        return np.interp(x, *self.parent_topography.positions_and_heights())
+        parent_x, parent_h = self.parent_topography.positions_and_heights()
+        # The uniform grid starts at zero, but the parent topography's
+        # x-coordinates may start anywhere; shift the interpolation points
+        # by the parent's origin. (np.interp clamps outside the data range,
+        # so without the shift most of the grid would be filled with the
+        # first or last height value.)
+        return np.interp(self.positions() + parent_x[0], parent_x, parent_h)
 
 
 # Register pipeline functions from this module

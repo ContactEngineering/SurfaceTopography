@@ -34,7 +34,7 @@ from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..Support.Regression import resample
 from .SurfaceContainer import SurfaceContainer
 
-_log = logging.Logger(__name__)
+_log = logging.getLogger(__name__)
 
 
 def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=True, progress_callback=None, **kwargs):

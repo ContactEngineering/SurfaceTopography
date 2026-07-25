@@ -81,6 +81,21 @@ class DownsampledUniformTopography(DecoratedUniformTopography):
     def nb_grid_pts(self):
         return tuple(n // f for n, f in zip(self.parent_topography.nb_grid_pts, self._factor))
 
+    @property
+    def physical_sizes(self):
+        # The downsampled grid has a pixel size of `factor` times the parent
+        # pixel size. If the downsampling factor does not divide the number
+        # of grid points, trailing points are discarded and the physical size
+        # shrinks accordingly. (The pixel size reported by the base class is
+        # physical_sizes / nb_grid_pts, which then remains consistent with
+        # the actual sample spacing.)
+        return tuple(
+            n * f * p
+            for n, f, p in zip(
+                self.nb_grid_pts, self._factor, self.parent_topography.pixel_size
+            )
+        )
+
     def heights(self):
         heights = self.parent_topography.heights()
         fx, fy = self._factor
@@ -226,7 +241,7 @@ class FourierFilteredUniformTopography(DecoratedUniformTopography):
     name = 'filtered_topography'
 
     def __init__(self, topography,
-                 filter_function=lambda qx, qy: (np.abs(qx) <= 1) * np.abs(qy) <= 1,
+                 filter_function=lambda q: q <= 1,
                  isotropic=True,
                  info={}):
 
@@ -271,9 +286,9 @@ class FourierFilteredUniformTopography(DecoratedUniformTopography):
 
         if self.dim == 2 and not self.is_filter_isotropic \
                 and len(args) != 2:
-            raise ("ValueError: qx, qy expected")
+            raise ValueError("qx, qy expected")
         elif self.dim == 1 and len(args) != 1:
-            raise ("ValueError: q expected")
+            raise ValueError("q expected")
 
         return self._filter_function(*args)
 

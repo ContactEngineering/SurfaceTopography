@@ -61,16 +61,24 @@ The original contact mechanics challenge data can be downloaded
         self._h5 = h5py.File(fobj, 'r')
         self._channels = []
         channel_index = 0
-        for name in self._h5:
-            if len(self._h5[name].shape) == 2:
+
+        def visit(name, node):
+            # Note: this visits groups as well as datasets; only
+            # two-dimensional datasets are candidate topographies. (Groups
+            # have no `shape`, and files containing them used to crash the
+            # reader.)
+            nonlocal channel_index
+            if isinstance(node, h5py.Dataset) and len(node.shape) == 2:
                 # This looks like a topography
                 self._channels += [ChannelInfo(self,
                                                channel_index,  # channel index
                                                name=name,
-                                               dim=len(self._h5[name].shape),
+                                               dim=len(node.shape),
                                                uniform=True,
-                                               nb_grid_pts=self._h5[name].shape)]
+                                               nb_grid_pts=node.shape)]
                 channel_index += 1
+
+        self._h5.visititems(visit)
 
     def close(self):
         if self._h5 is not None:

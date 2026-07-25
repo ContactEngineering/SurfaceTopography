@@ -137,33 +137,41 @@ class TestUniform1dMean:
 # =============================================================================
 # Tests for uniform2d_mean
 # =============================================================================
-# NOTE: uniform2d_mean uses triangle-based integration which computes moments
-# differently than simple averaging. For a constant surface at height h with
-# ref_h=0, the result is 0 (not h). These functions are not currently used
-# in the codebase but are tested for coverage.
+# uniform2d_mean uses triangle-based integration: each pixel is split into
+# two triangles over which the heights are interpolated linearly.
 
 class TestUniform2dMean:
     """Tests for uniform2d_mean function."""
 
-    def test_constant_topography_returns_zero(self):
-        """Constant topography with ref_h=0 returns 0 due to triangle integration."""
+    def test_constant_topography(self):
+        """Mean of a constant topography is that constant."""
         h = np.full((4, 4), 5.0)
 
-        # Triangle-based moment returns 0 for constant surface
         mean_periodic = cpp.uniform2d_mean(h, True)
         mean_nonperiodic = cpp.uniform2d_mean(h, False)
 
-        assert_allclose(mean_periodic, 0.0, atol=1e-10)
-        assert_allclose(mean_nonperiodic, 0.0, atol=1e-10)
+        assert_allclose(mean_periodic, 5.0, rtol=1e-10)
+        assert_allclose(mean_nonperiodic, 5.0, rtol=1e-10)
 
-    def test_varying_topography_nonzero(self):
-        """Varying topography should return non-zero moment."""
+    def test_linear_ramp(self):
+        """Mean of a linear (nonperiodic) ramp is the midpoint height."""
         h = np.array([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0], [2.0, 2.0, 2.0]])
 
         mean = cpp.uniform2d_mean(h, False)
 
-        # Should return some non-zero value for varying data
-        assert mean != 0.0
+        assert_allclose(mean, 1.0, rtol=1e-10)
+
+    def test_vs_numpy(self):
+        """
+        For periodic topographies every grid point is shared by exactly six
+        triangles, so the triangle-based mean equals np.mean exactly.
+        """
+        np.random.seed(42)
+        h = np.random.randn(64, 64)
+
+        mean = cpp.uniform2d_mean(h, True)
+
+        assert_allclose(mean, np.mean(h), atol=1e-10)
 
 
 # =============================================================================
@@ -236,6 +244,22 @@ class TestUniform2dVariance:
 
         assert_allclose(var, 0.0, atol=1e-10)
 
+    def test_terraced_variance(self):
+        """
+        Variance of a terraced +1/-1 surface (rows alternating) about its
+        mean. Within the linear interpolation, each pixel is a ramp from -1
+        to +1 (or constant), analogous to the 1D alternating case.
+        """
+        h = np.empty((4, 4))
+        h[0::2, :] = 1.0
+        h[1::2, :] = -1.0
+
+        var = cpp.uniform2d_variance(h, True, ref_h=0.0)
+
+        # Every triangle has corner heights (+1, -1, +1) up to sign;
+        # <h^2> = 2/12 * H_2(1, -1, 1) = 2/12 * (1+1+1-1+1-1) = 1/3
+        assert_allclose(var, 1.0 / 3.0, rtol=1e-10)
+
 
 # =============================================================================
 # Tests for 3rd moment functions
@@ -303,6 +327,41 @@ class TestMoment4:
 
         m4 = cpp.uniform1d_moment4(h, True, ref_h=0.0)
 
+        # Each segment ramps from -1 to +1; <h^4> = H_4(-1, 1)/5 = 1/5
+        assert_allclose(m4, 1.0 / 5.0, rtol=1e-10)
+
+    def test_uniform1d_moment4_flat_segments(self):
+        """
+        4th moment of a constant profile about a different reference; flat
+        segments must contribute their exact moment (the analytic quotient
+        is a removable 0/0 singularity here).
+        """
+        h = np.full(5, 2.0)
+
+        m4 = cpp.uniform1d_moment4(h, False, ref_h=0.0)
+
+        assert_allclose(m4, 16.0, rtol=1e-10)
+
+    def test_nonuniform_moment4_flat_segments(self):
+        """Same as above for the nonuniform variant."""
+        x = np.array([0.0, 1.0, 3.0])
+        h = np.array([5.0, 5.0, 5.0])
+
+        m4 = cpp.nonuniform_moment4(x, h, ref_h=0.0)
+
+        assert_allclose(m4, 625.0, rtol=1e-10)
+
+    def test_uniform2d_moment4_quantized_no_nan(self):
+        """
+        Quantized (rounded) height data produces many triangles with equal
+        corner heights; the moment must remain finite (no 0/0).
+        """
+        np.random.seed(42)
+        h = np.round(np.random.randn(16, 16))
+
+        m4 = cpp.uniform2d_moment4(h, True, ref_h=0.0)
+
+        assert np.isfinite(m4)
         assert m4 > 0
 
     def test_uniform2d_moment4_varying_positive(self):
@@ -351,14 +410,13 @@ class TestMomentsVsNumpy:
         # Should be close for smooth data
         assert_allclose(var_cpp, var_numpy, rtol=0.1)
 
-    def test_uniform2d_mean_constant_is_zero(self):
-        """uniform2d_mean of constant returns 0 due to triangle integration."""
+    def test_uniform2d_mean_constant(self):
+        """uniform2d_mean of a constant surface is that constant."""
         h = np.full((10, 10), 7.5)
 
         mean_cpp = cpp.uniform2d_mean(h, True)
 
-        # Triangle-based integration returns 0 for constant surfaces
-        assert_allclose(mean_cpp, 0.0, atol=1e-10)
+        assert_allclose(mean_cpp, 7.5, rtol=1e-10)
 
 
 # =============================================================================
@@ -393,9 +451,9 @@ class TestMomentsEdgeCases:
 
         mean = cpp.uniform2d_mean(h, False)
 
-        # Triangle-based integration returns non-zero for varying data
-        # Note: the exact value depends on triangle integration details
-        assert np.isfinite(mean)
+        # Two triangles with corner heights (0, 1, 1) and (1, 2, 1):
+        # means 2/3 and 4/3, average 1
+        assert_allclose(mean, 1.0, rtol=1e-10)
 
     def test_all_nan_uniform1d(self):
         """All NaN values should result in NaN or 0."""

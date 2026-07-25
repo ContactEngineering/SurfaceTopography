@@ -28,6 +28,7 @@ Helper functions to compute trends of surfaces
 """
 
 import numpy as np
+from numpy.polynomial import polynomial as npoly
 
 from SurfaceTopography.HeightContainer import NonuniformLineScanInterface
 from SurfaceTopography.NonuniformLineScan import DecoratedNonuniformTopography
@@ -75,17 +76,49 @@ def polyfit(self, deg):
         Array with coefficients :math:`a_k`.
     """  # noqa: E501
     x, h = self.positions_and_heights()
-    dx = np.diff(x)
+    # Solve the normal equations in coordinates centered on the scan:
+    # raw monomials x^k make the system ill-conditioned when the scan
+    # is short compared to its distance from x = 0. The coefficients
+    # are transformed back to monomials of the absolute position below.
+    x0 = (x[0] + x[-1]) / 2
+    xs = x - x0
+    dx = np.diff(xs)
     k = np.arange(deg + 1).reshape(-1, 1)
-    b = np.sum(((2 * h[:-1] + h[1:]) * x[:-1] ** k +
-                (2 * h[1:] + h[:-1]) * x[1:] ** k) * dx,
+    b = np.sum(((2 * h[:-1] + h[1:]) * xs[:-1] ** k +
+                (2 * h[1:] + h[:-1]) * xs[1:] ** k) * dx,
                axis=1)
     L = k.reshape(1, -1, 1)
     k = k.reshape(-1, 1, 1)
-    A = np.sum((2 * x[:-1] ** (k + L) + 2 * x[1:] ** (k + L) +
-                x[:-1] ** k * x[1:] ** L + x[1:] ** k * x[:-1] ** L) * dx,
+    A = np.sum((2 * xs[:-1] ** (k + L) + 2 * xs[1:] ** (k + L) +
+                xs[:-1] ** k * xs[1:] ** L + xs[1:] ** k * xs[:-1] ** L) * dx,
                axis=2)
-    return np.linalg.solve(A, b)
+    a = np.linalg.solve(A, b)
+    # Expand p(x) = sum_k a_k (x - x0)^k into monomial coefficients of x.
+    # (numpy's polypow trims trailing zeros, hence the copy into a
+    # fixed-size output array.)
+    p = np.zeros(deg + 1)
+    for n, a_n in enumerate(a):
+        term = a_n * npoly.polypow([-x0, 1.0], n)
+        p[:len(term)] += term
+    return p
+
+
+def _slope_detrend_coeffs(topography):
+    """
+    Compute the coefficients [a0, a1] that minimize the rms slope of the
+    detrended profile and center it around zero.
+
+    The constant slope that minimizes the rms slope is the length-weighted
+    mean of the derivative, i.e. (h(x_max) - h(x_min)) / (x_max - x_min).
+    (A plain mean over the per-segment slopes would weight each segment
+    equally, irrespective of its length.) The offset a0 removes the mean of
+    the tilt-corrected profile; note that the trend a0 + a1 x is evaluated
+    at the absolute positions x, which do not necessarily start at zero.
+    """
+    x, h = topography.positions_and_heights()
+    a1 = (h[-1] - h[0]) / (x[-1] - x[0])
+    a0 = topography.mean() - a1 * (x[0] + x[-1]) / 2
+    return [a0, a1]
 
 
 class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
@@ -104,7 +137,7 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
         # same as 'rms-tilt', deprecate 'height' in the future
         'height': lambda self: self.parent_topography.polyfit(1),
         'mad-tilt': lambda self: self.parent_topography.mad_polyfit(1),
-        'slope': lambda self: [self.parent_topography.mean(), self.parent_topography.derivative(1).mean()],
+        'slope': lambda self: _slope_detrend_coeffs(self.parent_topography),
         'rms-curvature': lambda self: self.parent_topography.polyfit(2),
         # same as 'rms-curvature', deprecate 'curvature' in the future
         'curvature': lambda self: self.parent_topography.polyfit(2),

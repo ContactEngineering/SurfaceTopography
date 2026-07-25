@@ -305,8 +305,13 @@ The reader supports V4.3 and later version of the format.
 
             fobj.seek(offset)
             rawdata = fobj.read(nx * ny * dtype.itemsize)
-            unscaleddata = np.frombuffer(rawdata, count=nx * ny, dtype=dtype).reshape(
-                nx, ny
+            # The data is stored line by line, i.e. the buffer has C-order
+            # shape (ny, nx). Transposing yields the (nx, ny) array with the
+            # x index first that `Topography` expects.
+            unscaleddata = (
+                np.frombuffer(rawdata, count=nx * ny, dtype=dtype)
+                .reshape(ny, nx)
+                .T
             )
 
         # internal information from file
@@ -323,7 +328,7 @@ The reader supports V4.3 and later version of the format.
         # with inverted y axis (cartesian coordinate system)
 
         surface = Topography(
-            np.fliplr(unscaleddata.T),
+            np.fliplr(unscaleddata),
             physical_sizes=(sx, sy),
             unit=channel.unit,
             info=_info,

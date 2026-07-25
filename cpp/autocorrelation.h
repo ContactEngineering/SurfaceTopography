@@ -39,9 +39,14 @@ SOFTWARE.
 #include <Eigen/Dense>
 
 std::tuple<Eigen::ArrayXd, Eigen::ArrayXd> nonuniform_autocorrelation(
-    Eigen::Ref<Eigen::ArrayXd> x,
-    Eigen::Ref<Eigen::ArrayXd> h,
+    Eigen::Ref<const Eigen::ArrayXd> x,
+    Eigen::Ref<const Eigen::ArrayXd> h,
     double physical_size,
-    std::optional<Eigen::Ref<Eigen::ArrayXd>> distances = std::nullopt);
+    std::optional<Eigen::Ref<const Eigen::ArrayXd>> distances = std::nullopt);
+
+Eigen::ArrayXd nonuniform_height_height_autocorrelation(
+    Eigen::Ref<const Eigen::ArrayXd> x,
+    Eigen::Ref<const Eigen::ArrayXd> h,
+    Eigen::Ref<const Eigen::ArrayXd> distances);
 
 #endif

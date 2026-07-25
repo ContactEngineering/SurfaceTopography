@@ -32,6 +32,34 @@ import numpy as np
 from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
 
 
+def _curvature_stencil(r, A):
+    r"""
+    Evaluate :math:`B(\lambda) = 8A(\lambda) - 2A(2\lambda)` from a sampled
+    autocorrelation function.
+
+    The autocorrelation may be sampled on an arbitrary (e.g. log-spaced or
+    reliability-trimmed) grid, so :math:`A` is evaluated by linear
+    interpolation. This is exact where :math:`2\lambda` falls onto a grid
+    point, in particular everywhere on a linearly spaced grid that starts
+    at zero.
+    """
+    valid = np.isfinite(r) & np.isfinite(A)
+    r = r[valid]
+    A = A[valid]
+    # We need A(2 lambda), i.e. we can only evaluate B up to half the
+    # largest sampled distance; distance zero is excluded because the
+    # curvature expression divides by lambda^2
+    mask = np.logical_and(r > 0, 2 * r <= r[-1])
+    rm = r[mask]
+    B = 8 * np.interp(rm, r, A) - 2 * np.interp(2 * rm, r, A)
+    # Truncate at the first negative value
+    nz = np.nonzero(B < 0)[0]
+    if len(nz) > 0:
+        rm = rm[:nz[0]]
+        B = B[:nz[0]]
+    return rm, B
+
+
 def scale_dependent_curvature_from_profile(topography, **kwargs):
     r"""
     Compute the one-dimensional scale-dependent curvature.
@@ -62,14 +90,8 @@ def scale_dependent_curvature_from_profile(topography, **kwargs):
         Curvature. (Units: 1/length)
     """  # noqa: E501
     r, A = topography.autocorrelation_from_profile(**kwargs)
-    n = (len(r) + 1) // 2
-    r = r[1:n]
-    B = 8 * A[1:n] - 2 * A[2::2]
-    nz = np.nonzero(B < 0)[0]
-    if len(nz) > 0:
-        n = nz[0]
-    # Important: The following expression relies on the fact that r is equally spaced!
-    return r[:n], np.sqrt(B[:n]) / r[:n] ** 2
+    r, B = _curvature_stencil(r, A)
+    return r, np.sqrt(B) / r ** 2
 
 
 def scale_dependent_curvature_from_area(topography, **kwargs):
@@ -102,14 +124,8 @@ def scale_dependent_curvature_from_area(topography, **kwargs):
         Curvature. (Units: 1/length)
     """  # noqa: E501
     r, A = topography.autocorrelation_from_area(**kwargs)
-    n = (len(r) + 1) // 2
-    r = r[1:n]
-    B = 8 * A[1:n] - 2 * A[2::2]
-    nz = np.nonzero(B < 0)[0]
-    if len(nz) > 0:
-        n = nz[0]
-    # Important: The following expression relies on the fact that r is equally spaced!
-    return 2 * r[:n], np.sqrt(B[:n]) / r[:n] ** 2
+    r, B = _curvature_stencil(r, A)
+    return 2 * r, np.sqrt(B) / r ** 2
 
 
 # Register analysis functions from this module

@@ -101,37 +101,42 @@ class InterpolateUndefinedDataHarmonic(DecoratedUniformTopography):
                 pixel_index[patch_mask] = np.arange(nb_patch)
                 pixel_index[perimeter_mask] = np.arange(nb_patch, nb_pixels)
 
-                # Assemble Laplace matrix; diagonal terms
-                i0 = np.arange(nb_patch)
-                j0 = np.arange(nb_patch)
-
-                # Off-diagonal terms
-                i1 = pixel_index[patch_mask]
-                j1 = np.roll(pixel_index, 1, 0)[patch_mask]
-                i2 = pixel_index[patch_mask]
-                j2 = np.roll(pixel_index, -1, 0)[patch_mask]
-
+                # Assemble Laplace matrix. Each patch pixel couples to its
+                # nearest neighbors; for nonperiodic topographies, stencil
+                # legs that cross the domain boundary must be dropped (and
+                # the diagonal reduced correspondingly, yielding a natural
+                # boundary condition). An unconditional `np.roll` would wrap
+                # around the boundary and couple edge pixels to unrelated
+                # pixels (whose `pixel_index` entry is zero, aliasing patch
+                # unknown #0).
+                legs = [(1, 0), (-1, 0)]
                 if dim == 2:
-                    i3 = pixel_index[patch_mask]
-                    j3 = np.roll(pixel_index, 1, 1)[patch_mask]
-                    i4 = pixel_index[patch_mask]
-                    j4 = np.roll(pixel_index, -1, 1)[patch_mask]
+                    legs += [(1, 1), (-1, 1)]
 
-                    # Laplace matrix from coordinates
-                    laplace = scipy.sparse.coo_matrix(
-                        (np.concatenate((-4 * np.ones(nb_patch), np.ones(nb_patch), np.ones(nb_patch),
-                                         np.ones(nb_patch), np.ones(nb_patch), np.ones(nb_perimeter))),
-                         (np.concatenate((i0, i1, i2, i3, i4, np.arange(nb_patch, nb_pixels))),
-                          np.concatenate((j0, j1, j2, j3, j4, np.arange(nb_patch, nb_pixels))))),
-                        shape=(nb_pixels, nb_pixels))
-                else:
-                    # Laplace matrix from coordinates
-                    laplace = scipy.sparse.coo_matrix(
-                        (np.concatenate((-2 * np.ones(nb_patch), np.ones(nb_patch), np.ones(nb_patch),
-                                         np.ones(nb_perimeter))),
-                         (np.concatenate((i0, i1, i2, np.arange(nb_patch, nb_pixels))),
-                          np.concatenate((j0, j1, j2, np.arange(nb_patch, nb_pixels))))),
-                        shape=(nb_pixels, nb_pixels))
+                diagonal = np.zeros(nb_patch)
+                rows = []
+                cols = []
+                for shift, axis in legs:
+                    neighbor = np.roll(pixel_index, shift, axis)
+                    valid = np.ones_like(patch_mask)
+                    if not self.is_periodic:
+                        # `np.roll(a, 1)[p]` is the neighbor a[p - 1], so
+                        # for shift == 1 the wrapped (invalid) entries are
+                        # at the low edge of the axis, and at the high edge
+                        # for shift == -1
+                        edge = [slice(None)] * dim
+                        edge[axis] = 0 if shift == 1 else -1
+                        valid[tuple(edge)] = False
+                    sel = np.logical_and(patch_mask, valid)
+                    rows += [pixel_index[sel]]
+                    cols += [neighbor[sel]]
+                    diagonal[pixel_index[sel]] -= 1
+
+                laplace = scipy.sparse.coo_matrix(
+                    (np.concatenate([diagonal] + [np.ones(len(r)) for r in rows] + [np.ones(nb_perimeter)]),
+                     (np.concatenate([np.arange(nb_patch)] + rows + [np.arange(nb_patch, nb_pixels)]),
+                      np.concatenate([np.arange(nb_patch)] + cols + [np.arange(nb_patch, nb_pixels)]))),
+                    shape=(nb_pixels, nb_pixels))
 
                 # Dirichlet boundary conditions (heights on perimeter)
                 rhs = np.zeros(nb_pixels)

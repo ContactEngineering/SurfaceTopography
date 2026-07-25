@@ -73,6 +73,62 @@ from .binary import BinaryStructure, RawBuffer, TextBuffer, TLVContainer
 from .common import OpenFromAny
 from .Reader import ChannelInfo, ReaderBase, Skip
 
+# Chunk size for incremental decompression during the block scan
+_ZLIB_SCAN_CHUNK = 1 << 16
+
+
+def _measure_zlib_stream(buf, start):
+    """
+    Check whether a valid zlib stream starts at position `start` of the
+    buffer and measure it without keeping the decompressed data.
+
+    Parameters
+    ----------
+    buf : memoryview
+        Buffer to scan (a memoryview, so that chunking does not copy).
+    start : int
+        Candidate start position of the stream.
+
+    Returns
+    -------
+    decompressed_size : int
+        Size of the decompressed stream, 0 if there is no valid stream.
+    consumed : int
+        Number of compressed bytes belonging to the stream, 0 if there is
+        no valid stream.
+    """
+    decompressor = zlib.decompressobj()
+    decompressed_size = 0
+    pos = start
+    nb_bytes = len(buf)
+    try:
+        while pos < nb_bytes:
+            chunk = buf[pos:pos + _ZLIB_SCAN_CHUNK]
+            decompressed_size += len(decompressor.decompress(chunk))
+            pos += len(chunk)
+            if decompressor.eof:
+                return decompressed_size, pos - start - len(decompressor.unused_data)
+    except zlib.error:
+        pass
+    # Ran out of data before the stream ended, or not a valid stream
+    return 0, 0
+
+
+def _decompress_zlib_stream(buf, start):
+    """Decompress the single zlib stream starting at `start`, ignoring any
+    data following it. (Chunked, so that the data trailing the stream is
+    not copied into the decompressor's `unused_data`.)"""
+    decompressor = zlib.decompressobj()
+    out = []
+    pos = start
+    nb_bytes = len(buf)
+    view = memoryview(buf)
+    while pos < nb_bytes and not decompressor.eof:
+        chunk = view[pos:pos + _ZLIB_SCAN_CHUNK]
+        out.append(decompressor.decompress(chunk))
+        pos += len(chunk)
+    return b"".join(out)
+
 
 class MNTReader(ReaderBase):
     _format = "mnt"
@@ -717,7 +773,16 @@ and compressed height data.
         #   Bytes 12-15: uint32 LE - Compressed size
         # Note: MNT files may have multiple sections of zlib blocks separated
         # by TLV structure, so we scan all blocks rather than chaining.
+        # The scan feeds candidate streams chunk-wise through a decompress
+        # object over a memoryview: slicing the raw buffer at every
+        # candidate position (`compressed_blocks_raw[i:]`) would copy the
+        # remaining buffer for each attempt, and a full `zlib.decompress`
+        # would hold the decompressed data, which is only needed in
+        # `topography()`. Only the block positions and sizes are recorded
+        # here; nothing is decompressed twice on the happy path because the
+        # scan skips past each accepted stream.
         zlib_blocks = []
+        raw_view = memoryview(compressed_blocks_raw)
         i = 0
         while i < len(compressed_blocks_raw) - 2:
             # Check for zlib header bytes
@@ -727,29 +792,31 @@ and compressed height data.
                 0x9C,
                 0xDA,
             ]:
-                try:
-                    decompressed = zlib.decompress(compressed_blocks_raw[i:])
-                    if len(decompressed) >= 1000:  # Only substantial blocks
-                        # Extract block prefix information
-                        element_offset = 0
-                        elements_per_block = 0
-                        if i >= 16:
-                            prefix = compressed_blocks_raw[i - 16:i]
-                            element_offset = struct.unpack("<Q", prefix[0:8])[0]
-                            elements_per_block = struct.unpack("<I", prefix[8:12])[0]
-                        # Filter out false positives (invalid prefix values)
-                        if elements_per_block < 1000000:
-                            zlib_blocks.append(
-                                {
-                                    "pos": i,
-                                    "size": len(decompressed),
-                                    "data": decompressed,
-                                    "element_offset": element_offset,
-                                    "elements_per_block": elements_per_block,
-                                }
-                            )
-                except zlib.error:
-                    pass
+                decompressed_size, consumed = _measure_zlib_stream(raw_view, i)
+                if decompressed_size >= 1000:  # Only substantial blocks
+                    # Extract block prefix information
+                    element_offset = 0
+                    elements_per_block = 0
+                    if i >= 16:
+                        prefix = compressed_blocks_raw[i - 16:i]
+                        element_offset = struct.unpack("<Q", prefix[0:8])[0]
+                        elements_per_block = struct.unpack("<I", prefix[8:12])[0]
+                    # Filter out false positives (invalid prefix values)
+                    if elements_per_block < 1000000:
+                        zlib_blocks.append(
+                            {
+                                "pos": i,
+                                "size": decompressed_size,
+                                "element_offset": element_offset,
+                                "elements_per_block": elements_per_block,
+                            }
+                        )
+                        # Continue scanning after this stream; scanning
+                        # byte-by-byte through the compressed payload would
+                        # attempt decompression at every spurious two-byte
+                        # magic within it
+                        i += consumed
+                        continue
             i += 1
 
         if not zlib_blocks:
@@ -779,9 +846,12 @@ and compressed height data.
             ole.close()
             raise CorruptFile("Could not extract image dimensions from MNT file")
 
-        # Store metadata for later use
-        self._ole_data = file_data
-        self._zlib_blocks = [(b["pos"], b["data"]) for b in height_blocks]
+        # Store metadata for later use. Only the block positions are kept;
+        # the blocks are decompressed on demand in `topography()`. (The raw
+        # compressed buffer is a reference into `self._metadata`, which the
+        # reader holds anyway.)
+        self._compressed_blocks_raw = compressed_blocks_raw
+        self._zlib_block_positions = [b["pos"] for b in height_blocks]
         self._nx = nx
         self._ny = ny
 
@@ -914,8 +984,12 @@ and compressed height data.
         channel = self._channels[channel_index]
         nx, ny = channel.nb_grid_pts
 
-        # Combine all blocks (already sorted by element_offset)
-        combined_data = b"".join(data for pos, data in self._zlib_blocks)
+        # Decompress and combine all blocks (positions are already sorted by
+        # element_offset); the reader itself only stores the block positions
+        combined_data = b"".join(
+            _decompress_zlib_stream(self._compressed_blocks_raw, pos)
+            for pos in self._zlib_block_positions
+        )
 
         # Height data is stored as int32 values
         arr_i32 = np.frombuffer(combined_data, dtype="<i4")

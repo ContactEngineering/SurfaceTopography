@@ -25,9 +25,15 @@ SOFTWARE.
 #ifndef __EIGEN_HELPER_H
 #define __EIGEN_HELPER_H
 
+#include <cstdint>
+
 #include <Eigen/Dense>
 
-using ArrayXl = Eigen::Array<long, Eigen::Dynamic, 1>;
+/* Note: This must be a fixed-width 64-bit integer to match the int64 arrays
+   (e.g. from np.argsort) passed from the Python side; `long` is 32 bits on
+   Windows (LLP64), where a plain-long array type would make every binding
+   taking an ArrayXl reject its arguments. */
+using ArrayXl = Eigen::Array<std::int64_t, Eigen::Dynamic, 1>;
 using RowMajorXXd = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 using RowMajorXXi = Eigen::Array<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 using RowMajorXXb = Eigen::Array<bool, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;

@@ -165,6 +165,43 @@ def test_detrend_slope(file_format_examples):
     assert not t.detrend("slope").is_periodic
 
 
+def test_detrend_slope_coefficients():
+    # The rms-slope-minimizing constant slope is the *length-weighted* mean
+    # of the derivative, i.e. (h[-1] - h[0]) / L, and the offset must remove
+    # the mean of the tilt-corrected profile
+    t = NonuniformLineScan(x=[0.0, 1.0, 10.0], y=[0.0, 1.0, 1.0])
+    d = t.detrend("slope")
+    a0, a1 = d.coeffs
+    np.testing.assert_allclose(a1, 0.1)
+    np.testing.assert_allclose(d.mean(), 0, atol=1e-15)
+
+
+def test_detrend_slope_origin_invariance():
+    # Detrending must not depend on where the x-axis starts
+    x = np.array([0.0, 1.3, 2.4, 3.5, 4.8, 6.0])
+    h = np.array([1.0, -0.5, 2.0, 0.7, -1.2, 0.3])
+    for mode in ["center", "height", "slope", "curvature"]:
+        r0 = NonuniformLineScan(x, h).detrend(mode).rms_height_from_profile()
+        r5 = NonuniformLineScan(x + 5.0, h).detrend(mode).rms_height_from_profile()
+        np.testing.assert_allclose(r0, r5, err_msg=f"mode {mode}")
+
+
+def test_to_uniform_offset_origin():
+    # The uniform grid starts at zero; the parent scan may start anywhere.
+    # The interpolation must be shifted by the parent's origin, otherwise
+    # np.interp clamps and fills the grid with the boundary values.
+    x = np.array([5.0, 6.0, 7.0, 8.0])
+    h = np.array([1.0, 2.0, 3.0, 4.0])
+    u = NonuniformLineScan(x, h).to_uniform(nb_points=4, padding=0)
+    np.testing.assert_allclose(u.heights(), h)
+    # PSD of the interpolated scan must not depend on the x origin
+    t0 = NonuniformLineScan(x - 5.0, h)
+    t5 = NonuniformLineScan(x, h)
+    q0, C0 = t0.power_spectrum_from_profile(reliable=False)
+    q5, C5 = t5.power_spectrum_from_profile(reliable=False)
+    np.testing.assert_allclose(C0, C5)
+
+
 def test_detrend_curvature(file_format_examples):
     t = XYZReader(os.path.join(file_format_examples, "xy-1.txt")).topography()
     assert not t.detrend("curvature").is_periodic

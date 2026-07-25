@@ -95,15 +95,27 @@ class Bicubic {
   bool has_derivativex_, has_derivativey_;
   Eigen::ArrayXd derivativex_, derivativey_;
 
-  /* spline coefficients */
-  Eigen::Array<double, NPARA, Eigen::Dynamic> coeff_;
+  /* spline coefficients of the most recently used cell. Coefficients are
+     computed on demand: storing them for all cells requires 16 doubles
+     (128 bytes) per pixel, more than 2 GB for a 4096 x 4096 map. Query
+     points typically arrive ordered, so consecutive evaluations hit the
+     same cell and the single-cell cache amortizes the recomputation. */
+  ptrdiff_t cached_cell_;
+  Eigen::Matrix<double, NPARA, 1> cached_coeff_;
 
   /* lhs matrix */
   Eigen::Matrix<double, NPARA, NPARA> A_;
 
-  Eigen::Array<double, NPARA, 1>
+  const Eigen::Matrix<double, NPARA, 1> &
   get_spline_coefficients(int i1, int i2) {
-    return this->coeff_.col(_row_major(i1, i2, this->n1_, this->n2_));
+    ptrdiff_t cell = _row_major(i1, i2, this->n1_, this->n2_);
+    if (cell != this->cached_cell_) {
+      this->cached_coeff_ = compute_spline_coefficients(
+          i1, i2, this->values_, this->has_derivativex_, this->derivativex_,
+          this->has_derivativey_, this->derivativey_);
+      this->cached_cell_ = cell;
+    }
+    return this->cached_coeff_;
   }
 
   Eigen::Matrix<double, NPARA, 1>

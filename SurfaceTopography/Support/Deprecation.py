@@ -44,7 +44,10 @@ def deprecated(version=None, alternative=None):
 
         @wraps(func)
         def deprecated_func(*args, **kwargs):
-            warnings.warn(_get_warn_str(version, alternative), DeprecationWarning)
+            # stacklevel=2 attributes the warning to the caller rather than
+            # to this wrapper
+            warnings.warn(_get_warn_str(version, alternative), DeprecationWarning,
+                          stacklevel=2)
             return func(*args, **kwargs)
 
         docstring = deprecated_func.__doc__ or ""

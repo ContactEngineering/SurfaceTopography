@@ -26,6 +26,8 @@
 import abc
 from functools import update_wrapper
 
+from ..Support.Deprecation import deprecated as deprecation_warning
+
 
 class SurfaceContainer(metaclass=abc.ABCMeta):
     """A list of topographies"""
@@ -40,31 +42,48 @@ class SurfaceContainer(metaclass=abc.ABCMeta):
     def __getitem__(self, item):
         raise NotImplementedError
 
+    def _function_registry(self):
+        """
+        Return the merged dictionary of functions registered on this class
+        and its bases. See `AbstractTopography._function_registry`.
+        """
+        functions = {}
+        for klass in reversed(type(self).__mro__):
+            functions.update(klass.__dict__.get('_functions', {}))
+        return functions
+
     def apply(self, name, *args, **kwargs):
-        self._functions[name](self, *args, **kwargs)
+        return self._function_registry()[name](self, *args, **kwargs)
 
     def __getattr__(self, name):
-        if name in self._functions:
+        functions = self._function_registry()
+        if name in functions:
 
             def func(*args, **kwargs):
-                return self._functions[name](self, *args, **kwargs)
+                return functions[name](self, *args, **kwargs)
 
-            update_wrapper(func, self._functions[name])
+            update_wrapper(func, functions[name])
             return func
         else:
             raise AttributeError(
                 "Unkown attribute '{}' and no analysis or pipeline function of this name registered"
                 "(class {}). Available functions: {}".format(
-                    name, self.__class__.__name__, ", ".join(self._functions.keys())
+                    name, self.__class__.__name__, ", ".join(functions.keys())
                 )
             )
 
     def __dir__(self):
-        return sorted(super().__dir__() + [*self._functions])
+        return sorted(super().__dir__() + [*self._function_registry()])
 
     @classmethod
-    def register_function(cls, name, function):
-        cls._functions.update({name: function})
+    def register_function(cls, name, function, deprecated=False):
+        if deprecated:
+            function = deprecation_warning()(function)
+        if '_functions' not in cls.__dict__:
+            # Copy on write: registering on a subclass must not leak into
+            # the shared base-class registry
+            cls._functions = {}
+        cls._functions[name] = function
 
 
 class InMemorySurfaceContainer(SurfaceContainer):

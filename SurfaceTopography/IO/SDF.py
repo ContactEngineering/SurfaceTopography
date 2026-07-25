@@ -102,14 +102,21 @@ def _parse_ascii_header(content):
     return header
 
 
-def _read_ascii_data(data_section, num_points, num_profiles, z_scale):
+def _read_ascii_data(data_section, num_points, num_profiles, z_scale, data_type):
     """Parse the ASCII data section."""
     # Replace BAD markers with NaN
     data_section = data_section.replace("BAD", "NAN")
 
     # Parse data
-    data = np.fromstring(data_section, sep=" ", dtype=np.float64)
+    data = np.array(data_section.split(), dtype=np.float64)
     data = data.reshape(num_profiles, num_points)
+
+    # ASCII files with an integer DataType may also mark invalid points
+    # with the same numeric marker as the binary variant
+    invalid_value = INVALID_VALUE_MAP[data_type]
+    if not np.isnan(invalid_value):
+        data[data == invalid_value] = np.nan
+
     data *= z_scale
 
     return data
@@ -309,7 +316,7 @@ Both ASCII and binary variants are supported.
             data *= z_scale
         else:
             # Parse ASCII data
-            data = _read_ascii_data(self._data_section, nx, ny, z_scale)
+            data = _read_ascii_data(self._data_section, nx, ny, z_scale, data_type)
 
         # Transpose to get (nx, ny) ordering
         data = data.T

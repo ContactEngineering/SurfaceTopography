@@ -57,7 +57,7 @@ class WrapAsNonuniformLineScan(DecoratedNonuniformTopography):
 
         # This is populated with functions from the nonuniform topography, but
         # this is a uniform topography
-        self._functions = NonuniformLineScan._functions
+        self._functions = NonuniformLineScan._all_functions()
 
     # Implement abstract methods of AbstractHeightContainer
 
