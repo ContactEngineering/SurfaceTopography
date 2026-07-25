@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 1.22.0.dev12+gded236ae documentation</title>
+  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 1.22.0.dev36+gc7e1e56c documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=a3e52e9f"></script>
+      <script src="../_static/documentation_options.js?v=39b8062b"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
@@ -406,7 +406,9 @@ nonuniform scan.</p>
 <li><p><strong>nb_points</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of equidistant grid points. Number of points will be
 automatically computed from the mean grid spacing and
 <cite>nb_interpolate</cite> if set to None. (Default: None)</p></li>
-<li><p><strong>padding</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of padding grid points, zeros appended to the data.
+<li><p><strong>padding</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of padding grid points appended to the data; they hold
+the value of the final data point (np.interp clamps to the
+boundary values).
 (Default: 0)</p></li>
 <li><p><strong>nb_interpolate</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of grid points to between closest points on surface.
 (Default: None)</p></li>
@@ -642,7 +644,7 @@ Otherwise the detrended SurfaceTopography is non-periodic.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Interpolation.interpolate_cubic">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.Interpolation.</span></span><span class="sig-name descname"><span class="pre">interpolate_cubic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Interpolation.interpolate_cubic" title="Link to this definition"></a></dt>
-<dd><p>Returns a linear interpolation function based on the topography’s heights.</p>
+<dd><p>Returns a cubic interpolation function based on the topography’s heights.</p>
 </dd></dl>
 
 </section>
@@ -786,10 +788,10 @@ and point <span class="math notranslate nohighlight">\(i+1\)</span> contributes<
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>moment</strong> – Root-mean square height.</p>
+<dd class="field-even"><p><strong>moment</strong> – Moment of order <cite>alpha</cite> of the heights.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>float or array</p>
+<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -847,13 +849,13 @@ The piece-wise linear section between point <span class="math notranslate nohigh
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.ScalarParameters.rms_curvature">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_curvature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.ScalarParameters.rms_curvature" title="Link to this definition"></a></dt>
-<dd><p>Computes root-mean square slope fluctuation of the line scan:</p>
+<dd><p>Computes root-mean square curvature fluctuation of the line scan:</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>rms_slope</strong> – Root-mean square slope.</p>
+<dd class="field-even"><p><strong>rms_curvature</strong> – Root-mean square curvature.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>float</p>
@@ -879,8 +881,10 @@ bandwidth analysis of the surface.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
 <li><p><strong>subdivisions</strong> (<em>int</em>) – Number of subdivisions.</p></li>
-<li><p><strong>tol</strong> (<em>float</em>) – Tolerance for searching for existing data points at domain boundaries.
-(Default: 1e-6)</p></li>
+<li><p><strong>tol</strong> (<em>float</em>) – Tolerance for searching for existing data points at domain
+boundaries, relative to the width of a subdivision. (An absolute
+tolerance would silently misbehave depending on the length unit of
+the position data.) (Default: 1e-6)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -976,7 +980,7 @@ positions. (Default: False)</p></li>
 </section>
 <section id="module-SurfaceTopography.Nonuniform">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-SurfaceTopography.Nonuniform" title="Link to this heading"></a></h2>
-<p>Module containing all functions operating on uniform topographies</p>
+<p>Module containing all functions operating on nonuniform topographies</p>
 </section>
 </section>
 

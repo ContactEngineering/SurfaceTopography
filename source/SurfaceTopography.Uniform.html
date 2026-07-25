@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.22.0.dev12+gded236ae documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.22.0.dev36+gc7e1e56c documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=a3e52e9f"></script>
+      <script src="../_static/documentation_options.js?v=39b8062b"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
@@ -184,6 +184,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography"><code class="docutils literal notranslate"><span class="pre">DownsampledUniformTopography</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.__init__"><code class="docutils literal notranslate"><span class="pre">DownsampledUniformTopography.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.nb_grid_pts"><code class="docutils literal notranslate"><span class="pre">DownsampledUniformTopography.nb_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.physical_sizes"><code class="docutils literal notranslate"><span class="pre">DownsampledUniformTopography.physical_sizes</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.heights"><code class="docutils literal notranslate"><span class="pre">DownsampledUniformTopography.heights()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.positions"><code class="docutils literal notranslate"><span class="pre">DownsampledUniformTopography.positions()</span></code></a></li>
 </ul>
@@ -254,6 +255,8 @@
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.is_periodic"><code class="docutils literal notranslate"><span class="pre">MirrorStichedTopography.is_periodic</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.physical_sizes"><code class="docutils literal notranslate"><span class="pre">MirrorStichedTopography.physical_sizes</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.nb_grid_pts"><code class="docutils literal notranslate"><span class="pre">MirrorStichedTopography.nb_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.nb_subdomain_grid_pts"><code class="docutils literal notranslate"><span class="pre">MirrorStichedTopography.nb_subdomain_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.subdomain_locations"><code class="docutils literal notranslate"><span class="pre">MirrorStichedTopography.subdomain_locations</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.heights"><code class="docutils literal notranslate"><span class="pre">MirrorStichedTopography.heights()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.positions"><code class="docutils literal notranslate"><span class="pre">MirrorStichedTopography.positions()</span></code></a></li>
 </ul>
@@ -770,8 +773,9 @@ arguments for progress reporting. (Default: None)</p></li>
 unity (line scan), then an array of the same shape as the
 topography is returned. Otherwise, the first array index contains
 the direction of the derivative. If the topgography is nonperiodic,
-then all returning array with have shape one less than the input
-arrays.</p>
+then the returned arrays are trimmed at the boundary where the
+derivative stencil sticks out of the data region; the number of
+trimmed points is the stencil extent times the scale factor.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>array or tuple of arrays</p>
@@ -831,8 +835,9 @@ computing the derivative. (Default: None)</p></li>
 unity (line scan), then an array of the same shape as the
 topography is returned. Otherwise, the first array index contains
 the direction of the derivative. If the topgography is nonperiodic,
-then all returning array with have shape one less than the input
-arrays.</p>
+then the returned arrays are trimmed at the boundary where the
+derivative stencil sticks out of the data region; the number of
+trimmed points is the stencil extent times the scale factor.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>array or tuple of arrays</p>
@@ -910,7 +915,7 @@ surface.</p>
 <h3>Returns:<a class="headerlink" href="#returns" title="Link to this heading"></a></h3>
 <p>coeffs [, location_matrix (if full_output)]</p>
 <p>coeffs ordered as follows</p>
-<p>{5} + {0} x + {1} y + {2} x^2 + {3} y^2 + {4} xy</p>
+<p>{0} + {1} x + {2} y + {3} x^2 + {4} y^2 + {5} xy</p>
 </section>
 </dd></dl>
 
@@ -1033,6 +1038,12 @@ the average over n x n patches. (Default: ‘nth’)</p></li>
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.nb_grid_pts">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nb_grid_pts</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.nb_grid_pts" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.physical_sizes">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">physical_sizes</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.physical_sizes" title="Link to this definition"></a></dt>
+<dd><p>Return the physical sizes of the topography.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.heights">
@@ -1401,7 +1412,7 @@ typically occurs in optical measurements.</p>
 <dd><p>Computes the integral of the 1D PSD weighted by “factor”</p>
 <p>Continuum:</p>
 <div class="math notranslate nohighlight">
-\[\frac{1}{2 \pi} \int_0^\infty dq_x factor(q_x) C^{1D}(q_x)\]</div>
+\[\frac{1}{2 \pi} \int_{-\infty}^\infty dq_x factor(q_x) C^{1D}(q_x)\]</div>
 <p>Discrete</p>
 <div class="math notranslate nohighlight">
 \[m_\alpha = \frac{1}{L_x} \sum_{q_x} factor(q_x) C^{1D}_{q_x}\]</div>
@@ -1443,7 +1454,7 @@ typically occurs in optical measurements.</p>
 </div></blockquote>
 <p>For line scans, continuum:</p>
 <div class="math notranslate nohighlight">
-\[\frac{1}{2 \pi} \int_0^\infty dq_x |q|^{\alpha} C^{1D}(q_x)\]</div>
+\[\frac{1}{2 \pi} \int_{-\infty}^\infty dq_x |q|^{\alpha} C^{1D}(q_x)\]</div>
 <p>Discrete</p>
 <div class="math notranslate nohighlight">
 \[m_\alpha = \frac{1}{L_x} \sum_{q_x} |q|^{\alpha} C^{1D}_{q_x}\]</div>
@@ -1543,6 +1554,18 @@ boundaries.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.nb_grid_pts">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nb_grid_pts</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.nb_grid_pts" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.nb_subdomain_grid_pts">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nb_subdomain_grid_pts</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.nb_subdomain_grid_pts" title="Link to this definition"></a></dt>
+<dd><p>needs to be testable to make sure that geometry and halfspace are
+compatible</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.subdomain_locations">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">subdomain_locations</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.subdomain_locations" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1913,9 +1936,12 @@ set to False, since the alignment process breaks periodicity.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a>) – 2D topography to align.</p></li>
-<li><p><strong>direction</strong> (<em>str</em><em>, </em><em>optional</em>) – Scan line direction: ‘x’ (rows, default) or ‘y’ (columns).
-‘x’ means each row is a scan line (fast scan in x-direction).
-For AFM, ‘x’ is typically the fast scan direction.</p></li>
+<li><p><strong>direction</strong> (<em>str</em><em>, </em><em>optional</em>) – Direction along which the scan lines run: ‘x’ (default) or ‘y’.
+‘x’ means each scan line runs along the x direction (fast scan
+in x), i.e. each line has constant y. For AFM, ‘x’ is typically
+the fast scan direction. Note that the first index of the height
+array is the x index in this library, so scan lines along x are
+<em>columns</em> of the height array.</p></li>
 <li><p><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Method for computing line centers during alignment:
 - ‘median’: Use median for robust offset alignment (default).</p>
 <blockquote>
@@ -2094,7 +2120,7 @@ stand for specific quantity. Possible quantities are</p>
 <li><p>’m’: Magnification (Unit: dimensionless)</p></li>
 <li><p>’b’: Bandwidth (Unit: length)</p></li>
 <li><p>’h’: Statistical property (Unit: default length, see func)</p></li>
-<li><p>’s’: RMS detrending slope (Unit: dimensionless)</p></li>
+<li><p>’g’: RMS detrending slope/gradient (Unit: dimensionless)</p></li>
 </ul>
 </div></blockquote>
 <p>For example, ‘mbh’ return a tuple with the three entries

@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Container.IO package &mdash; SurfaceTopography 1.22.0.dev12+gded236ae documentation</title>
+  <title>SurfaceTopography.Container.IO package &mdash; SurfaceTopography 1.22.0.dev36+gc7e1e56c documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=a3e52e9f"></script>
+      <script src="../_static/documentation_options.js?v=39b8062b"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -326,6 +326,22 @@ contains a list of topographies.</p>
 <section id="module-SurfaceTopography.Container.IO.ZAG">
 <span id="surfacetopography-container-io-zag-module"></span><h2>SurfaceTopography.Container.IO.ZAG module<a class="headerlink" href="#module-SurfaceTopography.Container.IO.ZAG" title="Link to this heading"></a></h2>
 <dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.ZAG.ZAGFileOpener">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.ZAG.</span></span><span class="sig-name descname"><span class="pre">ZAGFileOpener</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.ZAG.ZAGFileOpener" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Callable that (re)opens a member of the ZIP archive embedded in a ZAG
+file. Readers constructed from ZAG containers hold on to this callable
+instead of an open stream, so that reading topographies still works
+after <cite>ZAGReader.close</cite> has been called (e.g. when the reader was used
+as a context manager by <cite>read_container</cite>).</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.ZAG.ZAGFileOpener.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.ZAG.ZAGFileOpener.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.IO.ZAG.ZAGReader">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.ZAG.</span></span><span class="sig-name descname"><span class="pre">ZAGReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.ZAG.ZAGReader" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Container.IO.Reader.ContainerReaderBase" title="SurfaceTopography.Container.IO.Reader.ContainerReaderBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ContainerReaderBase</span></code></a></p>
@@ -390,7 +406,7 @@ contains a list of topographies.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.IO.open_container">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.</span></span><span class="sig-name descname"><span class="pre">open_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.open_container" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.</span></span><span class="sig-name descname"><span class="pre">open_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.open_container" title="Link to this definition"></a></dt>
 <dd><p>Returns a container reader object for the file <cite>fobj</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -398,6 +414,8 @@ contains a list of topographies.</p>
 <li><p><strong>fobj</strong> (<em>str</em><em> or </em><em>filelike object</em>) – Path of the file or file-like object.</p></li>
 <li><p><strong>format</strong> (<em>str</em><em>, </em><em>optional</em>) – Specify in which format the file should be interpreted.
 (Default: None, which means autodetect file format)</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments passed to the reader’s constructor
+(e.g. <cite>datafile_keys</cite> or <cite>ignore_filters</cite> of <cite>CEReader</cite>).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -416,7 +434,13 @@ contains a list of topographies.</p>
 <dd><p>Returns a surface container object representing a list of topographies.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>fobj</strong> (<em>str</em><em> or </em><em>filelike object</em>) – Path of the file or file-like object.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fn</strong> (<em>str</em><em> or </em><em>filelike object</em>) – Path of the file or file-like object.</p></li>
+<li><p><strong>format</strong> (<em>str</em><em>, </em><em>optional</em>) – Specify in which format the file should be interpreted.
+(Default: None, which means autodetect file format)</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments passed to the reader’s constructor
+(e.g. <cite>datafile_keys</cite> or <cite>ignore_filters</cite> of <cite>CEReader</cite>).</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>container</strong> – A list of container objects.</p>

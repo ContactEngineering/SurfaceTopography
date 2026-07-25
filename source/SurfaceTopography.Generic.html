@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 1.22.0.dev12+gded236ae documentation</title>
+  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 1.22.0.dev36+gc7e1e56c documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=a3e52e9f"></script>
+      <script src="../_static/documentation_options.js?v=39b8062b"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
@@ -311,11 +311,14 @@ h_\text{rms}^{\prime\prime}(\lambda) = 4\left[8A(\lambda/2) - 2A(\lambda)\right]
 <span id="surfacetopography-generic-moments-module"></span><h2>SurfaceTopography.Generic.Moments module<a class="headerlink" href="#module-SurfaceTopography.Generic.Moments" title="Link to this heading"></a></h2>
 <p>Computation of moments of a discrete curve, e.g. the PSD</p>
 <p>The example below computes the PSD of a surface topography and integrates it to obtain the RMS height.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography.Generation</span><span class="w"> </span><span class="kn">import</span> <span class="n">fourier_synthesis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">fourier_synthesis</span><span class="p">((</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">),</span> <span class="p">(</span><span class="mi">256</span><span class="p">,</span><span class="mi">256</span><span class="p">),</span> <span class="n">hurst</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">rms_height</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">short_cutoff</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">long_cutoff</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography.Generation</span><span class="w"> </span><span class="kn">import</span> <span class="n">fourier_synthesis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography.Generic.Moments</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_1d_moment</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">fourier_synthesis</span><span class="p">((</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">),</span> <span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">),</span> <span class="n">hurst</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">rms_height</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">short_cutoff</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">long_cutoff</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hrms</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">rms_height_from_profile</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hrms_from_psd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">compute_1d_moment</span><span class="p">(,)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">hrms_from_psd</span> <span class="o">/</span> <span class="n">hrms</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>  <span class="o">&lt;</span> <span class="mf">0.1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">power_spectrum_from_profile</span><span class="p">(</span><span class="n">reliable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hrms_from_psd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">compute_1d_moment</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">hrms_from_psd</span> <span class="o">/</span> <span class="n">hrms</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.1</span>
 </pre></div>
 </div>
 <p>However, because the averaging of the PSD before integration introduces errors,
@@ -326,8 +329,11 @@ see the methods <cite>integrate_psd</cite> of the topographies and the container
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Moments.</span></span><span class="sig-name descname"><span class="pre">compute_1d_moment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cumulative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Moments.compute_1d_moment" title="Link to this definition"></a></dt>
 <dd><p>Computes the moment of order <span class="math notranslate nohighlight">\(\alpha\)</span></p>
 <div class="math notranslate nohighlight">
-\[m_\alpha = \int dx y x^{\alpha}\]</div>
-<p>using trapezoidal interpolation of the integrand</p>
+\[m_\alpha = \frac{1}{\pi} \int dx\, y x^{\alpha}\]</div>
+<p>using trapezoidal interpolation of the integrand. (The prefactor
+<span class="math notranslate nohighlight">\(1/\pi\)</span> corresponds to the moment of a two-sided function
+<span class="math notranslate nohighlight">\(y(|x|)\)</span> with the <span class="math notranslate nohighlight">\(1/(2\pi)\)</span> Fourier-transform convention
+used for power spectra in this package.)</p>
 <section id="parameters">
 <h3>Parameters:<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
 <dl class="simple">
@@ -360,8 +366,11 @@ see the methods <cite>integrate_psd</cite> of the topographies and the container
 <dd><p>Computes the moment of order <span class="math notranslate nohighlight">\(\alpha\)</span> of the 2D isotropic funtion <span class="math notranslate nohighlight">\(y_{2D}(x)\)</span></p>
 <p><span class="math notranslate nohighlight">\(y\)</span> is the 1D representation of the isotropic function <span class="math notranslate nohighlight">\(y_{2D}(x_1, x_2) = y(|\vec x|)\)</span></p>
 <div class="math notranslate nohighlight">
-\[m_\alpha = \int dx_1 dx_2 y_{2D}(x_1, x_2) |\vec  x|^{\alpha} = 2\pi \int dx y(x) x^{\alpha + 1}\]</div>
-<p>using trapezoidal interpolation of the integrand</p>
+\[m_\alpha = \frac{1}{(2\pi)^2} \int dx_1 dx_2\, y_{2D}(x_1, x_2) |\vec x|^{\alpha}
+         = \frac{1}{2\pi} \int dx\, y(x) x^{\alpha + 1}\]</div>
+<p>using trapezoidal interpolation of the integrand. (The prefactor
+corresponds to the <span class="math notranslate nohighlight">\(1/(2\pi)^2\)</span> Fourier-transform convention used
+for power spectra in this package.)</p>
 <section id="id1">
 <h3>Parameters:<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
 <dl class="simple">
