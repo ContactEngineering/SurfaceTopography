@@ -107,3 +107,53 @@ std::tuple<Eigen::ArrayXd, Eigen::ArrayXd> nonuniform_autocorrelation(
 
     return {distances, acf};
 }
+
+
+Eigen::ArrayXd nonuniform_height_height_autocorrelation(
+    Eigen::Ref<const Eigen::ArrayXd> x,
+    Eigen::Ref<const Eigen::ArrayXd> h,
+    Eigen::Ref<const Eigen::ArrayXd> distances)
+{
+    const auto nb_grid_pts = x.size();
+
+    if (h.size() != nb_grid_pts) {
+        throw std::runtime_error("x- and h-arrays must contain identical number of data points.");
+    }
+
+    const auto nb_distance_pts = distances.size();
+    Eigen::ArrayXd acf = Eigen::ArrayXd::Zero(nb_distance_pts);
+
+    /* This is the product (height-height) autocorrelation
+     *     A(d) = Integrate[h(x) h(x + d)]
+     * over the overlap of the two piecewise-linear segments, without the
+     * factor 1/2 and without normalization by the overlap length. It mirrors
+     * the pure Python loop it replaces (Nonuniform/Autocorrelation.py) but
+     * runs in constant additional memory:
+     *     f1[x_] := (h1 + s1*(x - x1))
+     *     f2[x_] := (h2 + s2*(x - x2))
+     *     Integrate[f1[x]*f2[x + d], {x, b - db, b + db}]
+     *       = 2 * f1[b] * f2[b + d] * db + 2 * s1 * s2 * db^3 / 3
+     */
+    for (Eigen::Index i = 0; i < nb_grid_pts - 1; ++i) {
+        double x1 = x(i);
+        double h1 = h(i);
+        double s1 = (h(i + 1) - h1) / (x(i + 1) - x1);
+        for (Eigen::Index j = 0; j < nb_grid_pts - 1; ++j) {
+            double x2 = x(j);
+            double h2 = h(j);
+            double s2 = (h(j + 1) - h2) / (x(j + 1) - x2);
+            for (Eigen::Index k = 0; k < nb_distance_pts; ++k) {
+                double b1 = std::max(x1, x2 - distances(k));
+                double b2 = std::min(x(i + 1), x(j + 1) - distances(k));
+                double b = (b1 + b2) / 2;
+                double db = (b2 - b1) / 2;
+                if (db > 0) {
+                    acf(k) += 2 * (h1 + s1 * (b - x1)) * (h2 + s2 * (b + distances(k) - x2)) * db +
+                              2 * s1 * s2 * db * db * db / 3;
+                }
+            }
+        }
+    }
+
+    return acf;
+}

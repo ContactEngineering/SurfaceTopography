@@ -31,6 +31,7 @@ regression.
 import logging
 
 import numpy as np
+from scipy.linalg import cho_factor, cho_solve
 
 from ..Exceptions import NoReliableDataError
 
@@ -277,11 +278,13 @@ def gaussian_process_regression(output_x, x, values, kernel=gaussian_kernel, noi
     # Add noise to observation covariance matrix
     obs_cov += noise_variance * np.identity(len(x))
 
-    # Compute kernel coefficients
-    coeff = np.linalg.solve(obs_cov, values)
+    # The observation covariance matrix is symmetric positive definite;
+    # factorize it once and reuse the factorization for both the predictive
+    # mean and the predictive variance below
+    obs_cov_factor = cho_factor(obs_cov)
 
-    # Covariance between test outputs
-    test_cov = kernel(output_x.reshape(-1, 1), output_x.reshape(1, -1))
+    # Compute kernel coefficients
+    coeff = cho_solve(obs_cov_factor, values)
 
     # Covariance between observation and test outputs
     obs_test_cov = kernel(x.reshape(-1, 1), output_x.reshape(1, -1))
@@ -289,11 +292,15 @@ def gaussian_process_regression(output_x, x, values, kernel=gaussian_kernel, noi
     # Compute predictive mean
     pred_mean = coeff.dot(obs_test_cov)
 
-    # Compute predictive covariance
-    pred_cov = test_cov - obs_test_cov.T.dot(np.linalg.solve(obs_cov, obs_test_cov))
+    # Compute predictive variance. Only the diagonal of the predictive
+    # covariance is returned; computing the full matrix would additionally
+    # cost O(nb_output_points^2) memory. The kernels are elementwise
+    # functions, so kernel(output_x, output_x) is that diagonal.
+    pred_var = kernel(output_x, output_x) - \
+        np.sum(obs_test_cov * cho_solve(obs_cov_factor, obs_test_cov), axis=0)
 
     # Return mean and variance
-    return pred_mean, pred_cov.diagonal()
+    return pred_mean, pred_var
 
 
 def resample(x, values, collocation='log', nb_points=None, min_value=None, max_value=None, nb_points_per_decade=10,

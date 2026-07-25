@@ -44,8 +44,11 @@ Severity legend:
 > helper would add indirection without reducing risk. The larger
 > refactoring themes (shared row-major reader helper for IO, unifying
 > the Uniform/Nonuniform/Container analysis-function triplication)
-> remain proposals — see section 4. The performance tier (§2.5) remains
-> open. Note that the masked-data normalization fix
+> remain proposals — see section 4. The performance tier (§2.5) has been
+> worked through under the library's memory boundary conditions; see the
+> resolution note at the head of that section for what was fixed, what
+> was intentionally left as a time/memory trade-off, and what remains.
+> Note that the masked-data normalization fix
 > (§2.2) changed the reference values of several IO tests whose fixtures
 > contain undefined data points; the old values were dominated by a
 > mean-normalization artifact.
@@ -532,6 +535,48 @@ inversion. **Fix:** transpose for `'x'` instead of `'y'`.
   *(verified: NaNs with `has_undefined_data == False`)*.
 
 ### 2.5 Performance
+
+> **Resolution note.** These findings were re-assessed against the memory
+> boundary conditions of the library — a container streams its topographies
+> from disk and must never hold more than one of them in memory, and readers
+> are long-lived metadata handles that must not pin file data. Under those
+> constraints the items split three ways:
+>
+> - **Fixed, and memory use goes down**: bicubic coefficients are now
+>   computed per cell with a single-cell cache instead of a 128 byte/pixel
+>   table; the IBW, MI and MNT readers no longer retain wave data, the
+>   whole file, or all decompressed blocks past `__init__`; the flood-fill
+>   stack is allocated once per call instead of 16 MB per patch; the GP
+>   regression reuses one Cholesky factorization and computes only the
+>   variance diagonal instead of the full predictive covariance.
+> - **Fixed, memory-neutral**: the container PSD integration precomputes
+>   the bandwidth intervals of the topographies in a single streaming pass
+>   (two scalars each — heights are never cached), turning N² file reads
+>   into 2N as the pre-existing TODO proposed; the MNT zlib block scan
+>   measures candidate streams through a chunked `decompressobj` over a
+>   memoryview and skips past accepted streams instead of slicing and
+>   fully decompressing the tail at every byte; the nonuniform
+>   height-height ACF moved into a constant-memory C++ kernel rather than
+>   being vectorized into an O(N·M) intermediate; the rigid-sphere scan is
+>   vectorized in fixed-size blocks so its temporary stays bounded
+>   (~32 MB) regardless of scan length and tip radius; the XYZ parser
+>   accumulates into `array('d')` buffers instead of Python float lists.
+> - **Deliberately not changed, because the speedup would cost memory**:
+>   `correlation_function`'s O(nx·ny·max_dist²) sweep uses O(1) extra
+>   memory, while the FFT alternative needs several full-map complex
+>   arrays (~1 GB at 4096²); the bearing-area full-grid sweep per query
+>   height would need another sorted O(N) array on top of the existing
+>   contiguous copy, which only pays off when many heights are queried.
+>   Both are left as documented trade-offs, not oversights. The XYZ
+>   double parse is likewise still a double parse: caching the parsed
+>   columns on the reader would pin the point cloud for the reader's
+>   lifetime, which the lazy-reader rule forbids.
+>
+> Remaining items of this section that are neither memory-related nor
+> addressed above: the `int × int` index overflow in `bicubic.cpp` for
+> maps beyond 46341² (needs a wider index type throughout), the
+> O(max_dist⁴) correlation integration prefix sum, and the log-space
+> variance FIXME in the GP branch.
 
 - `Container/Integration.py:51-68,119-136` — container PSD integration is
   O(N²) in topography reads: the per-topography `average(qx)` callback loops

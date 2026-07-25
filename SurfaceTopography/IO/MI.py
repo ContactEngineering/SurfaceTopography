@@ -80,40 +80,48 @@ well as its units.
 
     def process_header(self):
         with OpenFromAny(self.file_path, 'rb') as f:
-            self.lines = f.readlines()
+            # Note: the header is delimited by a magic line, so its length is
+            # only known after scanning the lines. The lines are a local
+            # variable and are dropped when this method returns; only the byte
+            # offset of the data block is stored, so that the reader does not
+            # pin the whole file in memory for its lifetime.
+            lines = f.readlines()
 
             # Find out if image or spectroscopy
-            if self.lines[0] == image_head:
+            if lines[0] == image_head:
                 self.is_image = True
-            elif self.lines[0] == spec_head:
+            elif lines[0] == spec_head:
                 self.is_image = False
             else:
                 raise CorruptFile
 
             # Find the start of the height data and denote data type
-            if magic_data in self.lines:
-                header_size = self.lines.index(magic_data)
+            if magic_data in lines:
+                header_size = lines.index(magic_data)
                 self.data_type = 'text'
-            elif magic_data_binary in self.lines:
-                header_size = self.lines.index(magic_data_binary)
+            elif magic_data_binary in lines:
+                header_size = lines.index(magic_data_binary)
                 self.data_type = 'binary'
-            elif magic_data_binary32 in self.lines:
-                header_size = self.lines.index(magic_data_binary32)
+            elif magic_data_binary32 in lines:
+                header_size = lines.index(magic_data_binary32)
                 self.data_type = 'binary32'
-            elif magic_data_ascii in self.lines:
-                header_size = self.lines.index(magic_data_ascii)
+            elif magic_data_ascii in lines:
+                header_size = lines.index(magic_data_ascii)
                 self.data_type = 'ascii'
             else:
                 raise CorruptFile
 
             # Save start of data for later reading of the matrix
             self.data_start = header_size + 1
+            # Byte offset of the data block, relative to the start of the file
+            self._data_start_offset = sum(
+                len(line) for line in lines[:self.data_start])
 
             # Create mifile from header, reading out meta data and channel info
             if self.is_image:
-                self.mifile = read_header_image(self.lines[1:header_size])
+                self.mifile = read_header_image(lines[1:header_size])
             else:  # TODO
-                self.mifile = read_header_spect(self.lines[1:header_size])
+                self.mifile = read_header_spect(lines[1:header_size])
 
             # Reformat the metadata
             for buf in self.mifile.channels:
@@ -169,7 +177,13 @@ well as its units.
             raise UnsupportedFormatFeature(
                 'MI files with text (ASCII) data are not supported.')
 
-        buffer = b''.join(self.lines[self.data_start:])
+        # Read the data block on demand; the reader only stores its offset.
+        # (The seek is relative to the position the stream had when it was
+        # handed to this reader, which is where `process_header` started
+        # reading.)
+        with OpenFromAny(self.file_path, 'rb') as f:
+            f.seek(f.tell() + self._data_start_offset)
+            buffer = f.read()
 
         nx, ny = int(self.mifile.xres), int(self.mifile.yres)
         start = nx * ny * encode_length * channel_index

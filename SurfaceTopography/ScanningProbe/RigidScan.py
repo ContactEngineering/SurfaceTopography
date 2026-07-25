@@ -51,26 +51,43 @@ def scan_with_rigid_sphere(topography, radius):
         raise ValueError("Only one-dimensional scans are supported at present.")
 
     positions, heights = topography.positions_and_heights()
-    scanned_heights = []
-    for x in positions:
-        left = np.searchsorted(positions, x - radius)
-        right = np.searchsorted(positions, x + radius)
+    nb_pts = len(positions)
 
-        # import matplotlib.pyplot as plt
-        # plt.figure()
-        # plt.plot(positions[left:right], heights[left:right], 'k-')
-        # plt.plot(positions[left:right], - np.sqrt(radius ** 2 - (positions[left:right] - x) ** 2), 'k--')
-        # plt.plot(positions[left:right],
-        #          - np.sqrt(radius ** 2 - (positions[left:right] - x) ** 2) - heights[left:right], 'r-')
-        # plt.show()
+    # For each scan position, the tip contacts the data points within
+    # [x - radius, x + radius]; the scanned height is the maximum over that
+    # window of the height plus the local tip profile.
+    lefts = np.searchsorted(positions, positions - radius)
+    rights = np.searchsorted(positions, positions + radius)
+    widths = rights - lefts
 
-        scanned_heights += [
-            np.max(
-                heights[left:right]
-                + np.sqrt(radius**2 - (positions[left:right] - x) ** 2)
-                - radius
-            )
-        ]
+    # The windows are evaluated block-wise: a block of scan positions is
+    # padded to its widest window and reduced with a masked max. The block
+    # size is chosen such that the temporary array stays below a fixed
+    # element count, so memory use is bounded irrespective of scan size
+    # and tip radius (a single scan-sized block could otherwise allocate
+    # nb_pts * max_window elements).
+    target_nb_elements = 2 ** 22  # 32 MB of doubles
+    scanned_heights = np.empty(nb_pts)
+    start = 0
+    while start < nb_pts:
+        nb_block = min(nb_pts - start,
+                       max(1, target_nb_elements // max(1, widths[start])))
+        max_width = widths[start:start + nb_block].max()
+        # Shrinking the block can only shrink its widest window, so after
+        # this step nb_block * max_width <= target_nb_elements holds
+        nb_block = min(nb_block, max(1, target_nb_elements // max_width))
+        max_width = widths[start:start + nb_block].max()
+
+        block = slice(start, start + nb_block)
+        col = lefts[block].reshape(-1, 1) + np.arange(max_width).reshape(1, -1)
+        valid = col < rights[block].reshape(-1, 1)
+        col = np.minimum(col, nb_pts - 1)
+        distance = positions[col] - positions[block].reshape(-1, 1)
+        tip_heights = heights[col] + np.sqrt(
+            np.maximum(radius ** 2 - distance * distance, 0)) - radius
+        scanned_heights[block] = np.max(
+            np.where(valid, tip_heights, -np.inf), axis=1)
+        start += nb_block
 
     return scanned_heights
 

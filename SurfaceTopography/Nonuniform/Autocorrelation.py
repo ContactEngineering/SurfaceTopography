@@ -71,37 +71,10 @@ def height_height_autocorrelation(self, distances=None):
         distances = np.linspace(0, size, res)
     else:
         distances = np.asarray(distances, dtype=float)
-    A = np.zeros_like(distances)
 
     x, h = self.positions_and_heights()
-    s = self.derivative(1)
-    # FIXME!!! This is slow
-    for i in range(len(x) - 1):
-        for j in range(len(x) - 1):
-            # Determine lower and upper distance between segment i, i+1 and
-            # segment j, j+1
-            x1 = x[i]
-            x2 = x[j]
-            h1 = h[i]
-            h2 = h[j]
-            s1 = s[i]
-            s2 = s[j]
-            b1 = np.maximum(x1, x2 - distances)
-            b2 = np.minimum(x[i + 1], x[j + 1] - distances)
-            b = (b1 + b2) / 2
-            db = (b2 - b1) / 2
-            m = db > 0
-            if m.sum() > 0:
-                b = b[m]
-                db = db[m]
-                # f1[x_] := (h1 + s1*(x - x1))
-                # f2[x_] := (h2 + s2*(x - x2))
-                # FullSimplify[Integrate[f1[x]*f2[x + d],
-                # {x, b - db, b + db}]]
-                #   = 2 * f1[b] * f2[b + d] * db + 2 * s1 * s2 * db ** 3 / 3
-                A[m] += 2 * (h1 + s1 * (b - x1)) * (
-                            h2 + s2 * (b + distances[m] - x2)) * db + 2 * (
-                                s1 * s2 * db ** 3) / 3
+    A = _SurfaceTopography.nonuniform_height_height_autocorrelation(
+        np.asarray(x, dtype=float), np.asarray(h, dtype=float), distances)
     return distances, A
 
 

@@ -44,4 +44,9 @@ std::tuple<Eigen::ArrayXd, Eigen::ArrayXd> nonuniform_autocorrelation(
     double physical_size,
     std::optional<Eigen::Ref<const Eigen::ArrayXd>> distances = std::nullopt);
 
+Eigen::ArrayXd nonuniform_height_height_autocorrelation(
+    Eigen::Ref<const Eigen::ArrayXd> x,
+    Eigen::Ref<const Eigen::ArrayXd> h,
+    Eigen::Ref<const Eigen::ArrayXd> distances);
+
 #endif

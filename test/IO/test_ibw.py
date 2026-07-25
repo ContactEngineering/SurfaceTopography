@@ -87,7 +87,9 @@ class IBWSurfaceTest(unittest.TestCase):
                          ['HeightRetrace', 'AmplitudeRetrace',
                           'PhaseRetrace', 'ZSensorRetrace'])
         self.assertEqual(reader._default_channel, 0)
-        self.assertEqual(reader.data['wave_header']['next'], 114425520)
+        # The reader must not pin the wave data in memory; it is loaded on
+        # demand in `topography()`
+        self.assertFalse(hasattr(reader, 'data'))
 
     def test_channels(self):
         reader = IBWReader(self.file_path)

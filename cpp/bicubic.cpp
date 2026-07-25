@@ -49,7 +49,7 @@ Bicubic::Bicubic(const Eigen::Ref<const RowMajorXXd>& values,
     has_derivativey_{derivativey_opt.has_value()},
     derivativex_(has_derivativex_ ? n1_ * n2_ : 0),
     derivativey_(has_derivativey_ ? n1_ * n2_ : 0),
-    coeff_(NPARA, n1_ * n2_)
+    cached_cell_{-1}
 {
   // Copy values to internal storage (row-major to linear)
   for (int i = 0; i < n1_; ++i) {
@@ -137,15 +137,9 @@ Bicubic::Bicubic(const Eigen::Ref<const RowMajorXXd>& values,
   this->A_ = this->A_.inverse();
 
   /*
-   * Compute all spline coefficients and store them.
+   * Spline coefficients are computed on demand in
+   * get_spline_coefficients(); see the comment on cached_cell_.
    */
-  for (int i1 = 0; i1 < this->n1_; i1++) {
-    for (int i2 = 0; i2 < this->n2_; i2++) {
-      this->coeff_.col(_row_major(i1, i2, this->n1_, this->n2_)) =
-          compute_spline_coefficients(i1, i2, this->values_, this->has_derivativex_, this->derivativex_,
-                                      this->has_derivativey_, this->derivativey_);
-    }
-  }
 }
 
 

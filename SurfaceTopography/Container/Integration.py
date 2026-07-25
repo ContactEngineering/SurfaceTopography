@@ -28,6 +28,66 @@ from ..Container.SurfaceContainer import SurfaceContainer
 from ..Generic.Moments import compute_1d_moment, compute_iso_moment
 
 
+def _bandwidth_intervals_from_profile(self, unit, reliable=True):
+    r"""
+    Return the wavevector intervals covered by the topographies of this
+    container as a pair of sorted arrays (lower bounds, upper bounds).
+    This requires a single pass over the container; counting queries can
+    then be answered without touching the topographies again (lazy
+    containers read the data file on every element access).
+
+    Parameters:
+    -----------
+    self : SurfaceContainer
+        Collection of Height containers
+    unit : str
+        Unit of lengths in which the wavevector is defined.
+    reliable : bool, optional
+        Only incorporate data deemed reliable. (Default: True)
+
+    Returns
+    -------
+    lower : np.ndarray
+        Sorted lower bandwidth bounds of the individual topographies.
+    upper : np.ndarray
+        Sorted upper bandwidth bounds of the individual topographies.
+    """
+    lower = []
+    upper = []
+    for t in self:
+        t = t.to_unit(unit)
+
+        qxmax = np.pi / t.pixel_size[0]
+        short_cutoff = t.short_reliability_cutoff() if reliable else None
+        if short_cutoff is not None:
+            qxmax = min(2 * np.pi / short_cutoff, qxmax)
+
+        qxmin = 2 * np.pi / t.physical_sizes[0]
+        if qxmax >= qxmin:
+            lower += [qxmin]
+            upper += [qxmax]
+        # else: empty bandwidth interval (reliability cutoff longer than the
+        # scan); such a topography contains no wavevector and must not enter
+        # the counting arrays, where the subtraction in `_count_in_intervals`
+        # would tally it as -1 between its inverted bounds
+    return np.sort(lower), np.sort(upper)
+
+
+def _count_in_intervals(intervals, nb_topographies, qx):
+    r"""
+    Return the number of bandwidth intervals (from
+    `_bandwidth_intervals_from_profile`) that contain each wavevector in
+    `qx`.
+    """
+    lower, upper = intervals
+    qx = np.abs(qx)
+    # Number of intervals with lower <= qx minus number of intervals with
+    # upper < qx
+    count = np.searchsorted(lower, qx, side='right') - np.searchsorted(upper, qx, side='left')
+    # All topographies have qx == 0 wavevector
+    return np.where(qx == 0, nb_topographies, count)
+
+
 def _bandwidth_count_from_profile(self, qx, unit, reliable=True):
     r"""
     Return number of topographies that include qx in their bandwidth.
@@ -48,24 +108,9 @@ def _bandwidth_count_from_profile(self, qx, unit, reliable=True):
     number: np.ndarray
         number of topographies having qx in their bandwidth
     """
-    qx = np.abs(qx)
-    factor = np.zeros_like(qx)
-    for t in self:
-        t = t.to_unit(unit)
-
-        qxmax = np.pi / t.pixel_size[0]
-        short_cutoff = t.short_reliability_cutoff() if reliable else None
-        if short_cutoff is not None:
-            qxmax = min(2 * np.pi / short_cutoff, qxmax)
-
-        factor += np.logical_and(
-            qx >= 2 * np.pi / t.physical_sizes[0],
-            qx <= qxmax,
-        )
-    # All topographies have qx == 0 wavevector
-    factor = np.where(qx == 0, len(self), factor)
-    # TODO: This will be very slow on Topobank
-    return factor
+    return _count_in_intervals(
+        _bandwidth_intervals_from_profile(self, unit, reliable), len(self), qx
+    )
 
 
 def integrate_psd_from_profile(self, factor, unit, window=None, reliable=True):
@@ -118,13 +163,16 @@ def integrate_psd_from_profile(self, factor, unit, window=None, reliable=True):
     """
     integ = 0
 
-    # TODO: faster: precompute _bandwidth_count_from_profile (defining a piecewise constant function, )
-    # a table with bins and number of topographies inside the bins
-    # this will make us only loop 2N times through the topographies instead of N^2
-    # with N the total number of topographies
+    # Precompute the bandwidth intervals in a single pass over the
+    # container; the `average` callback below is invoked once per
+    # topography, and looping over the container inside it would read
+    # every data file N times (lazy containers construct topographies
+    # from the file on each element access).
+    intervals = _bandwidth_intervals_from_profile(self, unit, reliable)
+    nb_topographies = len(self)
 
     def average(qx):
-        count = _bandwidth_count_from_profile(self, qx, unit, reliable)
+        count = _count_in_intervals(intervals, nb_topographies, qx)
         return np.where(count > 0, factor(qx) / count, 0)
 
     for t in self:

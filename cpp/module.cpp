@@ -45,6 +45,11 @@ PYBIND11_MODULE(_SurfaceTopography, mod) {
             py::arg("x"), py::arg("h"), py::arg("physical_size"),
             py::arg("distances") = std::nullopt,
             py::call_guard<py::gil_scoped_release>());
+    mod.def("nonuniform_height_height_autocorrelation", &nonuniform_height_height_autocorrelation,
+            "Height-height (product) autocorrelation of nonuniform line scans; "
+            "returns the unnormalized integral for each distance",
+            py::arg("x"), py::arg("h"), py::arg("distances"),
+            py::call_guard<py::gil_scoped_release>());
 
     // === Patch/geometry analysis (from former C module) ===
     mod.def("assign_patch_numbers", &assign_patch_numbers,

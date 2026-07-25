@@ -49,10 +49,12 @@ static const std::vector<std::pair<int, int>> default_stencil = {
 
 void fill_patch(Eigen::Index nx, Eigen::Index ny, const RowMajorXXb &map,
                 std::ptrdiff_t i0, std::ptrdiff_t j0, int p, bool periodic,
-                const std::vector<std::pair<int, int>> &stencil, RowMajorXXi &id)
+                const std::vector<std::pair<int, int>> &stencil, RowMajorXXi &id,
+                Stack &stack)
 {
-    Stack stack(DEFAULT_STACK_SIZE);
-
+    /* The caller passes a shared stack that is reused across patches;
+       it is empty on entry and drained again before this function
+       returns, so no per-patch allocation is necessary. */
     stack.push(i0, j0);
     id(i0, j0) = p;
 
@@ -117,11 +119,15 @@ std::tuple<int, RowMajorXXi> assign_patch_numbers(
     RowMajorXXi id = RowMajorXXi::Zero(nx, ny);
     int p = 0;
 
+    /* Allocate the flood-fill stack once; allocating it inside fill_patch
+       would malloc/free the buffer for every individual patch. */
+    Stack stack(DEFAULT_STACK_SIZE);
+
     for (Eigen::Index i = 0; i < nx; ++i) {
         for (Eigen::Index j = 0; j < ny; ++j) {
             if (map(i, j) && id(i, j) == 0) {
                 p++;
-                fill_patch(nx, ny, map, i, j, p, periodic, stencil, id);
+                fill_patch(nx, ny, map, i, j, p, periodic, stencil, id, stack);
             }
         }
     }
