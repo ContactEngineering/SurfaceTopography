@@ -34,7 +34,6 @@ v1.23.0 (not yet released)
 - ENH: Gaussian process regression reuses a single Cholesky factorization
 - ENH: Flood-fill stack in the patch finder is allocated once per call, not once per patch
 - TST: Added property-based invariant tests for transposition, translation, scaling and origin invariance
-- DOC: Added `AUDIT.md` with the full audit report and the status of each finding
 - MAINT: Removed broken `pytest-flake8` from the test dependencies; renamed `tiffile` to `tifffile`
 
 v1.22.0 (08May26)
