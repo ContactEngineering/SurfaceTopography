@@ -69,11 +69,28 @@ _DEVICE_UUID = "cbc1d39b-215f-4d56-a20e-cf8e5f570755"
 # Scan information
 _SCAN_UUID = "1d35862b-3b48-4df2-9235-833ef590b043"
 
-# In the per-pixel validity mask, the low two bits encode why a pixel carries
-# no valid height information (0x01: out of measurement range, i.e. the height
-# often sits at the sensor floor; 0x02: excluded from measurement by the
-# operator, i.e. the height is typically zeroed). The high bits are quality
-# flags on pixels that still carry plausible heights.
+# The per-pixel validity mask carries two kinds of information (reverse
+# engineered from VR-3200 and VR-6200 files, no official documentation):
+#
+# The low two bits encode why a pixel carries no valid height information:
+#   0x01: out of measurement range / no measurement; the stored height is
+#         garbage and often sits at the sensor floor (around -590 um)
+#   0x02: excluded from measurement by the operator ("do not measure"); the
+#         stored height is a placeholder, typically zero or a constant
+#
+# The high bits (0x40 and 0x80 have been observed, also in combination with
+# each other and with 0x01) appear to be quality annotations on pixels that
+# still carry plausible heights: their height distribution is statistically
+# indistinguishable from that of 0x00 pixels. Their exact meaning is unknown;
+# candidates are interpolated/filled values, low-confidence measurements or
+# stitching seams. (In one sample file, a 0x80 pixel holds exactly the same
+# placeholder constant as the 0x02 regions, hinting that at least some of
+# these pixels were filled in by post-processing rather than measured.)
+#
+# We therefore treat a pixel as undefined only if one of the low two bits is
+# set and keep quality-flagged pixels. The raw mask remains accessible via
+# `reader.metadata.valid_pixel_data.data(stream)` for more aggressive
+# filtering downstream.
 _INVALID_PIXEL_BITS = 0x03
 
 
