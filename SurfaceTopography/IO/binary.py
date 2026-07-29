@@ -22,14 +22,19 @@
 # SOFTWARE.
 #
 
+import inspect
 import math
 import numbers
 import os
 import struct
 import zlib
 from struct import calcsize, unpack
+from zipfile import BadZipFile, ZipFile
 
+import defusedxml.ElementTree as ElementTree
 import numpy as np
+
+from ..Exceptions import CorruptFile
 
 
 class ValidationError(Exception):
@@ -317,7 +322,9 @@ class BinaryArray:
             dictionary.
         conversion_fun : function
             Function that converts the array after reading. This can be useful
-            for example to change the data format or transpose the array.
+            for example to change the data format or transpose the array. The
+            function receives the array as its first argument and can
+            optionally accept the context dictionary as a second argument.
         mask_fun : function
             Function that returns a mask with undefined data points.
         """
@@ -401,7 +408,14 @@ class BinaryArray:
         arr = np.frombuffer(buffer, dtype=dtype).reshape(shape)
         if self._mask_fun is not None:
             arr = np.ma.masked_array(arr, mask=self._mask_fun(arr, context))
-        return self._conversion_fun(arr)
+        try:
+            nb_params = len(inspect.signature(self._conversion_fun).parameters)
+        except (TypeError, ValueError):
+            nb_params = 1
+        if nb_params >= 2:
+            return self._conversion_fun(arr, context)
+        else:
+            return self._conversion_fun(arr)
 
 
 class RawBuffer:
@@ -768,6 +782,163 @@ class LayoutWithTrailingData(LayoutWithNameBase):
         if name:
             return {name: result}
         return result
+
+
+class XMLStructure(LayoutWithNameBase):
+    """
+    Parses an XML document from a stream into a nested dictionary.
+
+    Elements with children become attribute-accessible dictionaries keyed by
+    tag name; leaf elements are reported as their text content.
+
+    Parameters
+    ----------
+    name : str, optional
+        Name of this structure in the result dictionary. If None, the parsed
+        dictionary is merged into the enclosing context. (Default: None)
+    converters : dict, optional
+        Maps leaf tag names to callables that convert the element's text
+        content, e.g. `{'MeterPerPixel': float}`. (Default: None)
+    """
+
+    def __init__(self, name=None, converters=None):
+        self._name = name
+        self._converters = {} if converters is None else converters
+
+    def _element_to_dict(self, element):
+        if len(element) == 0:
+            converter = self._converters.get(element.tag)
+            if converter is not None:
+                return converter(element.text)
+            return element.text
+        return AttrDict(
+            {child.tag: self._element_to_dict(child) for child in element}
+        )
+
+    def from_stream(self, stream_obj, context):
+        root = ElementTree.parse(stream_obj).getroot()
+        result = self._element_to_dict(root)
+        name = self.name(context)
+        if name is None:
+            return result
+        else:
+            return {name: result}
+
+
+class _ZipMemberProxy:
+    """
+    Wraps a lazy reader (e.g. a `BinaryArray` proxy) returned by a member
+    layout of a `ZipContainer` such that calling it with the outer file
+    stream transparently reopens the archive member.
+    """
+
+    def __init__(self, container, member_name, reader, context):
+        self._container = container
+        self._member_name = member_name
+        self._reader = reader
+        self._context = context
+
+    def __call__(self, stream_obj):
+        with ZipFile(stream_obj, "r") as zip_file:
+            member_stream = self._container._open_member(
+                zip_file, self._member_name, self._context
+            )
+            try:
+                return self._reader(member_stream)
+            finally:
+                member_stream.close()
+
+
+class ZipContainer(LayoutWithNameBase):
+    """
+    Interprets the stream as a ZIP archive and parses selected members of the
+    archive, each with its own layout.
+
+    Only members that are named in the layout are parsed; all other members
+    of the archive are ignored. Lazy readers (e.g. `BinaryArray` proxies)
+    returned by member layouts are wrapped such that calling them with the
+    outer file stream transparently reopens the archive member. Note that the
+    position of the stream is undefined after this container has been parsed.
+
+    Parameters
+    ----------
+    members : list of tuples
+        List of tuples describing the archive members to parse. Each tuple
+        consists of two or three entries
+            (member_name, layout[, optional])
+        where `member_name` is the name of the file within the archive,
+        `layout` is a layout class instance used to parse it, and `optional`
+        indicates whether the member may be missing from the archive.
+        (Default for `optional`: False)
+    name : str, optional
+        Name of this structure in the result dictionary. If None, the
+        parsed members are merged into the enclosing context.
+        (Default: None)
+    stream_filter : callable, optional
+        Callable with signature `stream_filter(stream_obj, context)` that
+        wraps the raw member stream, e.g. for decompression. Note that the
+        returned stream only needs to support reading and forward seeking.
+        (Default: None)
+    """
+
+    def __init__(self, members, name=None, stream_filter=None):
+        self._members = members
+        self._name = name
+        self._stream_filter = stream_filter
+
+    def _open_member(self, zip_file, member_name, context):
+        stream = zip_file.open(member_name, "r")
+        if self._stream_filter is not None:
+            stream = self._stream_filter(stream, context)
+        return stream
+
+    def _wrap_lazy_readers(self, value, member_name, context):
+        if isinstance(value, dict):
+            return type(value)(
+                {
+                    key: self._wrap_lazy_readers(v, member_name, context)
+                    for key, v in value.items()
+                }
+            )
+        elif isinstance(value, list):
+            return [self._wrap_lazy_readers(v, member_name, context) for v in value]
+        elif callable(value):
+            return _ZipMemberProxy(self, member_name, value, context)
+        else:
+            return value
+
+    def from_stream(self, stream_obj, context):
+        local_context = AttrDict()
+        try:
+            with ZipFile(stream_obj, "r") as zip_file:
+                member_names = set(zip_file.namelist())
+                for entry in self._members:
+                    member_name, layout = entry[:2]
+                    optional = entry[2] if len(entry) > 2 else False
+                    if member_name not in member_names:
+                        if optional:
+                            continue
+                        raise CorruptFile(
+                            f"Archive member `{member_name}` is missing."
+                        )
+                    member_stream = self._open_member(zip_file, member_name, context)
+                    try:
+                        result = layout.from_stream(
+                            member_stream,
+                            AttrDict({**local_context, "__parent__": context}),
+                        )
+                    finally:
+                        member_stream.close()
+                    local_context.update(
+                        self._wrap_lazy_readers(result, member_name, context)
+                    )
+        except BadZipFile as exc:
+            raise CorruptFile("Stream is not a valid ZIP archive.") from exc
+        name = self.name(context)
+        if name is None:
+            return local_context
+        else:
+            return {name: local_context}
 
 
 class ZlibBlockChain(LayoutWithNameBase):

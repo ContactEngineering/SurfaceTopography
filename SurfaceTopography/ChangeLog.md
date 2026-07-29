@@ -4,6 +4,15 @@ Change log for SurfaceTopography
 v1.23.0 (not yet released)
 --------------------------
 
+- BUG: ZON reader interprets the per-pixel validity mask; out-of-range and
+  operator-excluded pixels are now reported as undefined data instead of
+  placeholder heights
+- ENH: Rewrote the ZON reader in terms of the declarative file layout
+- ENH: New declarative layouts `ZipContainer` (parsing members of ZIP
+  archives, with optional decompression filter) and `XMLStructure` (parsing
+  XML documents into nested dictionaries)
+- ENH: `BinaryArray` conversion functions can now accept the parser context
+  as a second argument
 - BUG: Transposed and downsampled topographies report correct `pixel_size`; affected derivatives and PSDs for anisotropic pixels
 - BUG: Masked data is normalized by the number of defined points; changes `rms_height` and moments of files with undefined data
 - BUG: Power spectrum no longer halves the `q=0` entry when folding the +q and -q branches (#282)

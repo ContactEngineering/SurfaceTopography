@@ -66,8 +66,15 @@ def test_topography(file_format_examples):
 
     topography = loader.topography()
 
+    # Pixel (0, 0) is marked as excluded from measurement ("do not measure")
+    # in the per-pixel validity mask; its height is a placeholder value
+    assert topography.has_undefined_data
+    assert np.ma.is_masked(topography.heights()[0, 0])
+
+    # There are 15620 pixels without valid height information
+    assert np.ma.count_masked(topography.heights()) == 15620
+
     # Check one height value
-    np.testing.assert_allclose(topography.heights()[0, 0], 1.301e-05, rtol=1e-6)
     np.testing.assert_allclose(topography.heights()[10, 5], 8.47e-05, rtol=1e-6)
 
     # Check the value of one of the metadata
