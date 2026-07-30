@@ -75,6 +75,7 @@ True
 False
 """
 
+import base64
 import operator
 
 import dateutil.parser
@@ -106,17 +107,72 @@ _UNARY_OPS = {
     "not": operator.not_,
 }
 
+
+def _unit_conversion_factor(from_unit, to_unit):
+    from ..Support.UnitConversion import get_unit_conversion_factor
+
+    return get_unit_conversion_factor(from_unit, to_unit)
+
+
+def _make_datetime(year, month, day, hour, minute, second):
+    import datetime
+
+    try:
+        return datetime.datetime(year, month, day, hour, minute, second)
+    except ValueError:
+        # E.g. all-zero date fields; the file carries no acquisition time
+        return None
+
+
+def _zstd_reader(stream_obj):
+    import zstandard
+
+    return zstandard.ZstdDecompressor().stream_reader(stream_obj)
+
+
+def _zlib_reader(stream_obj):
+    import io
+    import zlib
+
+    return io.BytesIO(zlib.decompress(stream_obj.read()))
+
+
 # Named function registry. This is the fixed set of primitives that an
 # expression interpreter in another language must provide (or reject).
+# The normative list, including which functions are capability-gated,
+# is `docs/format_description_contract.rst`.
 _FUNCTIONS = {
     "dtype": np.dtype,
     "float": float,
     "int": int,
     "str": str,
     "len": len,
+    "abs": np.abs,
+    "isnan": np.isnan,
     "transpose": np.transpose,
     "strip": lambda s: s.strip(),
     "parse_datetime": dateutil.parser.parse,
+    "make_datetime": _make_datetime,
+    # POSIX timestamp to datetime (in local time, matching historic
+    # reader behavior)
+    "from_timestamp": lambda ts: __import__("datetime").datetime.fromtimestamp(ts),
+    "unit_conversion_factor": _unit_conversion_factor,
+    # Mapping utilities: build a mapping from a list of records (e.g. a
+    # tag list), look up with a default, merge two mappings
+    "to_map": lambda records, key, value: {r[key]: r[value] for r in records},
+    "get": lambda mapping, key, default: mapping.get(key, default),
+    "merge": lambda a, b: {**a, **b},
+    # Capability-gated stream filters
+    "zstd_reader": _zstd_reader,
+    "zlib_reader": _zlib_reader,
+}
+
+# Registry functions that require a capability beyond `core`, per the
+# format description contract. Used to compute a description's
+# capability list.
+FUNCTION_CAPABILITIES = {
+    "zstd_reader": "zstd",
+    "zlib_reader": "zlib",
 }
 
 
@@ -151,6 +207,15 @@ class Expr:
 
     def __getitem__(self, index):
         return GetItem(self, index)
+
+    def __getattr__(self, name):
+        # Attribute access on an expression is mapping lookup, so paths can
+        # continue past an index: `C.entries[0].prefix`. Underscore names
+        # are reserved for the implementation (and special attribute
+        # protocols such as copy/pickle probing must see AttributeError).
+        if name.startswith("_"):
+            raise AttributeError(name)
+        return GetItem(self, name)
 
     def __neg__(self):
         return UnaryOp("neg", self)
@@ -194,6 +259,8 @@ def ensure_expr(value):
     """Coerce a value into an expression node."""
     if isinstance(value, Expr):
         return value
+    elif isinstance(value, bytes):
+        return BytesLit(value)
     elif isinstance(value, (tuple, list)) and any(
         isinstance(v, Expr) for v in value
     ):
@@ -220,6 +287,57 @@ class Lit(Expr):
 
     def __repr__(self):
         return repr(self._value)
+
+
+class BytesLit(Expr):
+    """Bytes literal, serialized as base64."""
+
+    def __init__(self, value):
+        if not isinstance(value, bytes):
+            raise TypeError("BytesLit requires a bytes value.")
+        self._value = value
+
+    def evaluate(self, context, value=None):
+        return self._value
+
+    def to_dict(self):
+        return {
+            "kind": "bytes",
+            "value": base64.b64encode(self._value).decode("ascii"),
+        }
+
+    @classmethod
+    def _from_dict(cls, d):
+        return cls(base64.b64decode(d["value"]))
+
+    def __repr__(self):
+        return repr(self._value)
+
+
+class DictExpr(Expr):
+    """Mapping with static string keys, e.g. for context restructuring."""
+
+    def __init__(self, items):
+        self._items = {key: ensure_expr(value) for key, value in items.items()}
+
+    def evaluate(self, context, value=None):
+        return {
+            key: item.evaluate(context, value) for key, item in self._items.items()
+        }
+
+    def to_dict(self):
+        return {
+            "kind": "dict",
+            "items": {key: item.to_dict() for key, item in self._items.items()},
+        }
+
+    @classmethod
+    def _from_dict(cls, d):
+        return cls({key: from_dict(item) for key, item in d["items"].items()})
+
+    def __repr__(self):
+        inner = ", ".join(f"{k!r}: {v!r}" for k, v in self._items.items())
+        return f"DictExpr({{{inner}}})"
 
 
 class Val(Expr):
@@ -488,6 +606,8 @@ class _FunctionNamespace:
 
 _NODE_KINDS = {
     "lit": Lit,
+    "bytes": BytesLit,
+    "dict": DictExpr,
     "val": Val,
     "ctx": CtxRef,
     "binop": BinaryOp,

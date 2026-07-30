@@ -27,13 +27,12 @@
 Reader for Keyence ZON files.
 """
 
-import dateutil.parser
 import numpy as np
-import zstandard
 
 from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature
 from .binary import BinaryArray, BinaryStructure, Validate, XMLStructure, ZipContainer
-from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase, MagicMatch
+from .expr import C, Cond, F, Tup, V
+from .Reader import CompoundLayout, DeclarativeReaderBase
 
 # Thanks to @mcmalburg (https://github.com/mcmalburg) for reverse engineering the
 # format. See discussion here https://github.com/gabeguss/Keyence/issues/2
@@ -104,16 +103,8 @@ def _array_member(name, dtype, element_size):
         [
             BinaryStructure(
                 [
-                    (
-                        "nb_grid_pts_x",
-                        "i",
-                        Validate(lambda x, context: x > 0, CorruptFile),
-                    ),
-                    (
-                        "nb_grid_pts_y",
-                        "i",
-                        Validate(lambda x, context: x > 0, CorruptFile),
-                    ),
+                    ("nb_grid_pts_x", "i", Validate(V > 0, CorruptFile)),
+                    ("nb_grid_pts_y", "i", Validate(V > 0, CorruptFile)),
                     (
                         "element_size",
                         "i",
@@ -123,8 +114,8 @@ def _array_member(name, dtype, element_size):
                         "row_bytes",
                         "i",
                         Validate(
-                            lambda x, context: x % dtype.itemsize == 0
-                            and x >= context.nb_grid_pts_x * element_size,
+                            (V % dtype.itemsize == 0)
+                            & (V >= C.nb_grid_pts_x * element_size),
                             CorruptFile,
                         ),
                     ),
@@ -134,15 +125,13 @@ def _array_member(name, dtype, element_size):
             ),
             BinaryArray(
                 "data",
-                lambda context: (
-                    context.header.nb_grid_pts_y,
-                    context.header.row_bytes // dtype.itemsize,
+                Tup(
+                    C.header.nb_grid_pts_y,
+                    C.header.row_bytes // dtype.itemsize,
                 ),
-                lambda context: dtype,
+                F.dtype(dtype.str),
                 # Crop the row padding and transpose to (x, y) indexing
-                conversion_fun=lambda arr, context: arr[
-                    :, : context.header.nb_grid_pts_x
-                ].T,
+                conversion_fun=F.transpose(V[:, : C.header.nb_grid_pts_x]),
             ),
         ],
         name=name,
@@ -159,19 +148,13 @@ class ZONReader(DeclarativeReaderBase):
 This reader open ZON files that are written by some Keyence instruments.
 """
 
-    @classmethod
-    def can_read(cls, buffer: bytes) -> MagicMatch:
-        if len(buffer) < 4:
-            return MagicMatch.MAYBE
-        if buffer[:4].decode("latin1") in _MAGIC:
-            return MagicMatch.YES
-        return MagicMatch.NO
+    _magic = [(0, _MAGIC0.encode("ascii")), (0, _MAGIC1.encode("ascii"))]
 
     _file_layout = CompoundLayout(
         [
             BinaryStructure(
                 [
-                    ("magic", "4s", Validate(lambda x, context: x in _MAGIC, FileFormatMismatch)),
+                    ("magic", "4s", Validate(V.isin(_MAGIC0, _MAGIC1), FileFormatMismatch)),
                     ("bmp_size", "L"),  # Size of the BMP thumbnail, which we skip
                 ],
                 byte_order="<",
@@ -184,24 +167,25 @@ This reader open ZON files that are written by some Keyence instruments.
                         _SCAN_UUID,
                         XMLStructure(
                             name="scan",
-                            converters={"ScanDateTime": dateutil.parser.parse},
+                            converters={"ScanDateTime": F.parse_datetime(V)},
                         ),
                     ),
                     (
                         _UNIT_UUID,
                         XMLStructure(
                             name="calibration",
-                            converters={"MeterPerPixel": float, "MeterPerUnit": float},
+                            converters={
+                                "MeterPerPixel": F.float(V),
+                                "MeterPerUnit": F.float(V),
+                            },
                         ),
                     ),
                     (_HEIGHT_DATA_UUID, _array_member("height_data", "<i4", 4)),
                     # The validity mask may be missing from the archive
                     (_VALID_PIXEL_UUID, _array_member("valid_pixel_data", "u1", 1), True),
                 ],
-                stream_filter=lambda stream_obj, context: (
-                    zstandard.ZstdDecompressor().stream_reader(stream_obj)
-                    if context.header.magic == _MAGIC1
-                    else stream_obj
+                stream_filter=Cond(
+                    C.header.magic == _MAGIC1, F.zstd_reader(V), V
                 ),
             ),
         ]
@@ -220,50 +204,43 @@ This reader open ZON files that are written by some Keyence instruments.
                     "Dimensions of the validity mask do not match the height data."
                 )
 
-    def _read_height_data(self, stream_obj):
-        height_data = self._metadata.height_data.data(stream_obj)
-        mask_data = self._metadata.get("valid_pixel_data")
-        if mask_data is not None:
-            mask = mask_data.data(stream_obj)
-            height_data = np.ma.masked_array(
-                height_data, mask=(mask & _INVALID_PIXEL_BITS) != 0
-            )
-        return height_data
-
-    @property
-    def channels(self):
-        header = self._metadata.height_data.header
-        calibration = self._metadata.calibration
-        meter_per_pixel = calibration.XYCalibration.MeterPerPixel
-        meter_per_unit = calibration.ZCalibration.MeterPerUnit
-
-        return [
-            ChannelInfo(
-                self,
-                0,
-                name="default",
-                dim=2,
-                nb_grid_pts=(header.nb_grid_pts_x, header.nb_grid_pts_y),
-                physical_sizes=(
-                    header.nb_grid_pts_x * meter_per_pixel,
-                    header.nb_grid_pts_y * meter_per_pixel,
-                ),
-                height_scale_factor=meter_per_unit,
-                unit="m",
-                uniform=True,
-                info={
-                    "acquisition_time": self._metadata.scan.ScanDateTime,
-                    "instrument": {
-                        "name": self._metadata.device.DeviceModelName,
-                        "vendor": "Keyence",
-                        "serial": self._metadata.device.DeviceSerialId,
-                    },
-                    "raw_metadata": {
-                        "data_uuid": _HEIGHT_DATA_UUID,
-                        "meter_per_pixel": meter_per_pixel,
-                        "meter_per_unit": meter_per_unit,
-                    },
+    _channel_bindings = [
+        {
+            "name": "default",
+            "dim": 2,
+            "nb_grid_pts": Tup(
+                C.height_data.header.nb_grid_pts_x,
+                C.height_data.header.nb_grid_pts_y,
+            ),
+            "physical_sizes": Tup(
+                C.height_data.header.nb_grid_pts_x
+                * C.calibration.XYCalibration.MeterPerPixel,
+                C.height_data.header.nb_grid_pts_y
+                * C.calibration.XYCalibration.MeterPerPixel,
+            ),
+            "height_scale_factor": C.calibration.ZCalibration.MeterPerUnit,
+            "unit": "m",
+            "uniform": True,
+            "info": {
+                "acquisition_time": C.scan.ScanDateTime,
+                "instrument": {
+                    "name": C.device.DeviceModelName,
+                    "vendor": "Keyence",
+                    "serial": C.device.DeviceSerialId,
                 },
-                tags={"reader": self._read_height_data},
-            )
-        ]
+                "raw_metadata": {
+                    "data_uuid": _HEIGHT_DATA_UUID,
+                    "meter_per_pixel": C.calibration.XYCalibration.MeterPerPixel,
+                    "meter_per_unit": C.calibration.ZCalibration.MeterPerUnit,
+                },
+            },
+            "data": C.height_data.data,
+            # A pixel is undefined if one of the low two validity bits is
+            # set; the mask member may be absent, in which case the channel
+            # is unmasked
+            "mask": {
+                "source": C.valid_pixel_data.data,
+                "rule": (V & _INVALID_PIXEL_BITS) != 0,
+            },
+        }
+    ]

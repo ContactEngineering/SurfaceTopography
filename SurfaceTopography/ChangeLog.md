@@ -13,10 +13,23 @@ v1.23.0 (not yet released)
   XML documents into nested dictionaries)
 - ENH: `BinaryArray` conversion functions can now accept the parser context
   as a second argument
-- ENH: Prototype of a serializable expression mini-language for the
-  declarative file layouts (`SurfaceTopography.IO.expr`)
-- DOC: Design document and format-description contract (v0.1 draft) for
-  cross-language declarative file readers
+- ENH: Serializable expression mini-language for the declarative file
+  layouts (`SurfaceTopography.IO.expr`)
+- ENH: Complete JSON (de)serialization of declarative layouts, channel
+  bindings and full format description documents
+  (`SurfaceTopography.IO.description`), per the format description
+  contract; new `Switch` and `Seek` layout primitives
+- ENH: Declarative channel bindings in `DeclarativeReaderBase`
+  (`_channel_bindings`, including per-layer `foreach` and undefined-data
+  mask rules) and declarative magic-byte detection (`_magic`)
+- ENH: The ZMG, TMD, AL3D, SUR, MetroPro, PLU and ZON readers are now
+  fully declarative (lambda-free) and export to language-neutral format
+  description documents (`python -m SurfaceTopography.IO.export`)
+- TST: Round-trip CI gate: format descriptions must be complete and a
+  generic reader rehydrated from the JSON must reproduce the authored
+  readers on the example corpus
+- DOC: Design document and format-description contract (schema version 1)
+  for cross-language declarative file readers
 - BUG: Transposed and downsampled topographies report correct `pixel_size`; affected derivatives and PSDs for anisotropic pixels
 - BUG: Masked data is normalized by the number of defined points; changes `rms_height` and moments of files with undefined data
 - BUG: Power spectrum no longer halves the `q=0` entry when folding the +q and -q branches (#282)

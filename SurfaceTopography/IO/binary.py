@@ -224,11 +224,13 @@ class LayoutWithNameBase:
             return self._name
 
     def to_dict(self):
-        """Convert layout to dictionary for JSON serialization"""
-        return {
-            'type': self.__class__.__name__,
-            'name': self._name if not callable(self._name) else {'__type__': 'lambda', 'source': 'callable_name'}
-        }
+        """
+        Serialize this layout to the JSON representation defined by the
+        format description contract (see
+        `SurfaceTopography.IO.description`).
+        """
+        from .description import layout_to_dict
+        return layout_to_dict(self)
 
 
 class BinaryStructure(LayoutWithNameBase):
@@ -254,32 +256,6 @@ class BinaryStructure(LayoutWithNameBase):
         self._structure_format = structure_format
         self._byte_order = byte_order
         self._name = name
-
-    def to_dict(self):
-        res = super().to_dict()
-        res.update({
-            'byte_order': self._byte_order,
-            'structure': []
-        })
-        for entry in self._structure_format:
-            name, format = entry[:2]
-            entry_dict = {'name': name, 'format': format}
-            if len(entry) > 2:
-                validator = entry[2]
-                if validator:
-                    if isinstance(validator, Validate):
-                        entry_dict['validate'] = {'type': 'Validate', 'value': validator._value}
-                    elif callable(validator):
-                        entry_dict['validate'] = {'type': 'lambda', 'source': 'callable_validator'}
-            if len(entry) > 3:
-                converter = entry[3]
-                if converter:
-                    if isinstance(converter, Convert):
-                        entry_dict['convert'] = {'type': 'Convert', 'fun': 'callable_convert'}
-                    elif callable(converter):
-                        entry_dict['convert'] = {'type': 'lambda', 'source': 'callable_converter'}
-            res['structure'].append(entry_dict)
-        return res
 
     def from_stream(self, stream_obj, context):
         """

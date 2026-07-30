@@ -147,6 +147,45 @@ def test_truthiness_is_an_error():
         bool(C.a == 1)
 
 
+def test_bytes_literal():
+    # Bytes literals arise e.g. from magic validation (MetroPro's magic is
+    # not valid UTF-8)
+    expr = V == b"\x88\x1b\x03q"
+    assert expr(b"\x88\x1b\x03q", {})
+    assert not expr(b"XXXX", {})
+    d = json.loads(json.dumps(expr.to_dict()))
+    assert d["args"][1] == {"kind": "bytes", "value": "iBsDcQ=="}
+    rehydrated = from_dict(d)
+    assert rehydrated(b"\x88\x1b\x03q", {})
+    assert rehydrated.to_dict() == expr.to_dict()
+
+
+def test_dict_expr():
+    from SurfaceTopography.IO.expr import DictExpr
+
+    expr = DictExpr({"data": C.entries[0].prefix, "n": C.nb_entries * 2})
+    context = AttrDict(
+        {"entries": [AttrDict({"prefix": "p0"})], "nb_entries": 3}
+    )
+    assert expr(context) == {"data": "p0", "n": 6}
+    rehydrated = from_dict(json.loads(json.dumps(expr.to_dict())))
+    assert rehydrated(context) == {"data": "p0", "n": 6}
+    assert rehydrated.to_dict() == expr.to_dict()
+
+
+def test_stream_filter_functions():
+    import io
+    import zlib
+
+    import zstandard
+
+    payload = b"declarative readers" * 10
+    compressed = zstandard.ZstdCompressor().compress(payload)
+    assert F.zstd_reader(V)(io.BytesIO(compressed), {}).read() == payload
+    compressed = zlib.compress(payload)
+    assert F.zlib_reader(V)(io.BytesIO(compressed), {}).read() == payload
+
+
 ###
 # Equivalence of lambda-free layouts with the production readers
 ###
@@ -198,14 +237,8 @@ def test_zmg_layout_equivalence(file_format_examples):
 
 
 # The ZON file layout, re-expressed without lambdas. Compare with
-# `ZONReader._file_layout`. The zstd decompression filter becomes a named
-# function primitive.
-register_function(
-    "zstd_reader",
-    lambda f: __import__("zstandard").ZstdDecompressor().stream_reader(f),
-)
-
-
+# `ZONReader._file_layout`. The zstd decompression filter is the
+# `zstd_reader` registry function.
 def zon_array_member(name, dtype_str, element_size):
     itemsize = np.dtype(dtype_str).itemsize
     return CompoundLayout(

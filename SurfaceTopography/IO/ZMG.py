@@ -26,11 +26,10 @@
 Reader for KLA Zeta ZMG files.
 """
 
-import numpy as np
-
 from ..Exceptions import CorruptFile, FileFormatMismatch
 from .binary import BinaryArray, BinaryStructure, RawBuffer, Validate
-from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase, MagicMatch
+from .expr import C, F, Tup, V
+from .Reader import CompoundLayout, DeclarativeReaderBase
 
 
 class ZMGReader(DeclarativeReaderBase):
@@ -43,15 +42,7 @@ class ZMGReader(DeclarativeReaderBase):
 This reader imports KLA Zeta ZMG data files.
 """
 
-    _MAGIC = b"Zeta-Instruments"
-
-    @classmethod
-    def can_read(cls, buffer: bytes) -> MagicMatch:
-        if len(buffer) < len(cls._MAGIC):
-            return MagicMatch.MAYBE
-        if buffer.startswith(cls._MAGIC):
-            return MagicMatch.YES
-        return MagicMatch.NO
+    _magic = [(0, b"Zeta-Instruments")]
 
     _file_layout = CompoundLayout(
         [
@@ -59,27 +50,11 @@ This reader imports KLA Zeta ZMG data files.
                 [
                     ("magic", "16s", Validate("Zeta-Instruments", FileFormatMismatch)),
                     (None, "69s"),  # Skip to resolution fields
-                    (
-                        "nb_grid_pts_x",
-                        "I",
-                        Validate(lambda x, context: x > 0, CorruptFile),
-                    ),
-                    (
-                        "nb_grid_pts_y",
-                        "I",
-                        Validate(lambda x, context: x > 0, CorruptFile),
-                    ),
+                    ("nb_grid_pts_x", "I", Validate(V > 0, CorruptFile)),
+                    ("nb_grid_pts_y", "I", Validate(V > 0, CorruptFile)),
                     (None, "4s"),  # Reserved
-                    (
-                        "step_x",
-                        "f",
-                        Validate(lambda x, context: x > 0, CorruptFile),
-                    ),
-                    (
-                        "step_y",
-                        "f",
-                        Validate(lambda x, context: x > 0, CorruptFile),
-                    ),
+                    ("step_x", "f", Validate(V > 0, CorruptFile)),
+                    ("step_y", "f", Validate(V > 0, CorruptFile)),
                     ("step_z", "f"),
                     (None, "8s"),  # Reserved
                     ("comment_size", "I"),
@@ -87,42 +62,33 @@ This reader imports KLA Zeta ZMG data files.
                 ],
                 name="header",
             ),
-            RawBuffer("comment", lambda context: context.header.comment_size),
+            RawBuffer("comment", C.header.comment_size),
             BinaryArray(
                 "data",
-                lambda context: (
-                    context.header.nb_grid_pts_y,
-                    context.header.nb_grid_pts_x,
-                ),
-                lambda context: np.dtype("<i2"),
-                conversion_fun=lambda x: x.T,  # Transpose to (nx, ny) order
+                Tup(C.header.nb_grid_pts_y, C.header.nb_grid_pts_x),
+                F.dtype("<i2"),
+                conversion_fun=F.transpose(V),  # Transpose to (nx, ny) order
             ),
         ]
     )
 
-    @property
-    def channels(self):
-        header = self._metadata.header
-
-        # Physical sizes in micrometers
-        physical_size_x = header.step_x * header.nb_grid_pts_x
-        physical_size_y = header.step_y * header.nb_grid_pts_y
-
-        return [
-            ChannelInfo(
-                self,
-                0,
-                name="Default",
-                dim=2,
-                nb_grid_pts=(header.nb_grid_pts_x, header.nb_grid_pts_y),
-                physical_sizes=(physical_size_x, physical_size_y),
-                height_scale_factor=header.step_z,
-                uniform=True,
-                unit="µm",
-                info={
-                    "instrument": {"vendor": "KLA Zeta", "name": "Zeta"},
-                    "raw_metadata": header,
-                },
-                tags={"reader": self._metadata.data},
-            )
-        ]
+    _channel_bindings = [
+        {
+            "name": "Default",
+            "dim": 2,
+            "nb_grid_pts": Tup(C.header.nb_grid_pts_x, C.header.nb_grid_pts_y),
+            # Physical sizes in micrometers
+            "physical_sizes": Tup(
+                C.header.step_x * C.header.nb_grid_pts_x,
+                C.header.step_y * C.header.nb_grid_pts_y,
+            ),
+            "height_scale_factor": C.header.step_z,
+            "uniform": True,
+            "unit": "µm",
+            "info": {
+                "instrument": {"vendor": "KLA Zeta", "name": "Zeta"},
+                "raw_metadata": C.header,
+            },
+            "data": C.data,
+        }
+    ]
