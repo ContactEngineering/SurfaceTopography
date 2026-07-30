@@ -1,0 +1,515 @@
+#
+# Copyright 2026 Lars Pastewka
+#
+# ### MIT license
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
+"""
+Serializable expression mini-language for the declarative file layouts.
+
+PROTOTYPE. The declarative readers currently express data-dependent
+quantities (array shapes, validation conditions, conversions) as Python
+lambdas. Lambdas cannot be serialized, which ties the format descriptions to
+Python. This module provides drop-in replacements: expression objects that
+are callable with the same signatures as the lambdas, but that can also be
+serialized to a JSON-compatible AST and rehydrated, e.g. by an expression
+interpreter written in another language.
+
+The normative definition of the AST, its operator semantics and the
+function registry is `docs/format_description_contract.rst`; the design
+rationale is `docs/declarative_readers_design.rst`. Where this module and
+the contract disagree, the contract wins and this module needs fixing.
+
+Authoring vocabulary
+--------------------
+- `C`: the parser context, e.g. `C.header.nb_grid_pts_x`
+- `V`: the value currently being processed (in validators, converters and
+  array conversion functions)
+- `F`: registered named functions, e.g. `F.dtype("<i2")`; the function
+  registry is the fixed set of primitives that a foreign-language
+  interpreter must provide
+- `Tup(...)`: a tuple of expressions, e.g. an array shape
+- `Cond(condition, then, otherwise)`: conditional expression
+
+Standard Python operators (`+`, `-`, `*`, `/`, `//`, `%`, `&`, `|`, `^`,
+`<<`, `>>`, comparisons, unary `-`), indexing and slicing are overloaded on
+expression objects. Note that `and`/`or`/`not` cannot be overloaded in
+Python; use `&`/`|` on boolean subexpressions (parenthesize, `&`/`|` bind
+tighter than comparisons) or `Cond`.
+
+Calling convention
+------------------
+Expression objects are callable so that they can stand in for the lambdas
+the layout classes accept. The layout classes call these hooks either with
+`(context)` or with `(value, context)`; a single dict-like argument is
+interpreted as the context, a single non-dict argument as the value.
+
+Examples
+--------
+>>> from SurfaceTopography.IO.binary import AttrDict
+>>> shape = Tup(C.header.nb_grid_pts_y, C.header.row_bytes // 4)
+>>> shape(AttrDict({'header': AttrDict({'nb_grid_pts_y': 3, 'row_bytes': 16})}))
+(3, 4)
+>>> is_valid = (V & 0x03) == 0
+>>> is_valid(0x80, {})
+True
+>>> from_dict(is_valid.to_dict())(0x02, {})
+False
+"""
+
+import operator
+
+import dateutil.parser
+import numpy as np
+
+_BINARY_OPS = {
+    "+": operator.add,
+    "-": operator.sub,
+    "*": operator.mul,
+    "/": operator.truediv,
+    "//": operator.floordiv,
+    "%": operator.mod,
+    "&": operator.and_,
+    "|": operator.or_,
+    "^": operator.xor,
+    "<<": operator.lshift,
+    ">>": operator.rshift,
+    "==": operator.eq,
+    "!=": operator.ne,
+    "<": operator.lt,
+    "<=": operator.le,
+    ">": operator.gt,
+    ">=": operator.ge,
+    "in": lambda a, b: a in b,
+}
+
+_UNARY_OPS = {
+    "neg": operator.neg,
+    "not": operator.not_,
+}
+
+# Named function registry. This is the fixed set of primitives that an
+# expression interpreter in another language must provide (or reject).
+_FUNCTIONS = {
+    "dtype": np.dtype,
+    "float": float,
+    "int": int,
+    "str": str,
+    "len": len,
+    "transpose": np.transpose,
+    "strip": lambda s: s.strip(),
+    "parse_datetime": dateutil.parser.parse,
+}
+
+
+def register_function(name, fun):
+    """Register a named function usable as `F.<name>(...)` in expressions."""
+    _FUNCTIONS[name] = fun
+
+
+class Expr:
+    """Base class of all expression nodes."""
+
+    def evaluate(self, context, value=None):
+        raise NotImplementedError
+
+    def to_dict(self):
+        raise NotImplementedError
+
+    def __call__(self, *args, **kwargs):
+        # Dispatch the calling conventions used by the layout classes:
+        # `(context)` for shapes, sizes, dtypes, names and conditions;
+        # `(value, context, ...)` for validators and converters; a single
+        # non-dict argument is a bare value (e.g. XML converters).
+        if len(args) >= 2:
+            value, context = args[0], args[1]
+        elif len(args) == 1 and isinstance(args[0], dict):
+            value, context = None, args[0]
+        elif len(args) == 1:
+            value, context = args[0], {}
+        else:
+            value, context = None, {}
+        return self.evaluate(context, value)
+
+    def __getitem__(self, index):
+        return GetItem(self, index)
+
+    def __neg__(self):
+        return UnaryOp("neg", self)
+
+    def isin(self, *values):
+        """Membership test, e.g. `V.isin('KPK0', 'KPK1')`."""
+        return BinaryOp("in", self, Lit(list(values)))
+
+    def __bool__(self):
+        raise TypeError(
+            "The truth value of an expression is undefined; expressions are "
+            "evaluated lazily against a parser context."
+        )
+
+
+def _make_binop(op, reflected):
+    def method(self, other):
+        if reflected:
+            return BinaryOp(op, ensure_expr(other), self)
+        else:
+            return BinaryOp(op, self, ensure_expr(other))
+
+    return method
+
+
+for _op, _name in [
+    ("+", "add"), ("-", "sub"), ("*", "mul"), ("/", "truediv"),
+    ("//", "floordiv"), ("%", "mod"), ("&", "and"), ("|", "or"),
+    ("^", "xor"), ("<<", "lshift"), (">>", "rshift"),
+]:
+    setattr(Expr, f"__{_name}__", _make_binop(_op, False))
+    setattr(Expr, f"__r{_name}__", _make_binop(_op, True))
+for _op, _name in [
+    ("==", "eq"), ("!=", "ne"), ("<", "lt"), ("<=", "le"),
+    (">", "gt"), (">=", "ge"),
+]:
+    setattr(Expr, f"__{_name}__", _make_binop(_op, False))
+
+
+def ensure_expr(value):
+    """Coerce a value into an expression node."""
+    if isinstance(value, Expr):
+        return value
+    elif isinstance(value, (tuple, list)) and any(
+        isinstance(v, Expr) for v in value
+    ):
+        return TupleExpr(*value)
+    else:
+        return Lit(value)
+
+
+class Lit(Expr):
+    """Literal (JSON-representable) value."""
+
+    def __init__(self, value):
+        self._value = value
+
+    def evaluate(self, context, value=None):
+        return self._value
+
+    def to_dict(self):
+        return {"kind": "lit", "value": self._value}
+
+    @classmethod
+    def _from_dict(cls, d):
+        return cls(d["value"])
+
+    def __repr__(self):
+        return repr(self._value)
+
+
+class Val(Expr):
+    """The value currently being processed (validated or converted)."""
+
+    def evaluate(self, context, value=None):
+        return value
+
+    def to_dict(self):
+        return {"kind": "val"}
+
+    @classmethod
+    def _from_dict(cls, d):
+        return cls()
+
+    def __repr__(self):
+        return "V"
+
+
+class CtxRef(Expr):
+    """Reference to an entry of the parser context, e.g. `C.header.magic`."""
+
+    def __init__(self, path=()):
+        self._path = tuple(path)
+
+    def __getattr__(self, name):
+        # Do not swallow special attribute protocols (copy, pickle, ...);
+        # `__parent__` is a legitimate context key used by `CompoundLayout`.
+        if name.startswith("__") and name.endswith("__") and name != "__parent__":
+            raise AttributeError(name)
+        return CtxRef(self._path + (name,))
+
+    def evaluate(self, context, value=None):
+        obj = context
+        for segment in self._path:
+            if isinstance(obj, dict):
+                obj = obj[segment]
+            else:
+                obj = getattr(obj, segment)
+        return obj
+
+    def to_dict(self):
+        return {"kind": "ctx", "path": list(self._path)}
+
+    @classmethod
+    def _from_dict(cls, d):
+        return cls(d["path"])
+
+    def __repr__(self):
+        return ".".join(("C",) + self._path)
+
+
+class BinaryOp(Expr):
+    def __init__(self, op, left, right):
+        if op not in _BINARY_OPS:
+            raise ValueError(f"Unknown binary operator `{op}`.")
+        self._op = op
+        self._left = ensure_expr(left)
+        self._right = ensure_expr(right)
+
+    def evaluate(self, context, value=None):
+        return _BINARY_OPS[self._op](
+            self._left.evaluate(context, value),
+            self._right.evaluate(context, value),
+        )
+
+    def to_dict(self):
+        return {
+            "kind": "binop",
+            "op": self._op,
+            "args": [self._left.to_dict(), self._right.to_dict()],
+        }
+
+    @classmethod
+    def _from_dict(cls, d):
+        left, right = d["args"]
+        return cls(d["op"], from_dict(left), from_dict(right))
+
+    def __repr__(self):
+        return f"({self._left!r} {self._op} {self._right!r})"
+
+
+class UnaryOp(Expr):
+    def __init__(self, op, arg):
+        if op not in _UNARY_OPS:
+            raise ValueError(f"Unknown unary operator `{op}`.")
+        self._op = op
+        self._arg = ensure_expr(arg)
+
+    def evaluate(self, context, value=None):
+        return _UNARY_OPS[self._op](self._arg.evaluate(context, value))
+
+    def to_dict(self):
+        return {"kind": "unop", "op": self._op, "arg": self._arg.to_dict()}
+
+    @classmethod
+    def _from_dict(cls, d):
+        return cls(d["op"], from_dict(d["arg"]))
+
+    def __repr__(self):
+        return f"{self._op}({self._arg!r})"
+
+
+class Call(Expr):
+    """Call to a function from the named function registry."""
+
+    def __init__(self, name, args):
+        self._func_name = name
+        self._args = [ensure_expr(arg) for arg in args]
+
+    def evaluate(self, context, value=None):
+        try:
+            fun = _FUNCTIONS[self._func_name]
+        except KeyError:
+            raise KeyError(
+                f"Unknown function `{self._func_name}`; register it with "
+                f"`register_function`."
+            )
+        return fun(*[arg.evaluate(context, value) for arg in self._args])
+
+    def to_dict(self):
+        return {
+            "kind": "call",
+            "name": self._func_name,
+            "args": [arg.to_dict() for arg in self._args],
+        }
+
+    @classmethod
+    def _from_dict(cls, d):
+        return cls(d["name"], [from_dict(arg) for arg in d["args"]])
+
+    def __repr__(self):
+        return f"F.{self._func_name}({', '.join(repr(a) for a in self._args)})"
+
+
+class TupleExpr(Expr):
+    """Tuple of expressions, e.g. an array shape."""
+
+    def __init__(self, *items):
+        self._items = [ensure_expr(item) for item in items]
+
+    def evaluate(self, context, value=None):
+        return tuple(item.evaluate(context, value) for item in self._items)
+
+    def to_dict(self):
+        return {"kind": "tuple", "items": [item.to_dict() for item in self._items]}
+
+    @classmethod
+    def _from_dict(cls, d):
+        return cls(*[from_dict(item) for item in d["items"]])
+
+    def __repr__(self):
+        return f"Tup({', '.join(repr(i) for i in self._items)})"
+
+
+class Cond(Expr):
+    """Conditional expression with short-circuit evaluation."""
+
+    def __init__(self, condition, then, otherwise):
+        self._condition = ensure_expr(condition)
+        self._then = ensure_expr(then)
+        self._otherwise = ensure_expr(otherwise)
+
+    def evaluate(self, context, value=None):
+        if self._condition.evaluate(context, value):
+            return self._then.evaluate(context, value)
+        else:
+            return self._otherwise.evaluate(context, value)
+
+    def to_dict(self):
+        return {
+            "kind": "cond",
+            "condition": self._condition.to_dict(),
+            "then": self._then.to_dict(),
+            "otherwise": self._otherwise.to_dict(),
+        }
+
+    @classmethod
+    def _from_dict(cls, d):
+        return cls(
+            from_dict(d["condition"]), from_dict(d["then"]), from_dict(d["otherwise"])
+        )
+
+    def __repr__(self):
+        return f"Cond({self._condition!r}, {self._then!r}, {self._otherwise!r})"
+
+
+class GetItem(Expr):
+    """Indexing and slicing, e.g. `V[:, :C.header.nb_grid_pts_x]`."""
+
+    def __init__(self, base, index):
+        self._base = ensure_expr(base)
+        self._index = index if isinstance(index, tuple) else (index,)
+        self._was_tuple = isinstance(index, tuple)
+
+    def evaluate(self, context, value=None):
+        def resolve(part):
+            if isinstance(part, slice):
+                return slice(
+                    *(
+                        None if bound is None else ensure_expr(bound).evaluate(context, value)
+                        for bound in (part.start, part.stop, part.step)
+                    )
+                )
+            else:
+                return ensure_expr(part).evaluate(context, value)
+
+        parts = tuple(resolve(part) for part in self._index)
+        if not self._was_tuple:
+            (parts,) = parts
+        return self._base.evaluate(context, value)[parts]
+
+    @staticmethod
+    def _encode_part(part):
+        if isinstance(part, slice):
+            return {
+                "kind": "slice",
+                "bounds": [
+                    None if bound is None else ensure_expr(bound).to_dict()
+                    for bound in (part.start, part.stop, part.step)
+                ],
+            }
+        else:
+            return ensure_expr(part).to_dict()
+
+    @staticmethod
+    def _decode_part(d):
+        if isinstance(d, dict) and d.get("kind") == "slice":
+            return slice(
+                *(None if bound is None else from_dict(bound) for bound in d["bounds"])
+            )
+        else:
+            return from_dict(d)
+
+    def to_dict(self):
+        return {
+            "kind": "getitem",
+            "base": self._base.to_dict(),
+            "index": [self._encode_part(part) for part in self._index],
+            "tuple": self._was_tuple,
+        }
+
+    @classmethod
+    def _from_dict(cls, d):
+        parts = tuple(cls._decode_part(part) for part in d["index"])
+        if not d["tuple"]:
+            (parts,) = parts
+        return cls(from_dict(d["base"]), parts)
+
+    def __repr__(self):
+        return f"{self._base!r}[{', '.join(repr(p) for p in self._index)}]"
+
+
+class _FunctionNamespace:
+    """Builder for calls into the named function registry."""
+
+    def __getattr__(self, name):
+        if name.startswith("__") and name.endswith("__"):
+            raise AttributeError(name)
+
+        def make_call(*args):
+            return Call(name, args)
+
+        return make_call
+
+
+_NODE_KINDS = {
+    "lit": Lit,
+    "val": Val,
+    "ctx": CtxRef,
+    "binop": BinaryOp,
+    "unop": UnaryOp,
+    "call": Call,
+    "tuple": TupleExpr,
+    "cond": Cond,
+    "getitem": GetItem,
+}
+
+
+def from_dict(d):
+    """Rehydrate an expression from its JSON-compatible AST."""
+    try:
+        node_class = _NODE_KINDS[d["kind"]]
+    except (TypeError, KeyError):
+        raise ValueError(f"Cannot decode expression node: {d!r}")
+    return node_class._from_dict(d)
+
+
+# Authoring roots
+C = CtxRef()
+V = Val()
+F = _FunctionNamespace()
+Tup = TupleExpr

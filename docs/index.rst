@@ -26,6 +26,8 @@ If you use this code, please cite:
    file_formats/index
    testing
    contributing
+   declarative_readers_design
+   format_description_contract
 
 
 

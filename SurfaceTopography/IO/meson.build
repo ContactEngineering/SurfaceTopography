@@ -10,6 +10,7 @@ python_sources = [
     'DATX.py',
     'DI.py',
     'DZI.py',
+    'expr.py',
     'EZD.py',
     'FromFile.py',
     'FRT.py',

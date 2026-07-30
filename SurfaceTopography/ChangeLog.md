@@ -13,6 +13,10 @@ v1.23.0 (not yet released)
   XML documents into nested dictionaries)
 - ENH: `BinaryArray` conversion functions can now accept the parser context
   as a second argument
+- ENH: Prototype of a serializable expression mini-language for the
+  declarative file layouts (`SurfaceTopography.IO.expr`)
+- DOC: Design document and format-description contract (v0.1 draft) for
+  cross-language declarative file readers
 - BUG: Transposed and downsampled topographies report correct `pixel_size`; affected derivatives and PSDs for anisotropic pixels
 - BUG: Masked data is normalized by the number of defined points; changes `rms_height` and moments of files with undefined data
 - BUG: Power spectrum no longer halves the `q=0` entry when folding the +q and -q branches (#282)
