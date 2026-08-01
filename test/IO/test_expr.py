@@ -147,6 +147,41 @@ def test_truthiness_is_an_error():
         bool(C.a == 1)
 
 
+def test_isnan_null():
+    # `decode` sanitizes scalar NaNs in parsed metadata to None; the
+    # contract defines isnan(null) as true
+    assert F.isnan(V)(None, {})
+    assert F.isnan(V)(float("nan"), {})
+    assert not F.isnan(V)(1.0, {})
+
+
+def test_binary_array_conversion_receives_context():
+    # Regression test: `inspect.signature` raises on operator-overloaded
+    # expression objects (its internals compare against `type`/`object`,
+    # which builds an expression whose truth value is an error), and
+    # `BinaryArray.read` used to swallow that and call the conversion
+    # without the parser context
+    import io
+    import struct
+
+    layout = CompoundLayout(
+        [
+            BinaryStructure([("n", "I")], byte_order="<", name="header"),
+            BinaryArray(
+                "data",
+                Tup(2, 4),
+                F.dtype("<u1"),
+                conversion_fun=F.transpose(V[:, : C.header.n]),
+            ),
+        ]
+    )
+    stream = io.BytesIO(struct.pack("<I", 3) + bytes(range(8)))
+    metadata = layout.from_stream(stream, {})
+    arr = metadata.data(stream)
+    assert arr.shape == (3, 2)
+    np.testing.assert_array_equal(arr, [[0, 4], [1, 5], [2, 6]])
+
+
 def test_bytes_literal():
     # Bytes literals arise e.g. from magic validation (MetroPro's magic is
     # not valid UTF-8)

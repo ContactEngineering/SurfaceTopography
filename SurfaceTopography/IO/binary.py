@@ -35,10 +35,24 @@ import defusedxml.ElementTree as ElementTree
 import numpy as np
 
 from ..Exceptions import CorruptFile
+from .expr import Expr
 
 
-class ValidationError(Exception):
+class ValidationError(CorruptFile):
+    """
+    Raised when a `Validate` hook without an explicit exception class
+    fails. A plain validation failure means the file is corrupt, hence
+    this is a `CorruptFile` (and thus `ReadFileError`); the format
+    description contract maps it to the `corrupt_file` error taxonomy
+    name.
+    """
     pass
+
+
+def _identity(x):
+    """Default (no-op) hook; shared so that serialization can detect
+    unset hooks by identity."""
+    return x
 
 
 class AttrDict(dict):
@@ -282,7 +296,7 @@ class BinaryStructure(LayoutWithNameBase):
 
 
 class BinaryArray:
-    def __init__(self, name, shape, dtype, conversion_fun=lambda x: x, mask_fun=None):
+    def __init__(self, name, shape, dtype, conversion_fun=_identity, mask_fun=None):
         """
         Defines flat binary data to be read into a numpy array.
 
@@ -384,6 +398,14 @@ class BinaryArray:
         arr = np.frombuffer(buffer, dtype=dtype).reshape(shape)
         if self._mask_fun is not None:
             arr = np.ma.masked_array(arr, mask=self._mask_fun(arr, context))
+        if isinstance(self._conversion_fun, Expr):
+            # Expressions always receive the parser context. Do not fall
+            # through to the signature introspection below: operator
+            # overloading on expression objects defeats `inspect.signature`
+            # (its internals compare the object against `type`/`object`,
+            # which builds an expression whose truth value raises), and the
+            # resulting fallback would silently drop the context.
+            return self._conversion_fun.evaluate(context, arr)
         try:
             nb_params = len(inspect.signature(self._conversion_fun).parameters)
         except (TypeError, ValueError):
@@ -785,6 +807,10 @@ class XMLStructure(LayoutWithNameBase):
         if len(element) == 0:
             converter = self._converters.get(element.tag)
             if converter is not None:
+                if isinstance(converter, Expr):
+                    # Explicit dispatch: expressions receive the element
+                    # text as the value, never as a (dict-typed) context
+                    return converter.evaluate({}, element.text)
                 return converter(element.text)
             return element.text
         return AttrDict(

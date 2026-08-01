@@ -34,8 +34,9 @@ import numpy as np
 from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
 from ..Metadata import InfoModel
 from ..UniformLineScanAndTopography import Topography
-from .binary import AttrDict, LayoutWithNameBase
+from .binary import AttrDict, LayoutWithNameBase, _identity
 from .common import OpenFromAny
+from .expr import Expr
 
 
 class MagicMatch(Enum):
@@ -950,7 +951,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
 class CompoundLayout(LayoutWithNameBase):
     """Declare a file layout"""
 
-    def __init__(self, structures, name=None, context_mapper=lambda x: x):
+    def __init__(self, structures, name=None, context_mapper=_identity):
         self._structures = structures
         self._name = name
         self._context_mapper = context_mapper
@@ -1043,6 +1044,10 @@ class Switch:
     def name(self, context):
         return self._select(context).name(context)
 
+    def to_dict(self):
+        from .description import layout_to_dict
+        return layout_to_dict(self)
+
     def from_stream(self, stream_obj, context):
         return self._select(context).from_stream(stream_obj, context)
 
@@ -1099,6 +1104,10 @@ class Seek:
     def __init__(self, offset, comment=None):
         self._offset = offset
         self._comment = comment
+
+    def to_dict(self):
+        from .description import layout_to_dict
+        return layout_to_dict(self)
 
     def from_stream(self, stream_obj, context):
         offset = self._offset(context) if callable(self._offset) else self._offset
@@ -1288,7 +1297,10 @@ class DeclarativeReaderBase(ReaderBase):
       expressions
     - `nb_grid_pts`, `physical_sizes`: expressions evaluating to tuples
     - `height_scale_factor`: literal, expression or absent (unscaled)
-    - `info`: (nested) dictionary of literals or expressions
+    - `info`: (nested) dictionary of literals or expressions; entries
+      that evaluate to `None` are omitted from the channel information
+      (except within `raw_metadata`, which is reported verbatim and may
+      legitimately contain nulls, e.g. NaN-sanitized header fields)
     - `data`: expression resolving to a lazy array reader within the
       parsed metadata
     - `mask`: optional dictionary `{"source": <expression resolving to a
@@ -1343,8 +1355,10 @@ class DeclarativeReaderBase(ReaderBase):
     @staticmethod
     def _evaluate_binding(value, context):
         """Evaluate a channel-binding entry against the metadata context."""
-        if callable(value):
-            # An expression (or a plain callable taking the context)
+        if isinstance(value, Expr):
+            return value.evaluate(context)
+        elif callable(value):
+            # A plain callable taking the context
             return value(context)
         elif isinstance(value, dict):
             return {
@@ -1383,9 +1397,32 @@ class DeclarativeReaderBase(ReaderBase):
                 source = data
             else:
                 source = source_proxy(stream_obj)
-            return np.ma.masked_array(data, mask=rule(source, {}))
+            if isinstance(rule, Expr):
+                mask = rule.evaluate({}, source)
+            else:
+                mask = rule(source, {})
+            return np.ma.masked_array(data, mask=mask)
 
         return read
+
+    @staticmethod
+    def _prune_undefined_info(info):
+        """
+        Drop `None` entries from an evaluated `info` dictionary so that
+        optional metadata (e.g. an invalid acquisition date or an absent
+        instrument name) is omitted rather than reported as null. The
+        `raw_metadata` entry is kept verbatim; it may legitimately contain
+        nulls (e.g. NaN-sanitized header fields).
+        """
+        pruned = {}
+        for key, value in info.items():
+            if key == "raw_metadata":
+                pruned[key] = value
+            elif isinstance(value, dict):
+                pruned[key] = DeclarativeReaderBase._prune_undefined_info(value)
+            elif value is not None:
+                pruned[key] = value
+        return pruned
 
     _CHANNEL_INFO_KEYS = [
         "name",
@@ -1425,6 +1462,8 @@ class DeclarativeReaderBase(ReaderBase):
                     for key in self._CHANNEL_INFO_KEYS
                     if key in binding
                 }
+                if "info" in kwargs:
+                    kwargs["info"] = self._prune_undefined_info(kwargs["info"])
                 channels.append(
                     ChannelInfo(
                         self,

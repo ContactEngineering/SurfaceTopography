@@ -56,6 +56,7 @@ from .binary import (
     XMLStructure,
     ZipContainer,
     ZlibBlockChain,
+    _identity,
 )
 from .Reader import (
     CompoundLayout,
@@ -85,10 +86,8 @@ _ERROR_CLASSES = {
     "unsupported_feature": UnsupportedFormatFeature,
 }
 
-# Per-instance defaults of layout constructors, used to detect (and omit)
-# unset hooks
-_DEFAULT_CONVERSION_FUN = BinaryArray.__init__.__defaults__[0]
-_DEFAULT_CONTEXT_MAPPER = CompoundLayout.__init__.__defaults__[1]
+# Unset hooks default to the shared `_identity` function and are detected
+# (and omitted) by identity with it
 
 
 def _opaque(value):
@@ -200,10 +199,35 @@ def _encode_name(layout):
     return encode_value(layout._name)
 
 
+# Format codes whose size differs between native (`@`) and standard (`=`)
+# sizes, or that are unavailable with standard sizes altogether. `@` can
+# only be rewritten to `=` for structures that avoid them.
+_NATIVE_SIZE_CODES = frozenset("lLnNP")
+
+
 def _encode_binary_structure(layout):
     fields = []
     for entry in layout._structure_format:
+        if hasattr(entry, "from_stream"):
+            # A nested layout object inside a field list cannot be
+            # represented in the document schema
+            fields.append(_opaque(entry))
+            continue
         name, format = entry[:2]
+        if (
+            layout._byte_order == "@"
+            and not format.startswith(("<", ">", "=", "!"))
+            and format[-1] in _NATIVE_SIZE_CODES
+        ):
+            # `@` is rewritten to `=` below; that is only size-preserving
+            # for standard-size codes, so refuse to silently change the
+            # width of this field
+            raise ValueError(
+                f"Field `{name}` uses format code `{format[-1]}`, whose size "
+                f"is platform-dependent under native byte order `@`; declare "
+                f"an explicit byte order (or a fixed-size code) to make this "
+                f"structure serializable."
+            )
         field = {"name": name, "format": format}
         hooks = _encode_field_hooks(entry[2:])
         if hooks:
@@ -212,7 +236,8 @@ def _encode_binary_structure(layout):
     byte_order = layout._byte_order
     if byte_order == "@":
         # `@` is equivalent to `=` because fields are unpacked
-        # individually; the contract forbids `@` in documents
+        # individually and native-size codes are rejected above; the
+        # contract forbids `@` in documents
         byte_order = "="
     return {
         "type": "BinaryStructure",
@@ -225,6 +250,11 @@ def _encode_binary_structure(layout):
 def _decode_binary_structure(d):
     entries = []
     for field in d["fields"]:
+        if field.get("kind") == "opaque":
+            raise UnsupportedSchema(
+                f"Cannot rehydrate opaque structure field "
+                f"{field.get('repr')}; the document is incomplete."
+            )
         entry = [field["name"], field["format"]]
         entry += _decode_field_hooks(field.get("hooks", []))
         entries.append(tuple(entry))
@@ -238,7 +268,7 @@ def _encode_binary_array(layout):
         "shape": encode_value(layout._shape),
         "dtype": encode_value(layout._dtype),
     }
-    if layout._conversion_fun is not _DEFAULT_CONVERSION_FUN:
+    if layout._conversion_fun is not _identity:
         res["conversion"] = encode_value(layout._conversion_fun)
     if layout._mask_fun is not None:
         res["mask"] = encode_value(layout._mask_fun)
@@ -288,7 +318,7 @@ def _encode_compound_layout(layout):
         "name": _encode_name(layout),
         "structures": [layout_to_dict(s) for s in layout._structures],
     }
-    if layout._context_mapper is not _DEFAULT_CONTEXT_MAPPER:
+    if layout._context_mapper is not _identity:
         res["context_mapper"] = encode_value(layout._context_mapper)
     return res
 

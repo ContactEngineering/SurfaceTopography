@@ -44,21 +44,17 @@ import numpy as np
 import pytest
 from NuMPI import MPI
 
-from SurfaceTopography.IO import (
-    AL3DReader,
-    MetroProReader,
-    PLUReader,
-    SURReader,
-    TMDReader,
-    ZMGReader,
-    ZONReader,
-)
+from SurfaceTopography.Exceptions import CorruptFile, UnsupportedSchema
+from SurfaceTopography.IO.binary import BinaryStructure, ValidationError
 from SurfaceTopography.IO.description import (
     SCHEMA_VERSION,
     count_opaque,
+    layout_from_dict,
+    layout_to_dict,
     reader_description,
     reader_from_dict,
 )
+from SurfaceTopography.IO.export import _EXPORTED_READERS, exported_reader_classes
 from SurfaceTopography.IO.Reader import MagicMatch
 
 pytestmark = pytest.mark.skipif(
@@ -66,15 +62,12 @@ pytestmark = pytest.mark.skipif(
     reason="tests only serial functionalities, please execute with pytest",
 )
 
-# All readers with declarative channel bindings, and their corpus fixtures
+# All readers with declarative channel bindings, and their corpus fixtures;
+# the exporter's registry is the single source of truth
+_READER_CLASSES = exported_reader_classes()
 DECLARATIVE_READERS = [
-    (ZMGReader, ["zmg-1.zmg", "zmg-2.zmg"]),
-    (TMDReader, ["tmd-1.tmd"]),
-    (AL3DReader, ["al3d-1.al3d"]),
-    (SURReader, ["sur-1.sur", "sur-2.sur", "sur-3.sur", "sur-4.sur", "sur-5.sur"]),
-    (MetroProReader, ["metropro-1.dat"]),
-    (PLUReader, ["plu-1.plu"]),
-    (ZONReader, ["zon-1.zon"]),
+    (_READER_CLASSES[format_id], fixtures)
+    for format_id, fixtures in _EXPORTED_READERS.items()
 ]
 
 _IDS = [cls.__name__ for cls, _ in DECLARATIVE_READERS]
@@ -193,3 +186,45 @@ def test_export_is_deterministic(reader_and_fixtures):
     a = json.dumps(reader_description(reader_class), sort_keys=True)
     b = json.dumps(reader_description(reader_class), sort_keys=True)
     assert a == b
+
+
+def test_native_size_codes_are_rejected():
+    """
+    `@` is rewritten to `=` on export; that is only size-preserving for
+    standard-size codes, so structures combining `@` with native-size
+    codes must refuse to export instead of silently changing field widths.
+    """
+    with pytest.raises(ValueError, match="platform-dependent"):
+        layout_to_dict(BinaryStructure([("size", "L")]))
+    # An explicit structure-level byte order makes it serializable
+    document = layout_to_dict(BinaryStructure([("size", "L")], byte_order="<"))
+    assert document["byte_order"] == "<"
+    # ... as does a per-field endianness prefix
+    document = layout_to_dict(BinaryStructure([("size", "<L")]))
+    assert document["byte_order"] == "="
+
+
+def test_nested_layout_field_is_opaque():
+    """
+    Layout objects inside a `BinaryStructure` field list cannot be
+    represented in the document schema: they count as opaque and refuse
+    to rehydrate, rather than crashing the encoder.
+    """
+    layout = BinaryStructure(
+        [("a", "I"), BinaryStructure([("b", "I")], name="inner")],
+        byte_order="<",
+    )
+    document = layout_to_dict(layout)
+    assert count_opaque(document) == 1
+    with pytest.raises(UnsupportedSchema):
+        layout_from_dict(document)
+
+
+def test_validation_error_is_corrupt_file():
+    """
+    `Validate` hooks without an explicit exception raise `ValidationError`;
+    the error taxonomy maps it to `corrupt_file`, so the authored reader
+    must raise something a `CorruptFile` handler catches, like the
+    rehydrated reader does.
+    """
+    assert issubclass(ValidationError, CorruptFile)

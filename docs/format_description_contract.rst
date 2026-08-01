@@ -260,7 +260,11 @@ Byte order
     exporter rewrites it to ``=``. (Rationale: the Python engine unpacks
     fields individually, so ``@`` never introduces alignment padding and
     is equivalent to ``=`` — but a whole-struct reimplementation would
-    disagree. Discovered the hard way in libsdsio.)
+    disagree. Discovered the hard way in libsdsio.) The rewrite is only
+    size-preserving for standard-size codes; the exporter refuses to
+    serialize an ``@`` structure containing a native-size code
+    (``l L n N P``, whose widths are platform-dependent) instead of
+    silently changing the field width.
 
 Layout nodes
 ------------

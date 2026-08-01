@@ -13,6 +13,13 @@ v1.23.0 (not yet released)
   XML documents into nested dictionaries)
 - ENH: `BinaryArray` conversion functions can now accept the parser context
   as a second argument
+- BUG: `ValidationError` is now a subclass of `CorruptFile` (and thus
+  `ReadFileError`), so validation failures are caught like other reader
+  errors and match the `corrupt_file` error taxonomy of the format
+  description contract
+- MAINT: Channel-binding `info` entries that evaluate to `None` are
+  omitted from the channel information (matching the historic readers)
+  instead of being reported as null; `raw_metadata` is kept verbatim
 - ENH: Serializable expression mini-language for the declarative file
   layouts (`SurfaceTopography.IO.expr`)
 - ENH: Complete JSON (de)serialization of declarative layouts, channel

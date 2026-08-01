@@ -124,6 +124,15 @@ def _make_datetime(year, month, day, hour, minute, second):
         return None
 
 
+def _isnan(value):
+    # The binary decoder sanitizes scalar NaNs in parsed metadata to None
+    # (`null` in a document); the format description contract defines
+    # `isnan(null)` as true.
+    if value is None:
+        return True
+    return np.isnan(value)
+
+
 def _zstd_reader(stream_obj):
     import zstandard
 
@@ -148,7 +157,7 @@ _FUNCTIONS = {
     "str": str,
     "len": len,
     "abs": np.abs,
-    "isnan": np.isnan,
+    "isnan": _isnan,
     "transpose": np.transpose,
     "strip": lambda s: s.strip(),
     "parse_datetime": dateutil.parser.parse,
