@@ -34,7 +34,7 @@ from zipfile import BadZipFile, ZipFile
 import defusedxml.ElementTree as ElementTree
 import numpy as np
 
-from ..Exceptions import CorruptFile
+from ..Exceptions import CorruptFile, FileFormatMismatch
 from .expr import Expr
 
 
@@ -1317,6 +1317,222 @@ class ZipContainer(LayoutWithNameBase):
             raise self._mismatch_error(
                 "Stream is not a valid ZIP archive."
             ) from exc
+        name = self.name(context)
+        if name is None:
+            return local_context
+        else:
+            return {name: local_context}
+
+
+def _sanitize_tag_value(value):
+    """
+    Map a TIFF tag value to the JSON-compatible value model of the format
+    description contract. Returns None for values that must not surface
+    into reported metadata (bulk byte blobs, arrays); enum values become
+    `[name, value]` pairs.
+    """
+    import enum
+
+    if isinstance(value, enum.Enum):
+        return [value.name, value.value]
+    elif isinstance(value, (bool, int, float, str)) or value is None:
+        return value
+    elif isinstance(value, (tuple, list)):
+        sanitized = [_sanitize_tag_value(v) for v in value]
+        return [v for v in sanitized if v is not None]
+    elif isinstance(value, dict):
+        # E.g. a parsed Exif IFD
+        return {
+            str(key): sanitized
+            for key, sanitized in (
+                (key, _sanitize_tag_value(v)) for key, v in value.items()
+            )
+            if sanitized is not None
+        }
+    else:
+        # Bulk data (bytes, arrays) and unknown objects are not metadata
+        return None
+
+
+class _TIFFPageProxy:
+    """Lazy reader materializing the raster image of a TIFF page."""
+
+    def __init__(self, page_index, conversion_fun, context):
+        self._page_index = page_index
+        self._conversion_fun = conversion_fun
+        self._context = context
+
+    def __call__(self, stream_obj):
+        from tifffile import TiffFile
+
+        with TiffFile(stream_obj) as tiff_file:
+            arr = tiff_file.pages[self._page_index].asarray()
+        if isinstance(self._conversion_fun, Expr):
+            return self._conversion_fun.evaluate(self._context, arr)
+        return self._conversion_fun(arr)
+
+
+class _TIFFTagProxy:
+    """
+    Wraps a lazy reader returned by a tag layout of a `TIFFContainer`
+    such that calling it with the outer file stream transparently
+    re-reads the tag's byte value.
+    """
+
+    def __init__(self, page_index, tag_code, reader):
+        self._page_index = page_index
+        self._tag_code = tag_code
+        self._reader = reader
+
+    def __call__(self, stream_obj):
+        import io
+
+        from tifffile import TiffFile
+
+        with TiffFile(stream_obj) as tiff_file:
+            value = (
+                tiff_file.pages[self._page_index].tags[self._tag_code].value
+            )
+        return self._reader(io.BytesIO(value))
+
+
+class TIFFContainer(LayoutWithNameBase):
+    """
+    Interprets the stream as a TIFF file and reports its pages.
+
+    The result contains a list `pages`; each page is a record with
+
+    - `index`: the page index,
+    - `shape`: the shape of the page's raster image,
+    - `tags`: the page's tag values, keyed by the standard tag name, by
+      the name from `tag_names`, or by the hexadecimal tag code (e.g.
+      '0x8050') for unknown private tags. Values follow the contract's
+      value model (enums become `[name, value]` pairs; byte blobs and
+      arrays are omitted),
+    - `image`: a lazy reader materializing the page's raster image,
+    - one list per `tag_groups` entry (see below), and
+    - the results of `tag_layouts` (see below).
+
+    Parameters
+    ----------
+    name : str, optional
+        Name of this structure in the result dictionary. If None, the
+        `pages` list is merged into the enclosing context.
+        (Default: None)
+    tag_names : dict, optional
+        Maps numeric tag codes of private tags to names, e.g.
+        `{0x8000: 'FileFormatVersion'}`. (Default: None)
+    tag_groups : dict, optional
+        Repeating private-tag blocks, mapping a group name to
+        `{'first': <code>, 'stride': <code stride>, 'names': {<offset>:
+        <name>}}`. Tags with code `first + i * stride + offset` are
+        collected into the i-th record of the group's list.
+        (Default: None)
+    tag_layouts : dict, optional
+        Maps numeric tag codes to layouts that parse the tag's byte
+        value, in declaration order; the results are merged into the
+        page record, and lazy readers within them re-read the tag on
+        demand. Use this for vendor headers and rasters stored in
+        private tags. (Default: None)
+    image_conversion : function or expression, optional
+        Conversion applied to page raster images, e.g. a transposition.
+        (Default: identity)
+    """
+
+    def __init__(self, name=None, tag_names=None, tag_groups=None,
+                 tag_layouts=None, image_conversion=_identity):
+        self._name = name
+        self._tag_names = {} if tag_names is None else tag_names
+        self._tag_groups = {} if tag_groups is None else tag_groups
+        self._tag_layouts = {} if tag_layouts is None else tag_layouts
+        self._image_conversion = image_conversion
+
+    def _wrap_lazy_readers(self, value, page_index, tag_code):
+        if isinstance(value, dict):
+            return type(value)(
+                {
+                    key: self._wrap_lazy_readers(v, page_index, tag_code)
+                    for key, v in value.items()
+                }
+            )
+        elif isinstance(value, list):
+            return [
+                self._wrap_lazy_readers(v, page_index, tag_code)
+                for v in value
+            ]
+        elif callable(value):
+            return _TIFFTagProxy(page_index, tag_code, value)
+        else:
+            return value
+
+    def _assign_tag(self, record, groups, code, tag):
+        """Store a tag value into the page record or a tag group."""
+        value = _sanitize_tag_value(tag.value)
+        if value is None:
+            return
+        if code in self._tag_names:
+            record.tags[self._tag_names[code]] = value
+            return
+        for group_name, group in self._tag_groups.items():
+            offset = code - group["first"]
+            if offset >= 0 and offset % group["stride"] in group["names"]:
+                index = offset // group["stride"]
+                records = groups[group_name]
+                while len(records) <= index:
+                    records.append(AttrDict())
+                records[index][
+                    group["names"][offset % group["stride"]]
+                ] = value
+                return
+        if tag.name != str(code):
+            # A standard tag known to the TIFF library
+            record.tags[tag.name] = value
+        else:
+            record.tags[hex(code)] = value
+
+    def _parse_page(self, page_index, page, context):
+        import io
+
+        record = AttrDict(
+            {
+                "index": page_index,
+                "shape": list(page.shape),
+                "tags": AttrDict(),
+            }
+        )
+        groups = {group_name: [] for group_name in self._tag_groups}
+        for code, tag in page.tags.items():
+            self._assign_tag(record, groups, code, tag)
+        record.update(groups)
+        record["image"] = _TIFFPageProxy(
+            page_index,
+            self._image_conversion,
+            AttrDict({**record, "__parent__": context}),
+        )
+        for code, layout in self._tag_layouts.items():
+            if code not in page.tags:
+                continue
+            result = layout.from_stream(
+                io.BytesIO(page.tags[code].value),
+                AttrDict({**record, "__parent__": context}),
+            )
+            record.update(
+                self._wrap_lazy_readers(result, page_index, code)
+            )
+        return record
+
+    def from_stream(self, stream_obj, context):
+        from tifffile import TiffFile, TiffFileError
+
+        try:
+            with TiffFile(stream_obj) as tiff_file:
+                pages = [
+                    self._parse_page(page_index, page, context)
+                    for page_index, page in enumerate(tiff_file.pages)
+                ]
+        except TiffFileError as exc:
+            raise FileFormatMismatch("This is not a TIFF file.") from exc
+        local_context = AttrDict({"pages": pages})
         name = self.name(context)
         if name is None:
             return local_context

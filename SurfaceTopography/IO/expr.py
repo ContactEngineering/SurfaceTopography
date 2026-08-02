@@ -126,6 +126,29 @@ def _is_length_unit(unit):
     return is_length_unit(unit)
 
 
+def _parse_xml(text):
+    import xmltodict
+
+    return xmltodict.parse(text)
+
+
+def _record_value(record, key):
+    # `key` is a single field name or a path of field names
+    if isinstance(key, (list, tuple)):
+        for segment in key:
+            record = record[segment]
+        return record
+    return record[key]
+
+
+def _match_records(records, key, value):
+    return [r for r in records if _record_value(r, key) == value]
+
+
+def _match_records_containing(records, key, value):
+    return [r for r in records if value in _record_value(r, key)]
+
+
 def _make_datetime(
     year, month, day, hour, minute, second, utc_offset_minutes=None
 ):
@@ -217,6 +240,15 @@ _FUNCTIONS = {
     "values_with_prefix": lambda mapping, prefix: [
         v for k, v in mapping.items() if k.startswith(prefix)
     ],
+    # Record selection: records whose value under a key (or key path)
+    # equals, or contains, the given value; build a mapping from a list
+    # of records keyed by one of their fields
+    "match_records": _match_records,
+    "match_records_containing": _match_records_containing,
+    "index_by": lambda records, key: {r[key]: r for r in records if key in r},
+    # Parse an XML document (string) into nested mappings, e.g. vendor
+    # metadata embedded in TIFF tags
+    "parse_xml": _parse_xml,
     # Capability-gated stream filters
     "zstd_reader": _zstd_reader,
     "zlib_reader": _zlib_reader,

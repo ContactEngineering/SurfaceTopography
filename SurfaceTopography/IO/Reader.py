@@ -31,7 +31,7 @@ from enum import Enum
 
 import numpy as np
 
-from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
+from ..Exceptions import ERROR_CLASSES, CorruptFile, MetadataAlreadyFixedByFile
 from ..Metadata import InfoModel
 from ..UniformLineScanAndTopography import Topography
 from .binary import AttrDict, LayoutWithNameBase, _identity
@@ -1418,6 +1418,12 @@ class DeclarativeReaderBase(ReaderBase):
     - `foreach`: optional expression evaluating to a list; one channel is
       emitted per element, with the element available as `C.item` and its
       index as `C.item_index` in all other expressions of the binding
+    - `where`: optional expression; if it evaluates falsy for a `foreach`
+      element (or for the whole binding without `foreach`), no channel is
+      emitted
+    - `checks`: optional list of dictionaries `{"condition": <expression>,
+      "error": <error taxonomy name>, "message": <str>}`, evaluated per
+      emitted channel; a falsy condition raises the named error
 
     Expressions are evaluated against the parsed metadata context.
     """
@@ -1569,6 +1575,16 @@ class DeclarativeReaderBase(ReaderBase):
                     for index, item in enumerate(items)
                 ]
             for context in contexts:
+                where = binding.get("where")
+                if where is not None and not self._evaluate_binding(
+                    where, context
+                ):
+                    continue
+                for check in binding.get("checks", ()):
+                    if not self._evaluate_binding(check["condition"], context):
+                        raise ERROR_CLASSES[check.get("error", "corrupt_file")](
+                            check.get("message", "Channel validation failed.")
+                        )
                 kwargs = {
                     key: self._evaluate_binding(binding[key], context)
                     for key in self._CHANNEL_INFO_KEYS

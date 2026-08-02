@@ -231,6 +231,28 @@ values_with_prefix     (mapping, string) → list           Values of all keys
                                                           starting with the
                                                           prefix, in mapping
                                                           order.
+match_records          (list, key, value) → list          Records whose value
+                                                          under the key (a
+                                                          field name or a
+                                                          path of names)
+                                                          equals the value.
+match_records_containing (list, key, string) → list       Records whose value
+                                                          under the key
+                                                          contains the
+                                                          string.
+index_by               (list, string) → mapping           Map each record's
+                                                          value under the key
+                                                          to the record
+                                                          (records missing
+                                                          the key are
+                                                          skipped).
+parse_xml              (string) → mapping                 Parse an XML
+                                                          document into
+                                                          nested mappings
+                                                          (attributes as
+                                                          ``@name`` keys,
+                                                          text content as
+                                                          ``#text``).
 unit_conversion_factor (string, string) → float|null      Length-unit ratio
                                                           from/to; null if
                                                           either unit is
@@ -434,6 +456,23 @@ TextMatrix      text        Whitespace-separated number matrix of a
                             optional conversion expression. Values are
                             materialized in phase A (a text region
                             cannot be sized without scanning it).
+TIFFContainer   tiff        Parse the stream as a TIFF file (baseline
+                            TIFF 6.0 with the compression schemes of
+                            the corpus). Reports a ``pages`` list; each
+                            page holds ``index``, ``shape``, a ``tags``
+                            mapping (standard tag names, names from
+                            ``tag_names`` for private tags, hexadecimal
+                            codes otherwise; enums as [name, value]
+                            pairs; byte blobs and arrays omitted), an
+                            ``image`` handle to the page raster
+                            (``image_conversion`` expression applied on
+                            materialization), repeating private-tag
+                            blocks collected into record lists per
+                            ``tag_groups`` (first code, stride, offset
+                            names), and the results of ``tag_layouts``
+                            (layouts executed against the byte value of
+                            a private tag, in declaration order, with
+                            lazy readers re-reading the tag on demand).
 =============== =========== =============================================
 
 Two-phase reading
@@ -505,11 +544,21 @@ the metadata context::
   channel is emitted per element; within all other expressions of the
   binding, the element is available as the context key ``item`` and its
   zero-based index as ``item_index``.
+* An optional ``where`` expression filters the emitted channels: when it
+  evaluates falsy for a ``foreach`` element (or for the whole binding
+  without ``foreach``), no channel is emitted. Example: JPK emits
+  channels only for TIFF pages whose default slot carries a length unit.
+* An optional ``checks`` list validates each emitted channel:
+  ``{"condition": <expr>, "error": <error taxonomy name>, "message":
+  <str>}`` — a falsy condition raises the named error. Use this for
+  per-channel constraints that a layout-level ``Check`` cannot express
+  (e.g. an unsupported scaling type on a height channel).
 
 Capabilities
 ------------
 
-v0.1 defines: ``core``, ``zlib``, ``zstd``, ``zip``, ``xml``, ``text``.
+v0.1 defines: ``core``, ``zlib``, ``zstd``, ``zip``, ``xml``, ``text``,
+``tiff``.
 
 An engine built without a capability *must* report a description
 requiring it as *known but unsupported* (distinguishable from both "not

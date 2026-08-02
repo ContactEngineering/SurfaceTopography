@@ -40,6 +40,13 @@ v1.23.0 (not yet released)
   `is_length_unit`
 - ENH: The BCR, MI, WSXM and SDF readers are now fully declarative and
   export to format description documents
+- ENH: The PS, LEXT and JPK readers are now fully declarative and export
+  to format description documents; a new `TIFFContainer` layout node
+  (capability `tiff`) reports TIFF pages with their tags, raster images
+  and vendor-tag layouts, channel bindings gained `where` (filtered
+  channel emission) and `checks` (per-channel validation), and the
+  expression registry gained `match_records`,
+  `match_records_containing`, `index_by` and `parse_xml`
 - ENH: The OPD, PLUX and X3P readers are now fully declarative and
   export to format description documents; new layout nodes `ForEach`
   (repeat a structure per element of a previously parsed list) and `Let`

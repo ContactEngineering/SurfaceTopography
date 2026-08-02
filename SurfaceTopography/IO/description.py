@@ -38,9 +38,8 @@ or executed by a foreign-language engine. `count_opaque` reports them.
 import numpy as np
 
 from ..Exceptions import (
+    ERROR_CLASSES,
     CorruptFile,
-    FileFormatMismatch,
-    UnsupportedFormatFeature,
     UnsupportedSchema,
 )
 from . import expr
@@ -53,6 +52,7 @@ from .binary import (
     TextHeader,
     TextLine,
     TextMatrix,
+    TIFFContainer,
     TLVContainer,
     Validate,
     ValidationError,
@@ -79,19 +79,14 @@ from .Reader import (
 
 SCHEMA_VERSION = 1
 
-# Error taxonomy names, per the contract
+# Error taxonomy names, per the contract; the name-to-class map lives in
+# `Exceptions.ERROR_CLASSES`
 _ERROR_NAMES = {
-    FileFormatMismatch: "format_mismatch",
-    CorruptFile: "corrupt_file",
-    UnsupportedFormatFeature: "unsupported_feature",
-    # A plain validation failure means the file is corrupt
-    ValidationError: "corrupt_file",
+    exception_class: name for name, exception_class in ERROR_CLASSES.items()
 }
-_ERROR_CLASSES = {
-    "format_mismatch": FileFormatMismatch,
-    "corrupt_file": CorruptFile,
-    "unsupported_feature": UnsupportedFormatFeature,
-}
+# A plain validation failure means the file is corrupt
+_ERROR_NAMES[ValidationError] = "corrupt_file"
+_ERROR_CLASSES = ERROR_CLASSES
 
 # Unset hooks default to the shared `_identity` function and are detected
 # (and omitted) by identity with it
@@ -770,6 +765,63 @@ def _decode_text_matrix(d):
     )
 
 
+def _encode_tiff_container(layout):
+    res = {"type": "TIFFContainer", "name": _encode_name(layout)}
+    if layout._tag_names:
+        res["tag_names"] = {
+            hex(code): name for code, name in layout._tag_names.items()
+        }
+    if layout._tag_groups:
+        res["tag_groups"] = {
+            group_name: {
+                "first": group["first"],
+                "stride": group["stride"],
+                "names": {
+                    hex(offset): name
+                    for offset, name in group["names"].items()
+                },
+            }
+            for group_name, group in layout._tag_groups.items()
+        }
+    if layout._tag_layouts:
+        # A list, to make the parse order explicit
+        res["tag_layouts"] = [
+            {"tag": code, "layout": layout_to_dict(tag_layout)}
+            for code, tag_layout in layout._tag_layouts.items()
+        ]
+    if layout._image_conversion is not _identity:
+        res["image_conversion"] = encode_value(layout._image_conversion)
+    return res
+
+
+def _decode_tiff_container(d):
+    kwargs = {}
+    if "tag_names" in d:
+        kwargs["tag_names"] = {
+            int(code, 16): name for code, name in d["tag_names"].items()
+        }
+    if "tag_groups" in d:
+        kwargs["tag_groups"] = {
+            group_name: {
+                "first": group["first"],
+                "stride": group["stride"],
+                "names": {
+                    int(offset, 16): name
+                    for offset, name in group["names"].items()
+                },
+            }
+            for group_name, group in d["tag_groups"].items()
+        }
+    if "tag_layouts" in d:
+        kwargs["tag_layouts"] = {
+            entry["tag"]: layout_from_dict(entry["layout"])
+            for entry in d["tag_layouts"]
+        }
+    if "image_conversion" in d:
+        kwargs["image_conversion"] = decode_value(d["image_conversion"])
+    return TIFFContainer(name=decode_value(d["name"]), **kwargs)
+
+
 def _encode_zlib_block_chain(layout):
     return {
         "type": "ZlibBlockChain",
@@ -807,6 +859,7 @@ _ENCODERS = {
     TextHeader: _encode_text_header,
     TextMatrix: _encode_text_matrix,
     TLVContainer: _encode_tlv_container,
+    TIFFContainer: _encode_tiff_container,
     ZipContainer: _encode_zip_container,
     XMLStructure: _encode_xml_structure,
     ZlibBlockChain: _encode_zlib_block_chain,
@@ -832,6 +885,7 @@ _DECODERS = {
     "TextHeader": _decode_text_header,
     "TextMatrix": _decode_text_matrix,
     "TLVContainer": _decode_tlv_container,
+    "TIFFContainer": _decode_tiff_container,
     "ZipContainer": _decode_zip_container,
     "XMLStructure": _decode_xml_structure,
     "ZlibBlockChain": _decode_zlib_block_chain,
@@ -841,6 +895,7 @@ _DECODERS = {
 # format description contract
 _NODE_CAPABILITIES = {
     "ZipContainer": "zip",
+    "TIFFContainer": "tiff",
     "XMLStructure": "xml",
     "ZlibBlockChain": "zlib",
     "TextLine": "text",

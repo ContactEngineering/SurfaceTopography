@@ -66,6 +66,9 @@ _EXPORTED_READERS = {
     "opd": ["opd-1.opd", "opd-2.opd", "opd-3.opd"],
     "plux": ["plux-1.plux"],
     "x3p": ["x3p-1.x3p", "x3p-2.x3p", "x3p-3.x3p", "x3p-4.x3p"],
+    "ps": ["example_ps.tiff"],
+    "lext": ["lext-1.lext", "lext-2.lext"],
+    "jpk": ["jpk-1.jpk", "jpk-2.jpk"],
 }
 
 
@@ -75,6 +78,8 @@ def exported_reader_classes():
         AL3DReader,
         BCRReader,
         FRTReader,
+        JPKReader,
+        LEXTReader,
         MetroProReader,
         MIReader,
         NMSReader,
@@ -82,6 +87,7 @@ def exported_reader_classes():
         OS3DReader,
         PLUReader,
         PLUXReader,
+        PSReader,
         SDFReader,
         SURReader,
         TMDReader,
@@ -111,6 +117,9 @@ def exported_reader_classes():
         OPDReader,
         PLUXReader,
         X3PReader,
+        PSReader,
+        LEXTReader,
+        JPKReader,
     ]
     return {cls._format: cls for cls in classes}
 
