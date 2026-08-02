@@ -1052,6 +1052,45 @@ class Switch:
         return self._select(context).from_stream(stream_obj, context)
 
 
+class Check:
+    """
+    Validates a condition against the context without reading from the
+    stream. Use this for consistency checks between previously parsed
+    values, e.g. cross-structure validation that a `Validate` field hook
+    cannot express.
+
+    Parameters
+    ----------
+    condition : bool, callable or expression
+        Evaluated against the context; a false result raises.
+    exception : Exception, optional
+        Exception class to raise. (Default: CorruptFile)
+    comment : str, optional
+        Message of the raised exception (and documentation of the check).
+    """
+
+    def __init__(self, condition, exception=CorruptFile, comment=None):
+        self._condition = condition
+        self._exception = exception
+        self._comment = comment
+
+    def to_dict(self):
+        from .description import layout_to_dict
+        return layout_to_dict(self)
+
+    def from_stream(self, stream_obj, context):
+        if callable(self._condition):
+            passed = self._condition(context)
+        else:
+            passed = self._condition
+        if not passed:
+            raise self._exception(
+                self._comment
+                or f"Validation of `{self._condition!r}` failed."
+            )
+        return {}
+
+
 class Skip:
     """
     Skips over bytes in a binary stream without storing them.
@@ -1304,8 +1343,8 @@ class DeclarativeReaderBase(ReaderBase):
     - `data`: expression resolving to a lazy array reader within the
       parsed metadata
     - `mask`: optional dictionary `{"source": <expression resolving to a
-      lazy array reader>, "rule": <expression over the source array,
-      true marks undefined pixels>}`
+      lazy array reader>, "rule": <expression over the source array (`V`)
+      and the parsed metadata (`C`), true marks undefined pixels>}`
     - `foreach`: optional expression evaluating to a list; one channel is
       emitted per element, with the element available as `C.item` and its
       index as `C.item_index` in all other expressions of the binding
@@ -1397,10 +1436,13 @@ class DeclarativeReaderBase(ReaderBase):
                 source = data
             else:
                 source = source_proxy(stream_obj)
+            # The rule sees the source array as the value and the parsed
+            # metadata as the context, so it can depend on header fields
+            # (e.g. a data-type-specific invalid marker)
             if isinstance(rule, Expr):
-                mask = rule.evaluate({}, source)
+                mask = rule.evaluate(context, source)
             else:
-                mask = rule(source, {})
+                mask = rule(source, context)
             return np.ma.masked_array(data, mask=mask)
 
         return read

@@ -59,6 +59,10 @@ _EXPORTED_READERS = {
     "nms": ["nms-1.nms", "nms-2.nms"],
     "vk": ["vk3-1.vk3", "vk4-1.vk4", "vk6-1.vk6"],
     "frt": ["frt-1.frt", "frt-2.frt"],
+    "bcr": ["bcrf-1.bcrf"],
+    "mi": ["mi-1.mi"],
+    "wsxm": ["top-1.top", "stp-1.stp"],
+    "sdf": ["sdf-1.sdf", "sdf-2.sdf"],
 }
 
 
@@ -66,14 +70,18 @@ def exported_reader_classes():
     """The reader classes exported to description documents, by format id."""
     from . import (
         AL3DReader,
+        BCRReader,
         FRTReader,
         MetroProReader,
+        MIReader,
         NMSReader,
         OS3DReader,
         PLUReader,
+        SDFReader,
         SURReader,
         TMDReader,
         VKReader,
+        WSXMReader,
         ZMGReader,
         ZONReader,
     )
@@ -90,6 +98,10 @@ def exported_reader_classes():
         NMSReader,
         VKReader,
         FRTReader,
+        BCRReader,
+        MIReader,
+        WSXMReader,
+        SDFReader,
     ]
     return {cls._format: cls for cls in classes}
 

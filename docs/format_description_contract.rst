@@ -197,8 +197,13 @@ isnan                  (number|null|array) → bool|array   True for NaN; null
                                                           (scalar NaN) is
                                                           NaN.
 transpose              (array) → array                    Axis reversal.
+flip                   (array, integer) → array           Reverse along the
+                                                          given axis.
 strip                  (string) → string                  Strip ASCII
                                                           whitespace.
+split                  (string, string) → list            Split at every
+                                                          occurrence of the
+                                                          separator.
 to_map                 (list, string, string) → mapping   Build a mapping from
                                                           a list of records:
                                                           record[key-field] →
@@ -214,6 +219,14 @@ unit_conversion_factor (string, string) → float|null      Length-unit ratio
                                                           unknown. Unit table:
                                                           Gm Mm km m mm µm um
                                                           nm Å A pm fm.
+mangle_length_unit     (string) → string                  Normalize a vendor
+                                                          length-unit string
+                                                          to the unit table
+                                                          (e.g. ``um`` →
+                                                          ``µm``).
+is_length_unit         (string) → bool                    True if the string
+                                                          is in the length
+                                                          unit table.
 parse_datetime         (string) → datetime                Vendor date string →
                                                           ISO-8601 (see Value
                                                           model).
@@ -337,6 +350,12 @@ Core nodes (capability ``core``):
     position afterwards is the window end regardless of how much the
     child consumed.
 
+``Check``
+    Validates a condition against the context without reading from the
+    stream; a false result raises the error named by the ``error``
+    taxonomy entry. Use for consistency checks between previously parsed
+    values.
+
 ``TLVContainer``
     Tag-length-value sequences with a tag→layout mapping. The context
     passed to each entry's layout contains the previously parsed *named*
@@ -363,6 +382,18 @@ XMLStructure    xml         Parse an XML document into a nested mapping;
                             per-tag converter expressions.
 ZlibBlockChain  zlib        Chained zlib blocks with prefix headers
                             (MNT-style).
+TextLine        text        One text line, stripped.
+TextHeader      text        Line-oriented ``key <sep> value`` header:
+                            configurable separator or fixed-width key
+                            column, comment prefixes, INI-style or
+                            key-triggered sections, delimited by a byte
+                            count, terminator line, stop key or EOF;
+                            per-key converter expressions.
+TextMatrix      text        Whitespace-separated number matrix of a
+                            given shape; bad-value tokens parse as NaN;
+                            optional conversion expression. Values are
+                            materialized in phase A (a text region
+                            cannot be sized without scanning it).
 =============== =========== =============================================
 
 Two-phase reading
@@ -438,7 +469,7 @@ the metadata context::
 Capabilities
 ------------
 
-v0.1 defines: ``core``, ``zlib``, ``zstd``, ``zip``, ``xml``.
+v0.1 defines: ``core``, ``zlib``, ``zstd``, ``zip``, ``xml``, ``text``.
 
 An engine built without a capability *must* report a description
 requiring it as *known but unsupported* (distinguishable from both "not

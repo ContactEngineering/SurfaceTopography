@@ -550,6 +550,265 @@ class TextBuffer(LayoutWithNameBase):
         return {self.name(context): text}
 
 
+class TextLine(LayoutWithNameBase):
+    """
+    Reads a single text line from a binary stream and stores its stripped
+    content.
+
+    Parameters
+    ----------
+    name : str
+        Name of the entry in the result dictionary.
+    encoding : str, optional
+        Text encoding of the line. Default: 'latin-1'.
+    """
+
+    def __init__(self, name, encoding="latin-1"):
+        self._name = name
+        self._encoding = encoding
+
+    def from_stream(self, stream_obj, context):
+        line = stream_obj.readline().decode(self._encoding, errors="replace")
+        return {self.name(context): line.strip()}
+
+
+class TextHeader(LayoutWithNameBase):
+    """
+    Parses a line-oriented text header of `key <separator> value` entries
+    from a binary stream.
+
+    The header region is delimited either by an exact byte count (`size`),
+    a terminator line (`terminator`), a terminating key (`stop_key`), or
+    the end of the stream. In line-delimited mode, the stream is left
+    positioned directly after the last consumed line, so binary data
+    following the header can be read by subsequent layout nodes. (Line
+    mode requires an ASCII-compatible encoding of the newline character;
+    use `size` for encodings like UTF-16.)
+
+    Parameters
+    ----------
+    name : str, optional
+        Name of this structure in the result dictionary. If None, the
+        parsed entries are merged into the enclosing context.
+        (Default: None)
+    encoding : str, optional
+        Text encoding. Undecodable bytes are replaced. (Default: 'latin-1')
+    separator : str, optional
+        Separator between key and value. Ignored if `key_width` is set.
+        (Default: '=')
+    key_width : int, optional
+        If set, the key is a fixed-width column of this many characters
+        and the value is the remainder of the line. (Default: None)
+    comment_prefixes : tuple of str, optional
+        Lines starting with one of these prefixes are skipped. The check
+        runs on the unstripped line, so ' ' skips indented lines.
+        (Default: ())
+    sections : str, optional
+        If 'ini', lines of the form `[Name]` start a named section and
+        subsequent entries are stored in a nested dictionary under that
+        name. (Default: None)
+    section_key : str, optional
+        If set, each occurrence of this key starts a new record;
+        subsequent entries (including this key) are stored in the record,
+        and the records form a list stored under `sections_name`.
+        (Default: None)
+    sections_name : str, optional
+        Name of the record list for `section_key`.
+        (Default: 'sections')
+    terminator : str, optional
+        Exact (stripped) line that ends the header. The line is consumed
+        but not stored. (Default: None)
+    stop_key : str, optional
+        Key whose entry ends the header. The entry is stored at the top
+        level and consumed. (Default: None)
+    size : int, callable or expression, optional
+        Exact size of the header region in bytes. The whole region is
+        consumed and parsed; unparseable content is skipped.
+        (Default: None)
+    converters : dict, optional
+        Maps keys to callables (or expressions) that convert the value,
+        e.g. `{'headersize': F.int(V)}`. (Default: None)
+    strict : bool, optional
+        If True, a non-empty line that is neither a comment, a section
+        marker nor a key-value pair raises `CorruptFile`; if False, such
+        lines are skipped. (Default: False)
+    """
+
+    def __init__(self, name=None, encoding="latin-1", separator="=",
+                 key_width=None, comment_prefixes=(), sections=None,
+                 section_key=None, sections_name="sections",
+                 terminator=None, stop_key=None, size=None,
+                 converters=None, strict=False):
+        self._name = name
+        self._encoding = encoding
+        self._separator = separator
+        self._key_width = key_width
+        self._comment_prefixes = tuple(comment_prefixes)
+        self._sections = sections
+        self._section_key = section_key
+        self._sections_name = sections_name
+        self._terminator = terminator
+        self._stop_key = stop_key
+        self._size = size
+        self._converters = {} if converters is None else converters
+        self._strict = strict
+
+    def _iter_lines(self, stream_obj, context):
+        if self._size is not None:
+            size = self._size(context) if callable(self._size) else self._size
+            text = stream_obj.read(size).decode(
+                self._encoding, errors="replace"
+            )
+            yield from text.split("\n")
+        else:
+            while True:
+                raw = stream_obj.readline()
+                if not raw:
+                    return
+                yield raw.decode(self._encoding, errors="replace")
+
+    def _convert(self, key, value):
+        converter = self._converters.get(key)
+        if converter is None:
+            return value
+        if isinstance(converter, Expr):
+            return converter.evaluate({}, value)
+        return converter(value)
+
+    def from_stream(self, stream_obj, context):
+        result = AttrDict()
+        records = []
+        current = result
+        for raw_line in self._iter_lines(stream_obj, context):
+            line = raw_line.rstrip("\r\n")
+            if any(line.startswith(p) for p in self._comment_prefixes):
+                continue
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if self._terminator is not None and stripped == self._terminator:
+                break
+            if (
+                self._sections == "ini"
+                and stripped.startswith("[")
+                and stripped.endswith("]")
+            ):
+                section = AttrDict()
+                result[stripped[1:-1]] = section
+                current = section
+                continue
+            if self._key_width is not None:
+                key = line[: self._key_width].strip()
+                value = line[self._key_width:].strip()
+            else:
+                if self._separator not in stripped:
+                    if self._strict:
+                        raise CorruptFile(
+                            f"Header line `{stripped}` is not a key-value "
+                            f"pair."
+                        )
+                    continue
+                key, value = stripped.split(self._separator, 1)
+                key = key.strip()
+                value = value.strip()
+            value = self._convert(key, value)
+            if self._stop_key is not None and key == self._stop_key:
+                result[key] = value
+                break
+            if self._section_key is not None and key == self._section_key:
+                current = AttrDict()
+                records.append(current)
+            current[key] = value
+        if self._section_key is not None:
+            result[self._sections_name] = records
+        name = self.name(context)
+        if name is None:
+            return result
+        else:
+            return {name: result}
+
+
+class _StoredArrayProxy:
+    """Reader proxy around data that was already parsed at layout time."""
+
+    def __init__(self, data):
+        self._data = data
+
+    def __call__(self, stream_obj):
+        return self._data
+
+
+class TextMatrix(LayoutWithNameBase):
+    """
+    Reads a matrix of whitespace-separated numbers from a text region of a
+    binary stream.
+
+    Reads lines until the number of values given by `shape` has been
+    consumed; the values are parsed into a float64 array. Unlike
+    `BinaryArray`, the values are parsed when the layout is executed (a
+    text region cannot be skipped without scanning it); the result
+    dictionary nevertheless holds a lazy-style reader proxy for
+    consistency.
+
+    Parameters
+    ----------
+    name : str
+        Name of the array.
+    shape : tuple, callable or expression
+        Shape of the resulting array.
+    encoding : str, optional
+        Text encoding. (Default: 'ascii')
+    bad_markers : tuple of str, optional
+        Tokens marking invalid values, parsed as NaN. (Default: ('BAD',))
+    conversion_fun : function or expression, optional
+        Conversion applied to the parsed array, e.g. a transposition.
+        (Default: identity)
+    """
+
+    def __init__(self, name, shape, encoding="ascii", bad_markers=("BAD",),
+                 conversion_fun=_identity):
+        self._name = name
+        self._shape = shape
+        self._encoding = encoding
+        self._bad_markers = tuple(bad_markers)
+        self._conversion_fun = conversion_fun
+
+    def from_stream(self, stream_obj, context):
+        shape = self._shape(context) if callable(self._shape) else self._shape
+        nb_values = int(np.prod(shape))
+        tokens = []
+        while len(tokens) < nb_values:
+            raw = stream_obj.readline()
+            if not raw:
+                raise CorruptFile(
+                    f"End of stream after reading {len(tokens)} of "
+                    f"{nb_values} values."
+                )
+            tokens += raw.decode(self._encoding, errors="replace").split()
+        if len(tokens) > nb_values:
+            raise CorruptFile(
+                f"Data region contains more than the expected "
+                f"{nb_values} values."
+            )
+        try:
+            values = np.array(
+                [
+                    np.nan if token in self._bad_markers else float(token)
+                    for token in tokens
+                ]
+            )
+        except ValueError as exc:
+            raise CorruptFile(
+                "Data region contains a token that is not a number."
+            ) from exc
+        arr = values.reshape(shape)
+        if isinstance(self._conversion_fun, Expr):
+            arr = self._conversion_fun.evaluate(context, arr)
+        else:
+            arr = self._conversion_fun(arr)
+        return {self.name(context): _StoredArrayProxy(arr)}
+
+
 class TLVContainer(LayoutWithNameBase):
     """
     Reads TLV (Tag-Length-Value) encoded blocks from a binary stream.

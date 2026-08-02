@@ -32,6 +32,14 @@ v1.23.0 (not yet released)
 - ENH: The ZMG, TMD, AL3D, SUR, MetroPro, PLU and ZON readers are now
   fully declarative (lambda-free) and export to language-neutral format
   description documents (`python -m SurfaceTopography.IO.export`)
+- ENH: Declarative parsing of text headers: new layout nodes `TextLine`,
+  `TextHeader` (line-oriented key-value headers with sections, comments
+  and several delimiting modes) and `TextMatrix` (whitespace-separated
+  number matrices), a `Check` node for cross-structure validation, and
+  new registry functions `split`, `flip`, `mangle_length_unit` and
+  `is_length_unit`
+- ENH: The BCR, MI, WSXM and SDF readers are now fully declarative and
+  export to format description documents
 - ENH: The OS3D, NMS, VK and FRT readers are now also fully declarative
   and export to format description documents; `TLVContainer` entries can
   reference previously parsed named entries and skip unknown tags via a

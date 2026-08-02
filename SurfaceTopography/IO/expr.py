@@ -114,6 +114,18 @@ def _unit_conversion_factor(from_unit, to_unit):
     return get_unit_conversion_factor(from_unit, to_unit)
 
 
+def _mangle_length_unit(unit):
+    from ..Support.UnitConversion import mangle_length_unit_utf8
+
+    return mangle_length_unit_utf8(unit)
+
+
+def _is_length_unit(unit):
+    from ..Support.UnitConversion import is_length_unit
+
+    return is_length_unit(unit)
+
+
 def _make_datetime(
     year, month, day, hour, minute, second, utc_offset_minutes=None
 ):
@@ -173,13 +185,17 @@ _FUNCTIONS = {
     "abs": np.abs,
     "isnan": _isnan,
     "transpose": np.transpose,
+    "flip": lambda arr, axis: np.flip(arr, axis),
     "strip": lambda s: s.strip(),
+    "split": lambda s, separator: s.split(separator),
     "parse_datetime": dateutil.parser.parse,
     "make_datetime": _make_datetime,
     # POSIX timestamp to datetime (in local time, matching historic
     # reader behavior)
     "from_timestamp": lambda ts: __import__("datetime").datetime.fromtimestamp(ts),
     "unit_conversion_factor": _unit_conversion_factor,
+    "mangle_length_unit": _mangle_length_unit,
+    "is_length_unit": _is_length_unit,
     # Mapping utilities: build a mapping from a list of records (e.g. a
     # tag list), look up with a default, merge two mappings, drop a key
     "to_map": lambda records, key, value: {r[key]: r[value] for r in records},
@@ -246,7 +262,9 @@ class Expr:
 
     def isin(self, *values):
         """Membership test, e.g. `V.isin('KPK0', 'KPK1')`."""
-        return BinaryOp("in", self, Lit(list(values)))
+        # A tuple expression, so that each value is encoded individually
+        # (bytes values must become base64 `bytes` nodes)
+        return BinaryOp("in", self, TupleExpr(*values))
 
     def __bool__(self):
         raise TypeError(
@@ -293,6 +311,23 @@ def ensure_expr(value):
         return Lit(value)
 
 
+def _is_json_value(value):
+    if isinstance(value, (bool, int, float, str)) or value is None:
+        return True
+    elif isinstance(value, (list, tuple)):
+        return all(_is_json_value(v) for v in value)
+    elif isinstance(value, dict):
+        # JSON object keys are strings; other key types would be
+        # silently stringified on serialization and no longer match on
+        # lookup after rehydration
+        return all(
+            isinstance(key, str) and _is_json_value(v)
+            for key, v in value.items()
+        )
+    else:
+        return False
+
+
 class Lit(Expr):
     """Literal (JSON-representable) value."""
 
@@ -303,6 +338,11 @@ class Lit(Expr):
         return self._value
 
     def to_dict(self):
+        if not _is_json_value(self._value):
+            raise ValueError(
+                f"The literal {self._value!r} does not survive a JSON "
+                f"round trip."
+            )
         return {"kind": "lit", "value": self._value}
 
     @classmethod

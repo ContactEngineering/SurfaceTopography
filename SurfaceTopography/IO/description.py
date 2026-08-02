@@ -50,6 +50,9 @@ from .binary import (
     Convert,
     RawBuffer,
     TextBuffer,
+    TextHeader,
+    TextLine,
+    TextMatrix,
     TLVContainer,
     Validate,
     ValidationError,
@@ -59,6 +62,7 @@ from .binary import (
     _identity,
 )
 from .Reader import (
+    Check,
     CompoundLayout,
     DeclarativeReaderBase,
     For,
@@ -585,6 +589,115 @@ def _decode_xml_structure(d):
     )
 
 
+def _encode_check(layout):
+    res = {
+        "type": "Check",
+        "condition": encode_value(layout._condition),
+        "error": _encode_error(layout._exception),
+    }
+    if layout._comment is not None:
+        res["comment"] = layout._comment
+    return res
+
+
+def _decode_check(d):
+    return Check(
+        decode_value(d["condition"]),
+        exception=_decode_error(d["error"]),
+        comment=d.get("comment"),
+    )
+
+
+def _encode_text_line(layout):
+    return {
+        "type": "TextLine",
+        "name": layout._name,
+        "encoding": layout._encoding,
+    }
+
+
+def _decode_text_line(d):
+    return TextLine(d["name"], encoding=d["encoding"])
+
+
+def _encode_text_header(layout):
+    res = {
+        "type": "TextHeader",
+        "name": _encode_name(layout),
+        "encoding": layout._encoding,
+        "separator": layout._separator,
+        "strict": layout._strict,
+    }
+    if layout._key_width is not None:
+        res["key_width"] = layout._key_width
+    if layout._comment_prefixes:
+        res["comment_prefixes"] = list(layout._comment_prefixes)
+    if layout._sections is not None:
+        res["sections"] = layout._sections
+    if layout._section_key is not None:
+        res["section_key"] = layout._section_key
+        res["sections_name"] = layout._sections_name
+    if layout._terminator is not None:
+        res["terminator"] = layout._terminator
+    if layout._stop_key is not None:
+        res["stop_key"] = layout._stop_key
+    if layout._size is not None:
+        res["size"] = encode_value(layout._size)
+    if layout._converters:
+        res["converters"] = {
+            key: encode_value(converter)
+            for key, converter in layout._converters.items()
+        }
+    return res
+
+
+def _decode_text_header(d):
+    return TextHeader(
+        name=decode_value(d["name"]),
+        encoding=d["encoding"],
+        separator=d["separator"],
+        key_width=d.get("key_width"),
+        comment_prefixes=tuple(d.get("comment_prefixes", ())),
+        sections=d.get("sections"),
+        section_key=d.get("section_key"),
+        sections_name=d.get("sections_name", "sections"),
+        terminator=d.get("terminator"),
+        stop_key=d.get("stop_key"),
+        size=decode_value(d.get("size")),
+        converters={
+            key: decode_value(converter)
+            for key, converter in d.get("converters", {}).items()
+        },
+        strict=d["strict"],
+    )
+
+
+def _encode_text_matrix(layout):
+    res = {
+        "type": "TextMatrix",
+        "name": layout._name,
+        "shape": encode_value(layout._shape),
+        "encoding": layout._encoding,
+        "bad_markers": list(layout._bad_markers),
+    }
+    if layout._conversion_fun is not _identity:
+        res["conversion"] = encode_value(layout._conversion_fun)
+    return res
+
+
+def _decode_text_matrix(d):
+    kwargs = {}
+    if "conversion" in d:
+        kwargs["conversion_fun"] = decode_value(d["conversion"])
+    return TextMatrix(
+        d["name"],
+        decode_value(d["shape"]),
+        encoding=d["encoding"],
+        bad_markers=tuple(d["bad_markers"]),
+        **kwargs,
+    )
+
+
 def _encode_zlib_block_chain(layout):
     return {
         "type": "ZlibBlockChain",
@@ -608,6 +721,7 @@ _ENCODERS = {
     RawBuffer: _encode_raw_buffer,
     TextBuffer: _encode_text_buffer,
     CompoundLayout: _encode_compound_layout,
+    Check: _encode_check,
     If: _encode_if,
     Switch: _encode_switch,
     Skip: _encode_skip,
@@ -615,6 +729,9 @@ _ENCODERS = {
     SizedChunk: _encode_sized_chunk,
     For: _encode_for,
     While: _encode_while,
+    TextLine: _encode_text_line,
+    TextHeader: _encode_text_header,
+    TextMatrix: _encode_text_matrix,
     TLVContainer: _encode_tlv_container,
     ZipContainer: _encode_zip_container,
     XMLStructure: _encode_xml_structure,
@@ -627,6 +744,7 @@ _DECODERS = {
     "RawBuffer": _decode_raw_buffer,
     "TextBuffer": _decode_text_buffer,
     "CompoundLayout": _decode_compound_layout,
+    "Check": _decode_check,
     "If": _decode_if,
     "Switch": _decode_switch,
     "Skip": _decode_skip,
@@ -634,6 +752,9 @@ _DECODERS = {
     "SizedChunk": _decode_sized_chunk,
     "For": _decode_for,
     "While": _decode_while,
+    "TextLine": _decode_text_line,
+    "TextHeader": _decode_text_header,
+    "TextMatrix": _decode_text_matrix,
     "TLVContainer": _decode_tlv_container,
     "ZipContainer": _decode_zip_container,
     "XMLStructure": _decode_xml_structure,
@@ -646,6 +767,9 @@ _NODE_CAPABILITIES = {
     "ZipContainer": "zip",
     "XMLStructure": "xml",
     "ZlibBlockChain": "zlib",
+    "TextLine": "text",
+    "TextHeader": "text",
+    "TextMatrix": "text",
 }
 
 

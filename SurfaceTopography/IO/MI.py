@@ -1,8 +1,5 @@
 #
-# Copyright 2019-2023 Lars Pastewka
-#           2020-2021 Michael Röttger
-#           2019-2020 Kai Haase
-#           2019 Antoine Sanner
+# Copyright 2019-2026 Lars Pastewka
 #
 # ### MIT license
 #
@@ -25,328 +22,155 @@
 # SOFTWARE.
 #
 
-import numpy as np
+from ..Exceptions import FileFormatMismatch, UnsupportedFormatFeature
+from .binary import BinaryArray, TextHeader
+from .expr import C, Cond, DictExpr, F, Tup, V
+from .Reader import Check, CompoundLayout, DeclarativeReaderBase, For
 
-from ..Exceptions import (
-    CorruptFile,
-    MetadataAlreadyFixedByFile,
-    UnsupportedFormatFeature,
-)
-from ..Support.UnitConversion import (
-    get_unit_conversion_factor,
-    is_length_unit,
-    mangle_length_unit_utf8,
-)
-from ..UniformLineScanAndTopography import Topography
-from .common import OpenFromAny
-from .Reader import ChannelInfo, ReaderBase
+# The header consists of key-value lines with a fixed-width 14-character
+# key column. Lines starting with `bufferLabel` open a new channel
+# ("buffer") section; the line with the key `data` ends the header, and
+# its value selects the encoding of the data buffers that follow.
+_KEY_WIDTH = 14
 
-image_head = b'fileType      Image\n'
-spec_head = b'fileType      Spectroscopy\n'
+# Data is normalized with the range of the data type
+_type_range = Cond(C.header.data == "BINARY", 32768.0, 2147483648.0)
 
-magic_data = b'data          \n'
-magic_data_binary = b'data          BINARY\n'
-magic_data_binary32 = b'data          BINARY_32\n'
-magic_data_ascii = b'data          ASCII'
+# Unit of the data of the current channel
+_unit = F.mangle_length_unit(C.item.bufferUnit)
+
+# `xLength` and `yLength` are always given in meters; they are converted
+# to the data unit of the channel if that is a length unit. For channels
+# whose data is not a height (e.g. deflection in V), the lateral sizes
+# are reported in meters since there is no meaningful conversion.
+_is_height_channel = F.is_length_unit(_unit)
 
 
-class MIReader(ReaderBase):
-    _format = 'mi'
-    _mime_types = ['application/x-mi-spm']
-    _file_extensions = ['mi']
+class MIReader(DeclarativeReaderBase):
+    _format = "mi"
+    _mime_types = ["application/x-mi-spm"]
+    _file_extensions = ["mi"]
 
-    _name = 'Molecular Imaging (MI)'
-    _description = '''
+    _name = "Molecular Imaging (MI)"
+    _description = """
 Agilent Technologies (Molecular Imaging) AFM saves filed in the MI format.
 This format contains information on the physical size of the topography map as
 well as its units.
-'''
+"""
 
-    # Reads in the positions of all the data and metadata
-    def __init__(self, file_path):
-        self.file_path = file_path
+    # All MI files start with a `fileType` key line
+    _magic = [(0, b"fileType")]
 
-        # Start of the data in the file
-        self.data_start = None
-        # If image oder spectroscopy
-        self.is_image = None
-        # Format of the saved data
-        self.data_type = None
-
-        self.mifile = None
-
-        # Process the header and read in metadata
-        self.process_header()
-
-    def process_header(self):
-        with OpenFromAny(self.file_path, 'rb') as f:
-            # Note: the header is delimited by a magic line, so its length is
-            # only known after scanning the lines. The lines are a local
-            # variable and are dropped when this method returns; only the byte
-            # offset of the data block is stored, so that the reader does not
-            # pin the whole file in memory for its lifetime.
-            lines = f.readlines()
-
-            # Find out if image or spectroscopy
-            if lines[0] == image_head:
-                self.is_image = True
-            elif lines[0] == spec_head:
-                self.is_image = False
-            else:
-                raise CorruptFile
-
-            # Find the start of the height data and denote data type
-            if magic_data in lines:
-                header_size = lines.index(magic_data)
-                self.data_type = 'text'
-            elif magic_data_binary in lines:
-                header_size = lines.index(magic_data_binary)
-                self.data_type = 'binary'
-            elif magic_data_binary32 in lines:
-                header_size = lines.index(magic_data_binary32)
-                self.data_type = 'binary32'
-            elif magic_data_ascii in lines:
-                header_size = lines.index(magic_data_ascii)
-                self.data_type = 'ascii'
-            else:
-                raise CorruptFile
-
-            # Save start of data for later reading of the matrix
-            self.data_start = header_size + 1
-            # Byte offset of the data block, relative to the start of the file
-            self._data_start_offset = sum(
-                len(line) for line in lines[:self.data_start])
-
-            # Create mifile from header, reading out meta data and channel info
-            if self.is_image:
-                self.mifile = read_header_image(lines[1:header_size])
-            else:  # TODO
-                self.mifile = read_header_spect(lines[1:header_size])
-
-            # Reformat the metadata
-            for buf in self.mifile.channels:
-                buf.meta['name'] = buf.name
-                buf.unit = mangle_length_unit_utf8(buf.meta.pop('bufferUnit'))
-                buf.meta['range'] = buf.meta.pop('bufferRange')
-                buf.meta['label'] = buf.meta.pop('bufferLabel')
-
-            # `xLength` and `yLength` are always given in meters
-            self._physical_sizes_in_m = float(self.mifile.meta['xLength']), float(self.mifile.meta['yLength'])
-            self._nb_grid_pts = int(self.mifile.meta['xPixels']), int(self.mifile.meta['yPixels'])
-
-    def _physical_sizes_in_unit(self, unit):
-        """
-        Return the lateral physical sizes, converted from meters (the unit of
-        `xLength`/`yLength` in the file) to `unit` if `unit` is a length unit.
-        For channels whose data is not a height (e.g. deflection in V), the
-        lateral sizes are reported in meters since there is no meaningful
-        conversion.
-        """
-        if unit is not None and is_length_unit(unit):
-            fac = get_unit_conversion_factor('m', unit)
-            return tuple(fac * s for s in self._physical_sizes_in_m)
-        return self._physical_sizes_in_m
-
-    def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, unit=None, info={}, periodic=False,
-                   subdomain_locations=None, nb_subdomain_grid_pts=None):
-        if channel_index is None:
-            channel_index = self._default_channel_index
-
-        if subdomain_locations is not None or \
-                nb_subdomain_grid_pts is not None:
-            raise RuntimeError(
-                'This reader does not support MPI parallelization.')
-
-        output_channel = self.mifile.channels[channel_index]
-
-        if not self.is_image:
-            raise UnsupportedFormatFeature(
-                'Spectroscopy MI files are not supported.')
-
-        # Read height data
-        if self.data_type == 'binary':
-            dt = "<i2"
-            encode_length = 2
-            type_range = 32768
-        elif self.data_type == 'binary32':
-            dt = "<i4"
-            encode_length = 4
-            type_range = 2147483648
-        else:  # text or ascii
-            raise UnsupportedFormatFeature(
-                'MI files with text (ASCII) data are not supported.')
-
-        # Read the data block on demand; the reader only stores its offset.
-        # (The seek is relative to the position the stream had when it was
-        # handed to this reader, which is where `process_header` started
-        # reading.)
-        with OpenFromAny(self.file_path, 'rb') as f:
-            f.seek(f.tell() + self._data_start_offset)
-            buffer = f.read()
-
-        nx, ny = int(self.mifile.xres), int(self.mifile.yres)
-        start = nx * ny * encode_length * channel_index
-        end = nx * ny * encode_length * (channel_index + 1)
-
-        # The data is stored line by line, i.e. the buffer has C-order shape
-        # (ny, nx); the y (slow) index comes first.
-        out = np.frombuffer(buffer[start:end], dt).reshape((ny, nx))
-
-        # Undo normalizing with range of data type
-        out = out / type_range
-
-        # If scan direction is upwards, flip the height map vertically.
-        # (`scanUp` is a textual TRUE/FALSE flag.)
-        if self.mifile.meta['scanUp'] == 'TRUE':
-            out = np.flip(out, 0)
-
-        # Multiply the heights with the bufferRange
-        out = out * float(output_channel.meta['range'])
-
-        joined_meta = {**self.mifile.meta, **output_channel.meta}
-        info = info.copy()
-        info.update({'raw_metadata': joined_meta})
-
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
-
-        # Initialize heights with transposed array in order to match Gwdyydion
-        # when plotted with pcolormesh(t.heights().T), except that the y axis
-        # is flipped because the origin is in lower left with pcolormesh;
-        # imshow(t.heights().T) shows the image like gwyddion
-        t = Topography(heights=out.T,
-                       physical_sizes=self._check_physical_sizes(
-                           physical_sizes,
-                           self._physical_sizes_in_unit(output_channel.unit)),
-                       unit=output_channel.unit, info=info, periodic=periodic)
-        if height_scale_factor is not None:
-            t = t.scale(height_scale_factor)
-        return t
-
-    @property
-    def channels(self):
-        return [ChannelInfo(self, i, name=channel.meta['name'],
-                            dim=len(self._nb_grid_pts),
-                            nb_grid_pts=self._nb_grid_pts,
-                            physical_sizes=self._physical_sizes_in_unit(channel.unit),
-                            uniform=True,
-                            unit=channel.unit,
-                            info={'raw_metadata': {**self.mifile.meta, **channel.meta}})
-                for i, channel in enumerate(self.mifile.channels)
-                ]
+    _file_layout = CompoundLayout(
+        [
+            TextHeader(
+                name="header",
+                encoding="utf-8",
+                key_width=_KEY_WIDTH,
+                section_key="bufferLabel",
+                sections_name="buffers",
+                stop_key="data",
+                comment_prefixes=(" ",),  # Skip indented (continuation) lines
+            ),
+            Check(
+                F.get(C.header, "fileType", "").isin("Image", "Spectroscopy"),
+                FileFormatMismatch,
+                "This is not an MI file.",
+            ),
+            Check(
+                C.header.fileType == "Image",
+                UnsupportedFormatFeature,
+                "Spectroscopy MI files are not supported.",
+            ),
+            Check(
+                F.get(C.header, "data", "").isin("BINARY", "BINARY_32"),
+                UnsupportedFormatFeature,
+                "MI files with text (ASCII) data are not supported.",
+            ),
+            # The data buffers of all channels follow the header
+            # back-to-back, stored line by line, i.e. in C-order shape
+            # (ny, nx)
+            For(
+                F.len(C.header.buffers),
+                BinaryArray(
+                    "data",
+                    Tup(F.int(C.header.yPixels), F.int(C.header.xPixels)),
+                    Cond(
+                        C.header.data == "BINARY",
+                        F.dtype("<i2"),
+                        F.dtype("<i4"),
+                    ),
+                    # If the scan direction is upwards, flip the height
+                    # map vertically; transpose to (nx, ny) order
+                    conversion_fun=F.transpose(
+                        Cond(
+                            F.get(C.header, "scanUp", "") == "TRUE",
+                            F.flip(V, 0),
+                            V,
+                        )
+                    ),
+                ),
+                name="data_buffers",
+            ),
+        ]
+    )
 
     @property
     def info(self) -> dict:
-        """Return all the available metadata as a dict."""
-        return self.mifile.meta
+        """Return all the available file-wide metadata as a dict."""
+        return {
+            key: value
+            for key, value in self._metadata.header.items()
+            if key not in ("buffers", "data")
+        }
 
-    channels.__doc__ = ReaderBase.channels.__doc__
-    topography.__doc__ = ReaderBase.topography.__doc__
-
-
-def read_header_image(header):
-    """
-    Reads in global metadata and information about about included channels as
-    well as their metadata.
-
-    Parameters
-    ----------
-    header : str
-        The header as a line of text.
-
-    Returns
-    -------
-    mifile : MIFile
-        Data structure item containing the metadata, with the channels as a
-        list of 'buffers'.
-    """
-    # This object will store the file-wide metadata
-    mifile = MIFile()
-
-    # False while reading global metadata, gets true if we start to read in the
-    # channel info
-    reading_buffers = False
-
-    for line in header:
-        line = line.decode("utf-8")
-
-        # As soon as we see a line starting with 'bufferLabel', we know we are
-        # now reading in channels
-        if line.startswith('bufferLabel'):
-            # Create a new channel with the id as name
-            channel = Channel(name=str.strip(line[14:]))
-            mifile.channels.append(channel)
-            reading_buffers = True
-
-        if line[0] == ' ':
-            continue
-
-        # For all key value pairs in the file:
-        # Append to global metadata oder channel metadata, depending on our
-        # state
-        key = str.strip(line[:14])
-        value = str.strip(line[14:])
-
-        if reading_buffers:
-            mifile.channels[-1].meta[key] = value
-        else:
-            mifile.meta[key] = value
-
-        # Catch 'special' metadata
-        if key == "xPixels":
-            mifile.xres = value
-        elif key == "yPixels":
-            mifile.yres = value
-    return mifile
-
-
-def read_header_spect(header):
-    """
-    Reads in metadata out of the header.
-
-    Parameters
-    ----------
-    header : str
-        The header.
-
-    Returns
-    -------
-    mifile : MIFile
-        Data structure item containing the metadata.
-    """
-    raise NotImplementedError
-
-
-class Channel:
-    """
-    Class structure for a channel contained in the file.
-    Has a name and metadata (height data is not needed since it is returned
-    directly).
-    """
-
-    def __init__(self, name=None, unit=None, meta=None):
-        if meta is None:
-            meta = dict()
-
-        self.name = name
-        self.unit = unit
-        self.meta = meta
-
-
-class MIFile:
-    """
-    Class structure for the while file. Has a list of channels, global metadata
-    and a nb_grid_pts.
-    """
-
-    def __init__(self, res=(0, 0), channels=None, meta=None):
-        if channels is None:
-            channels = list()
-        if meta is None:
-            meta = dict()
-
-        self.xres = res[0]
-        self.yres = res[1]
-        self.channels = channels
-        self.meta = meta
+    _channel_bindings = [
+        {
+            # One channel per buffer section of the header
+            "foreach": C.header.buffers,
+            "name": C.item.bufferLabel,
+            "dim": 2,
+            "nb_grid_pts": Tup(
+                F.int(C.header.xPixels), F.int(C.header.yPixels)
+            ),
+            "physical_sizes": Cond(
+                _is_height_channel,
+                Tup(
+                    F.float(C.header.xLength)
+                    * F.unit_conversion_factor("m", _unit),
+                    F.float(C.header.yLength)
+                    * F.unit_conversion_factor("m", _unit),
+                ),
+                Tup(F.float(C.header.xLength), F.float(C.header.yLength)),
+            ),
+            # Undo the normalization with the range of the data type and
+            # scale with the range of the buffer
+            "height_scale_factor": F.float(C.item.bufferRange) / _type_range,
+            "uniform": True,
+            "unit": _unit,
+            "info": {
+                # Reported metadata mirrors the historic reader: the
+                # buffer keys are renamed (`label`, `range`, `name`), the
+                # unit is reported at the channel level only
+                "raw_metadata": F.merge(
+                    F.omit(F.omit(C.header, "buffers"), "data"),
+                    F.merge(
+                        F.omit(
+                            F.omit(
+                                F.omit(C.item, "bufferUnit"), "bufferRange"
+                            ),
+                            "bufferLabel",
+                        ),
+                        DictExpr(
+                            {
+                                "name": C.item.bufferLabel,
+                                "label": C.item.bufferLabel,
+                                "range": C.item.bufferRange,
+                            }
+                        ),
+                    ),
+                ),
+            },
+            "data": C.data_buffers[C.item_index].data,
+        }
+    ]
