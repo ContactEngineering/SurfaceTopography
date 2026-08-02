@@ -40,6 +40,14 @@ v1.23.0 (not yet released)
   `is_length_unit`
 - ENH: The BCR, MI, WSXM and SDF readers are now fully declarative and
   export to format description documents
+- ENH: The OPD, PLUX and X3P readers are now fully declarative and
+  export to format description documents; new layout nodes `ForEach`
+  (repeat a structure per element of a previously parsed list) and `Let`
+  (store computed values into the context), `ZipContainer` members can
+  be named by expressions, looped over a list or interleaved with
+  stream-less nodes, and the expression registry gained `pluck`,
+  `values_with_prefix`, `reshape`, `isfinite`, `logical_not` and
+  `unpackbits`
 - ENH: The OS3D, NMS, VK and FRT readers are now also fully declarative
   and export to format description documents; `TLVContainer` entries can
   reference previously parsed named entries and skip unknown tags via a

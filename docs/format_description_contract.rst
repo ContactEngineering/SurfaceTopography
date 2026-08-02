@@ -199,6 +199,17 @@ isnan                  (number|null|array) → bool|array   True for NaN; null
 transpose              (array) → array                    Axis reversal.
 flip                   (array, integer) → array           Reverse along the
                                                           given axis.
+reshape                (array, tuple) → array             C-order reshape.
+isfinite               (number|array) → bool|array        False for NaN and
+                                                          infinities.
+logical_not            (bool|array) → bool|array          Elementwise
+                                                          negation.
+unpackbits             (uint8 array, integer) → array     Unpack into the
+                                                          given number of
+                                                          bits, least-
+                                                          significant bit
+                                                          first (ISO 5436-2
+                                                          validity masks).
 strip                  (string) → string                  Strip ASCII
                                                           whitespace.
 split                  (string, string) → list            Split at every
@@ -213,6 +224,13 @@ merge                  (mapping, mapping) → mapping       Right side wins on
                                                           key collisions.
 omit                   (mapping, key) → mapping           Mapping without the
                                                           given key.
+pluck                  (list, string) → list              Values of the key
+                                                          from those records
+                                                          that have it.
+values_with_prefix     (mapping, string) → list           Values of all keys
+                                                          starting with the
+                                                          prefix, in mapping
+                                                          order.
 unit_conversion_factor (string, string) → float|null      Length-unit ratio
                                                           from/to; null if
                                                           either unit is
@@ -356,6 +374,17 @@ Core nodes (capability ``core``):
     taxonomy entry. Use for consistency checks between previously parsed
     values.
 
+``ForEach``
+    Repeats a structure for each element of a previously parsed list
+    (e.g. the payloads of a block directory). The structure's context
+    contains the current element as ``item`` and its index as
+    ``item_index``; the per-element results form a list.
+
+``Let``
+    Stores expression values into the context without reading from the
+    stream, e.g. to make the ``item`` of an enclosing ``ForEach`` part
+    of a structure's result.
+
 ``TLVContainer``
     Tag-length-value sequences with a tag→layout mapping. The context
     passed to each entry's layout contains the previously parsed *named*
@@ -377,7 +406,18 @@ Node            Capability  Semantics
 ZipContainer    zip         Parse named members of a ZIP archive, each
                             with its own layout; optional stream-filter
                             expression (e.g. zstd) applied per member;
-                            members may be optional.
+                            members may be optional. Member names may be
+                            expressions over the previously parsed
+                            members (e.g. data files named within an XML
+                            index); a member entry may loop over a list
+                            (``foreach``, one member per element, with
+                            ``item``/``item_index`` in context); entries
+                            without a ``member`` key are stream-less
+                            nodes (``Check``, ``Let``) executed in
+                            order. The ``mismatch_error`` taxonomy name
+                            (default ``corrupt_file``) is raised when
+                            the stream is not a ZIP archive or a
+                            required member is missing.
 XMLStructure    xml         Parse an XML document into a nested mapping;
                             per-tag converter expressions.
 ZlibBlockChain  zlib        Chained zlib blocks with prefix headers

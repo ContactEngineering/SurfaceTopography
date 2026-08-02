@@ -1133,6 +1133,34 @@ class _ZipMemberProxy:
                 member_stream.close()
 
 
+class ZipMemberLoop:
+    """
+    Entry of a `ZipContainer` that parses one archive member per element
+    of a list, e.g. per-layer data files whose names come from previously
+    parsed metadata. The member-name expression and the layout see the
+    current element as `item` and its index as `item_index` in their
+    context; the per-element results are collected into a list.
+
+    Parameters
+    ----------
+    items : callable or expression
+        Evaluated against the context (which contains the previously
+        parsed members); must yield a list.
+    member_name : callable or expression
+        Name of the archive member to parse for the current element.
+    structure : layout
+        Layout used to parse each member.
+    name : str
+        Context name of the list of results.
+    """
+
+    def __init__(self, items, member_name, structure, name):
+        self._items = items
+        self._member_name = member_name
+        self._structure = structure
+        self._name = name
+
+
 class ZipContainer(LayoutWithNameBase):
     """
     Interprets the stream as a ZIP archive and parses selected members of the
@@ -1146,14 +1174,21 @@ class ZipContainer(LayoutWithNameBase):
 
     Parameters
     ----------
-    members : list of tuples
-        List of tuples describing the archive members to parse. Each tuple
-        consists of two or three entries
-            (member_name, layout[, optional])
-        where `member_name` is the name of the file within the archive,
-        `layout` is a layout class instance used to parse it, and `optional`
-        indicates whether the member may be missing from the archive.
-        (Default for `optional`: False)
+    members : list
+        List describing the archive members to parse, processed in order.
+        Each entry is one of
+
+        - a tuple of two or three entries
+              (member_name, layout[, optional])
+          where `member_name` is the name of the file within the archive
+          (a string, or an expression evaluated against the previously
+          parsed members), `layout` is a layout class instance used to
+          parse it, and `optional` indicates whether the member may be
+          missing from the archive (or the name expression may evaluate
+          to None). (Default for `optional`: False)
+        - a `ZipMemberLoop`, parsing one member per element of a list
+        - a layout node that does not read from the stream (e.g. `Check`
+          or `Let`), executed against the previously parsed members
     name : str, optional
         Name of this structure in the result dictionary. If None, the
         parsed members are merged into the enclosing context.
@@ -1163,12 +1198,19 @@ class ZipContainer(LayoutWithNameBase):
         wraps the raw member stream, e.g. for decompression. Note that the
         returned stream only needs to support reading and forward seeking.
         (Default: None)
+    mismatch_error : Exception, optional
+        Exception raised when the stream is not a ZIP archive or a
+        required member is missing. Use `FileFormatMismatch` when the
+        member is what identifies the format (e.g. `main.xml` of an
+        X3P). (Default: CorruptFile)
     """
 
-    def __init__(self, members, name=None, stream_filter=None):
+    def __init__(self, members, name=None, stream_filter=None,
+                 mismatch_error=CorruptFile):
         self._members = members
         self._name = name
         self._stream_filter = stream_filter
+        self._mismatch_error = mismatch_error
 
     def _open_member(self, zip_file, member_name, context):
         stream = zip_file.open(member_name, "r")
@@ -1191,33 +1233,90 @@ class ZipContainer(LayoutWithNameBase):
         else:
             return value
 
+    def _parse_member(self, zip_file, member_names, member_name, layout,
+                      member_context, outer_context):
+        if member_name not in member_names:
+            return None
+        member_stream = self._open_member(zip_file, member_name, outer_context)
+        try:
+            result = layout.from_stream(member_stream, member_context)
+        finally:
+            member_stream.close()
+        return self._wrap_lazy_readers(result, member_name, outer_context)
+
     def from_stream(self, stream_obj, context):
         local_context = AttrDict()
+
+        def entry_context(**extra):
+            return AttrDict(
+                {**local_context, **extra, "__parent__": context}
+            )
+
         try:
             with ZipFile(stream_obj, "r") as zip_file:
                 member_names = set(zip_file.namelist())
                 for entry in self._members:
+                    if isinstance(entry, ZipMemberLoop):
+                        # One member per element of a list
+                        if callable(entry._items):
+                            items = entry._items(entry_context())
+                        else:
+                            items = entry._items
+                        results = []
+                        for index, item in enumerate(items):
+                            item_context = entry_context(
+                                item=item, item_index=index
+                            )
+                            if callable(entry._member_name):
+                                member_name = entry._member_name(item_context)
+                            else:
+                                member_name = entry._member_name
+                            result = self._parse_member(
+                                zip_file, member_names, member_name,
+                                entry._structure, item_context, context,
+                            )
+                            if result is None:
+                                raise CorruptFile(
+                                    f"Archive member `{member_name}` is "
+                                    f"missing."
+                                )
+                            results.append(result)
+                        local_context[entry._name] = results
+                        continue
+                    elif hasattr(entry, "from_stream"):
+                        # A layout node that does not read from the
+                        # stream, e.g. `Check` or `Let`
+                        local_context.update(
+                            entry.from_stream(None, entry_context())
+                        )
+                        continue
                     member_name, layout = entry[:2]
                     optional = entry[2] if len(entry) > 2 else False
-                    if member_name not in member_names:
+                    if callable(member_name):
+                        member_name = member_name(entry_context())
+                    if member_name is None:
+                        # E.g. an absent optional link in the metadata
                         if optional:
                             continue
-                        raise CorruptFile(
+                        raise self._mismatch_error(
+                            "The name of a required archive member is "
+                            "undefined."
+                        )
+                    result = self._parse_member(
+                        zip_file, member_names, member_name, layout,
+                        entry_context(), context,
+                    )
+                    if result is None:
+                        if optional:
+                            continue
+                        raise self._mismatch_error(
                             f"Archive member `{member_name}` is missing."
                         )
-                    member_stream = self._open_member(zip_file, member_name, context)
-                    try:
-                        result = layout.from_stream(
-                            member_stream,
-                            AttrDict({**local_context, "__parent__": context}),
-                        )
-                    finally:
-                        member_stream.close()
-                    local_context.update(
-                        self._wrap_lazy_readers(result, member_name, context)
-                    )
+                    local_context.update(result)
         except BadZipFile as exc:
-            raise CorruptFile("Stream is not a valid ZIP archive.") from exc
+            raise self._mismatch_error(
+                "Stream is not a valid ZIP archive."
+            ) from exc
         name = self.name(context)
         if name is None:
             return local_context

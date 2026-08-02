@@ -186,6 +186,14 @@ _FUNCTIONS = {
     "isnan": _isnan,
     "transpose": np.transpose,
     "flip": lambda arr, axis: np.flip(arr, axis),
+    "reshape": lambda arr, shape: np.reshape(arr, shape),
+    "isfinite": np.isfinite,
+    "logical_not": np.logical_not,
+    # Unpack a uint8 array into `count` bits, least-significant bit first
+    # (e.g. ISO 5436-2 per-point validity masks)
+    "unpackbits": lambda arr, count: np.unpackbits(arr, bitorder="little")[
+        :count
+    ],
     "strip": lambda s: s.strip(),
     "split": lambda s, separator: s.split(separator),
     "parse_datetime": dateutil.parser.parse,
@@ -202,6 +210,13 @@ _FUNCTIONS = {
     "get": lambda mapping, key, default: mapping.get(key, default),
     "merge": lambda a, b: {**a, **b},
     "omit": lambda mapping, key: {k: v for k, v in mapping.items() if k != key},
+    # List utilities: collect the values of a key from those records that
+    # have it; collect the values of all keys starting with a prefix (in
+    # mapping order)
+    "pluck": lambda records, key: [r[key] for r in records if key in r],
+    "values_with_prefix": lambda mapping, prefix: [
+        v for k, v in mapping.items() if k.startswith(prefix)
+    ],
     # Capability-gated stream filters
     "zstd_reader": _zstd_reader,
     "zlib_reader": _zlib_reader,

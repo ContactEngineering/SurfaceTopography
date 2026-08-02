@@ -1289,6 +1289,76 @@ class For(LayoutWithNameBase):
         return {self.name(context): local_context}
 
 
+class ForEach(LayoutWithNameBase):
+    """
+    Repeat a structure for each element of a previously parsed list, e.g.
+    for the payloads of a directory of blocks. The structure's context
+    contains the current element as `item` and its index as `item_index`
+    (mirroring the `foreach` of channel bindings); the per-element results
+    are collected into a list.
+
+    Parameters
+    ----------
+    items : callable or expression
+        Evaluated against the context; must yield a list.
+    structure : structure definition
+        Structure parsed once per list element.
+    name : str
+        Context name of the list of results.
+    """
+
+    def __init__(self, items, structure, name=None):
+        self._items = items
+        self._structure = structure
+        self._name = name
+
+        if self._name is None:
+            raise ValueError("`ForEach` statement must have a name.")
+
+    def from_stream(self, stream_obj, context):
+        if callable(self._items):
+            items = self._items(context)
+        else:
+            items = self._items
+        local_context = []
+        for index, item in enumerate(items):
+            local_context += [
+                self._structure.from_stream(
+                    stream_obj,
+                    AttrDict({**context, "item": item, "item_index": index}),
+                )
+            ]
+        return {self.name(context): local_context}
+
+
+class Let:
+    """
+    Stores computed values into the context without reading from the
+    stream. Use this to make values from an enclosing scope (e.g. the
+    `item` of a `ForEach`) part of a structure's result, or to name
+    intermediate expressions.
+
+    Parameters
+    ----------
+    values : dict
+        Maps names to literals or expressions evaluated against the
+        context.
+    """
+
+    def __init__(self, values):
+        self._values = values
+
+    def to_dict(self):
+        from .description import layout_to_dict
+        return layout_to_dict(self)
+
+    def from_stream(self, stream_obj, context):
+        return {
+            key: value(context) if callable(value) else value
+            for key, value in self._values.items()
+        }
+
+
 class While(LayoutWithNameBase):
     """Repeat as long as condition is met"""
 

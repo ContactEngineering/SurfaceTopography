@@ -58,6 +58,7 @@ from .binary import (
     ValidationError,
     XMLStructure,
     ZipContainer,
+    ZipMemberLoop,
     ZlibBlockChain,
     _identity,
 )
@@ -66,7 +67,9 @@ from .Reader import (
     CompoundLayout,
     DeclarativeReaderBase,
     For,
+    ForEach,
     If,
+    Let,
     Seek,
     SizedChunk,
     Skip,
@@ -459,6 +462,39 @@ def _decode_for(d):
     )
 
 
+def _encode_for_each(layout):
+    return {
+        "type": "ForEach",
+        "name": _encode_name(layout),
+        "items": encode_value(layout._items),
+        "structure": layout_to_dict(layout._structure),
+    }
+
+
+def _decode_for_each(d):
+    return ForEach(
+        decode_value(d["items"]),
+        layout_from_dict(d["structure"]),
+        name=decode_value(d["name"]),
+    )
+
+
+def _encode_let(layout):
+    return {
+        "type": "Let",
+        "values": {
+            key: encode_value(value)
+            for key, value in layout._values.items()
+        },
+    }
+
+
+def _decode_let(d):
+    return Let(
+        {key: decode_value(value) for key, value in d["values"].items()}
+    )
+
+
 def _encode_while(layout):
     body = []
     for arg in layout._args:
@@ -537,15 +573,28 @@ def _decode_tlv_container(d):
 def _encode_zip_container(layout):
     members = []
     for entry in layout._members:
-        member_name, member_layout = entry[:2]
-        optional = entry[2] if len(entry) > 2 else False
-        members.append(
-            {
-                "member": member_name,
-                "layout": layout_to_dict(member_layout),
-                "optional": optional,
-            }
-        )
+        if isinstance(entry, ZipMemberLoop):
+            members.append(
+                {
+                    "foreach": encode_value(entry._items),
+                    "member": encode_value(entry._member_name),
+                    "layout": layout_to_dict(entry._structure),
+                    "name": entry._name,
+                }
+            )
+        elif hasattr(entry, "from_stream"):
+            # A stream-less node (e.g. `Check` or `Let`)
+            members.append({"layout": layout_to_dict(entry)})
+        else:
+            member_name, member_layout = entry[:2]
+            optional = entry[2] if len(entry) > 2 else False
+            members.append(
+                {
+                    "member": encode_value(member_name),
+                    "layout": layout_to_dict(member_layout),
+                    "optional": optional,
+                }
+            )
     res = {
         "type": "ZipContainer",
         "name": _encode_name(layout),
@@ -553,18 +602,41 @@ def _encode_zip_container(layout):
     }
     if layout._stream_filter is not None:
         res["stream_filter"] = encode_value(layout._stream_filter)
+    if layout._mismatch_error is not CorruptFile:
+        res["mismatch_error"] = _encode_error(layout._mismatch_error)
     return res
 
 
 def _decode_zip_container(d):
-    members = [
-        (m["member"], layout_from_dict(m["layout"]), m["optional"])
-        for m in d["members"]
-    ]
+    members = []
+    for m in d["members"]:
+        if "foreach" in m:
+            members.append(
+                ZipMemberLoop(
+                    decode_value(m["foreach"]),
+                    decode_value(m["member"]),
+                    layout_from_dict(m["layout"]),
+                    name=m["name"],
+                )
+            )
+        elif "member" not in m:
+            members.append(layout_from_dict(m["layout"]))
+        else:
+            members.append(
+                (
+                    decode_value(m["member"]),
+                    layout_from_dict(m["layout"]),
+                    m["optional"],
+                )
+            )
+    kwargs = {}
+    if "mismatch_error" in d:
+        kwargs["mismatch_error"] = _decode_error(d["mismatch_error"])
     return ZipContainer(
         members,
         name=decode_value(d["name"]),
         stream_filter=decode_value(d.get("stream_filter")),
+        **kwargs,
     )
 
 
@@ -728,6 +800,8 @@ _ENCODERS = {
     Seek: _encode_seek,
     SizedChunk: _encode_sized_chunk,
     For: _encode_for,
+    ForEach: _encode_for_each,
+    Let: _encode_let,
     While: _encode_while,
     TextLine: _encode_text_line,
     TextHeader: _encode_text_header,
@@ -751,6 +825,8 @@ _DECODERS = {
     "Seek": _decode_seek,
     "SizedChunk": _decode_sized_chunk,
     "For": _decode_for,
+    "ForEach": _decode_for_each,
+    "Let": _decode_let,
     "While": _decode_while,
     "TextLine": _decode_text_line,
     "TextHeader": _decode_text_header,

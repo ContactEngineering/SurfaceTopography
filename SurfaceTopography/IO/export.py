@@ -63,6 +63,9 @@ _EXPORTED_READERS = {
     "mi": ["mi-1.mi"],
     "wsxm": ["top-1.top", "stp-1.stp"],
     "sdf": ["sdf-1.sdf", "sdf-2.sdf"],
+    "opd": ["opd-1.opd", "opd-2.opd", "opd-3.opd"],
+    "plux": ["plux-1.plux"],
+    "x3p": ["x3p-1.x3p", "x3p-2.x3p", "x3p-3.x3p", "x3p-4.x3p"],
 }
 
 
@@ -75,13 +78,16 @@ def exported_reader_classes():
         MetroProReader,
         MIReader,
         NMSReader,
+        OPDReader,
         OS3DReader,
         PLUReader,
+        PLUXReader,
         SDFReader,
         SURReader,
         TMDReader,
         VKReader,
         WSXMReader,
+        X3PReader,
         ZMGReader,
         ZONReader,
     )
@@ -102,6 +108,9 @@ def exported_reader_classes():
         MIReader,
         WSXMReader,
         SDFReader,
+        OPDReader,
+        PLUXReader,
+        X3PReader,
     ]
     return {cls._format: cls for cls in classes}
 
