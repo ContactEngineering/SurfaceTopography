@@ -206,6 +206,8 @@ to_map                 (list, string, string) → mapping   Build a mapping from
 get                    (mapping, string, value) → value   Lookup with default.
 merge                  (mapping, mapping) → mapping       Right side wins on
                                                           key collisions.
+omit                   (mapping, key) → mapping           Mapping without the
+                                                          given key.
 unit_conversion_factor (string, string) → float|null      Length-unit ratio
                                                           from/to; null if
                                                           either unit is
@@ -215,11 +217,16 @@ unit_conversion_factor (string, string) → float|null      Length-unit ratio
 parse_datetime         (string) → datetime                Vendor date string →
                                                           ISO-8601 (see Value
                                                           model).
-make_datetime          (6 × integer) → datetime|null      From year, month,
+make_datetime          (6-7 × integer) → datetime|null    From year, month,
                                                           day, hour, minute,
-                                                          second; null if
-                                                          invalid (e.g.
-                                                          all-zero fields).
+                                                          second; optional
+                                                          seventh argument is
+                                                          a UTC offset in
+                                                          minutes (result is
+                                                          timezone-aware);
+                                                          null if invalid
+                                                          (e.g. all-zero
+                                                          fields).
 from_timestamp         (integer) → datetime               POSIX timestamp, in
                                                           local time (historic
                                                           reader behavior).
@@ -331,7 +338,17 @@ Core nodes (capability ``core``):
     child consumed.
 
 ``TLVContainer``
-    Tag-length-value sequences with a tag→layout mapping.
+    Tag-length-value sequences with a tag→layout mapping. The context
+    passed to each entry's layout contains the previously parsed *named*
+    entries of the container, so later entries can reference earlier
+    ones (e.g. for data-dependent array shapes). An optional ``default``
+    layout handles tags missing from the mapping (e.g. ``Skip`` to skip
+    unknown blocks); without it, unmapped tags store their raw bytes.
+    Within an entry's layout, the entry's payload size is available as
+    the context value ``_block_size``. With ``hex_tag_keys`` true,
+    entries are stored under hexadecimal string keys (``"0x66"``)
+    instead of integer tags — required when the entries end up in
+    reported metadata, which must survive a JSON round trip.
 
 Capability-gated nodes:
 

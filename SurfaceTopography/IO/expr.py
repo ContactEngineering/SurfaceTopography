@@ -114,11 +114,25 @@ def _unit_conversion_factor(from_unit, to_unit):
     return get_unit_conversion_factor(from_unit, to_unit)
 
 
-def _make_datetime(year, month, day, hour, minute, second):
+def _make_datetime(
+    year, month, day, hour, minute, second, utc_offset_minutes=None
+):
     import datetime
 
     try:
-        return datetime.datetime(year, month, day, hour, minute, second)
+        if utc_offset_minutes is None:
+            return datetime.datetime(year, month, day, hour, minute, second)
+        return datetime.datetime(
+            year,
+            month,
+            day,
+            hour,
+            minute,
+            second,
+            tzinfo=datetime.timezone(
+                datetime.timedelta(minutes=utc_offset_minutes)
+            ),
+        )
     except ValueError:
         # E.g. all-zero date fields; the file carries no acquisition time
         return None
@@ -167,10 +181,11 @@ _FUNCTIONS = {
     "from_timestamp": lambda ts: __import__("datetime").datetime.fromtimestamp(ts),
     "unit_conversion_factor": _unit_conversion_factor,
     # Mapping utilities: build a mapping from a list of records (e.g. a
-    # tag list), look up with a default, merge two mappings
+    # tag list), look up with a default, merge two mappings, drop a key
     "to_map": lambda records, key, value: {r[key]: r[value] for r in records},
     "get": lambda mapping, key, default: mapping.get(key, default),
     "merge": lambda a, b: {**a, **b},
+    "omit": lambda mapping, key: {k: v for k, v in mapping.items() if k != key},
     # Capability-gated stream filters
     "zstd_reader": _zstd_reader,
     "zlib_reader": _zlib_reader,

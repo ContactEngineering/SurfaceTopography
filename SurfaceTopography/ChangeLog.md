@@ -32,6 +32,14 @@ v1.23.0 (not yet released)
 - ENH: The ZMG, TMD, AL3D, SUR, MetroPro, PLU and ZON readers are now
   fully declarative (lambda-free) and export to language-neutral format
   description documents (`python -m SurfaceTopography.IO.export`)
+- ENH: The OS3D, NMS, VK and FRT readers are now also fully declarative
+  and export to format description documents; `TLVContainer` entries can
+  reference previously parsed named entries and skip unknown tags via a
+  `default` layout, and the expression registry gained `omit` and an
+  optional UTC offset for `make_datetime`. Note that the `raw_metadata`
+  of these four readers is now keyed by the parsed structures (e.g. by
+  numeric block tag for FRT) rather than the ad-hoc keys of the old
+  readers
 - TST: Round-trip CI gate: format descriptions must be complete and a
   generic reader rehydrated from the JSON must reproduce the authored
   readers on the example corpus

@@ -564,9 +564,22 @@ class TLVContainer(LayoutWithNameBase):
     tag_map : dict
         Maps tag IDs to layout classes. Each layout class must have a
         `from_stream(stream_obj, context)` method. Special values:
-        - None or missing: store raw bytes
+        - None or missing: store raw bytes (but see `default`)
         - 'text': treat as ASCII text
         - Layout class instance: use that layout to parse
+        The context passed to each entry's layout contains the previously
+        parsed *named* entries of this container, so later entries can
+        reference earlier ones (like within a `CompoundLayout`), e.g. for
+        data-dependent array shapes.
+    default : layout, optional
+        Layout used for tags that are missing from `tag_map`, e.g.
+        `Skip()` to skip unknown blocks without reading them. If None,
+        unmapped tags store their raw bytes. Default: None.
+    hex_tag_keys : bool, optional
+        If True, entries are stored under hexadecimal string keys (e.g.
+        '0x66') instead of integer tags. Use this when the parsed
+        entries end up in reported metadata, which must survive a JSON
+        round trip (JSON has no integer object keys). Default: False.
     name : str, optional
         Name for this container in the result dict. Default: None.
     tag_format : str, optional
@@ -592,7 +605,7 @@ class TLVContainer(LayoutWithNameBase):
 
     def __init__(self, tag_map, name=None, tag_format='<H', size_format='<Q',
                  count=None, container_size=None, store_by_name=True,
-                 entry_prefix_format=None):
+                 entry_prefix_format=None, default=None, hex_tag_keys=False):
         self._tag_map = tag_map
         self._name = name
         self._tag_format = tag_format
@@ -601,6 +614,8 @@ class TLVContainer(LayoutWithNameBase):
         self._container_size = container_size
         self._store_by_name = store_by_name
         self._entry_prefix_format = entry_prefix_format
+        self._default = default
+        self._hex_tag_keys = hex_tag_keys
 
     def name(self, context):
         return self._name
@@ -623,7 +638,7 @@ class TLVContainer(LayoutWithNameBase):
 
     def _parse_entry(self, stream_obj, tag, size, context):
         """Parse a single TLV entry based on its tag."""
-        layout = self._tag_map.get(tag)
+        layout = self._tag_map.get(tag, self._default)
 
         if layout is None:
             # Unknown tag - store raw bytes
@@ -680,6 +695,9 @@ class TLVContainer(LayoutWithNameBase):
             Dictionary with parsed entries keyed by tag ID.
         """
         entries = {}
+        # Previously parsed named entries, made visible to the layouts of
+        # subsequent entries (like within a `CompoundLayout`)
+        named_entries = AttrDict()
         start_pos = stream_obj.tell()
 
         # Determine how many entries to read
@@ -713,15 +731,20 @@ class TLVContainer(LayoutWithNameBase):
                     break
 
             # Parse entry
-            entry, layout_name = self._parse_entry(stream_obj, tag, size, context)
+            entry, layout_name = self._parse_entry(
+                stream_obj, tag, size, AttrDict({**context, **named_entries})
+            )
+            if layout_name:
+                named_entries[layout_name] = entry
 
             # Store by tag ID
-            if tag in entries:
-                if not isinstance(entries[tag], list):
-                    entries[tag] = [entries[tag]]
-                entries[tag].append(entry)
+            tag_key = hex(tag) if self._hex_tag_keys else tag
+            if tag_key in entries:
+                if not isinstance(entries[tag_key], list):
+                    entries[tag_key] = [entries[tag_key]]
+                entries[tag_key].append(entry)
             else:
-                entries[tag] = entry
+                entries[tag_key] = entry
 
             # Also store by name if available and enabled
             if self._store_by_name and layout_name:

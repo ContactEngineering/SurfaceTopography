@@ -55,12 +55,28 @@ _EXPORTED_READERS = {
     "metropro": ["metropro-1.dat"],
     "plu": ["plu-1.plu"],
     "zon": ["zon-1.zon"],
+    "os3d": ["os3d-1.os3d"],
+    "nms": ["nms-1.nms", "nms-2.nms"],
+    "vk": ["vk3-1.vk3", "vk4-1.vk4", "vk6-1.vk6"],
+    "frt": ["frt-1.frt", "frt-2.frt"],
 }
 
 
 def exported_reader_classes():
     """The reader classes exported to description documents, by format id."""
-    from . import AL3DReader, MetroProReader, PLUReader, SURReader, TMDReader, ZMGReader, ZONReader
+    from . import (
+        AL3DReader,
+        FRTReader,
+        MetroProReader,
+        NMSReader,
+        OS3DReader,
+        PLUReader,
+        SURReader,
+        TMDReader,
+        VKReader,
+        ZMGReader,
+        ZONReader,
+    )
 
     classes = [
         ZMGReader,
@@ -70,6 +86,10 @@ def exported_reader_classes():
         MetroProReader,
         PLUReader,
         ZONReader,
+        OS3DReader,
+        NMSReader,
+        VKReader,
+        FRTReader,
     ]
     return {cls._format: cls for cls in classes}
 

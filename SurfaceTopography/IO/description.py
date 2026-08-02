@@ -500,6 +500,10 @@ def _encode_tlv_container(layout):
         res["container_size"] = encode_value(layout._container_size)
     if layout._entry_prefix_format is not None:
         res["entry_prefix_format"] = layout._entry_prefix_format
+    if layout._default is not None:
+        res["default"] = layout_to_dict(layout._default)
+    if layout._hex_tag_keys:
+        res["hex_tag_keys"] = True
     return res
 
 
@@ -519,6 +523,10 @@ def _decode_tlv_container(d):
         container_size=decode_value(d.get("container_size")),
         store_by_name=d["store_by_name"],
         entry_prefix_format=d.get("entry_prefix_format"),
+        default=(
+            layout_from_dict(d["default"]) if "default" in d else None
+        ),
+        hex_tag_keys=d.get("hex_tag_keys", False),
     )
 
 
