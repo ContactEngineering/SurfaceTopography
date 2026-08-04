@@ -27,12 +27,10 @@
 # https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/sensofar.c
 #
 
-import dateutil
-import numpy as np
-
 from ..Exceptions import UnsupportedFormatFeature
-from .binary import BinaryArray, BinaryStructure, Convert, Validate
-from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase, For, If
+from .binary import BinaryArray, BinaryStructure, Validate
+from .expr import C, F, Lit, Tup, V
+from .Reader import CompoundLayout, DeclarativeReaderBase, For, If
 
 # Measurement types
 _TYPE_PROFILE = 1
@@ -149,7 +147,7 @@ This reader imports Sensofar's SPM file format.
                     (
                         "data",
                         "128s",
-                        Convert(lambda x: dateutil.parser.parse(x)),
+                        F.parse_datetime(V),
                     ),
                     ("time", "I"),
                     ("comment", "256s"),
@@ -177,14 +175,13 @@ This reader imports Sensofar's SPM file format.
                     ("type", "I", Validate(_TYPE_TOPOGRAPHY, UnsupportedFormatFeature)),
                     ("algorithm", "I"),
                     ("method", "I"),
-                    ("objective", "I", Convert(lambda x: _objective_names[x])),
+                    ("objective", "I", Lit(_objective_names)[V]),
                     ("area_type", "I"),
                 ],
                 name="measurement_configuration1",
             ),
             If(
-                lambda data: data.measurement_configuration1.area_type
-                == _AREA_COORDINATES,
+                C.measurement_configuration1.area_type == _AREA_COORDINATES,
                 BinaryStructure(
                     [
                         ("tracking_range", "f"),
@@ -228,19 +225,16 @@ This reader imports Sensofar's SPM file format.
                 name="measurement_configuration2",
             ),
             For(
-                lambda data: data.measurement_configuration2.num_layers,
+                C.measurement_configuration2.num_layers,
                 CompoundLayout(
                     [
                         BinaryStructure([("y", "I"), ("x", "I")], name="nb_grid_pts"),
                         BinaryArray(
                             "data",
-                            lambda context: (
-                                context.nb_grid_pts.y,
-                                context.nb_grid_pts.x,
-                            ),
-                            lambda context: np.dtype(np.float32),
-                            conversion_fun=lambda arr: arr.T,
-                            mask_fun=lambda arr, data: arr == _UNDEFINED_DATA,
+                            Tup(C.nb_grid_pts.y, C.nb_grid_pts.x),
+                            F.dtype("<f4"),
+                            conversion_fun=F.transpose(V),
+                            mask_fun=V == _UNDEFINED_DATA,
                         ),
                         BinaryStructure(
                             [
@@ -256,26 +250,21 @@ This reader imports Sensofar's SPM file format.
         ]
     )
 
-    @property
-    def channels(self):
-        return [
-            ChannelInfo(
-                self,
-                index,
-                name=f"layer{index}",
-                dim=2,
-                nb_grid_pts=(layer.nb_grid_pts.x, layer.nb_grid_pts.y),
-                physical_sizes=(
-                    layer.nb_grid_pts.x
-                    * self._metadata.calibration.micrometers_per_pixel_x,
-                    layer.nb_grid_pts.y
-                    * self._metadata.calibration.micrometers_per_pixel_y,
-                ),
-                unit="µm",
-                height_scale_factor=1,  # All units µm
-                periodic=False,
-                uniform=True,
-                tags={"reader": layer.data},
-            )
-            for index, layer in enumerate(self._metadata.layers)
-        ]
+    _channel_bindings = [
+        {
+            # One channel per measurement layer
+            "foreach": C.layers,
+            "name": "layer" + F.str(C.item_index),
+            "dim": 2,
+            "nb_grid_pts": Tup(C.item.nb_grid_pts.x, C.item.nb_grid_pts.y),
+            "physical_sizes": Tup(
+                C.item.nb_grid_pts.x * C.calibration.micrometers_per_pixel_x,
+                C.item.nb_grid_pts.y * C.calibration.micrometers_per_pixel_y,
+            ),
+            "unit": "µm",
+            "height_scale_factor": 1,  # All units µm
+            "periodic": False,
+            "uniform": True,
+            "data": C.item.data,
+        }
+    ]

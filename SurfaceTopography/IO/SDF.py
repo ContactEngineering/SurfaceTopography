@@ -1,5 +1,5 @@
 #
-# Copyright 2025 Lars Pastewka
+# Copyright 2025-2026 Lars Pastewka
 #
 # ### MIT license
 #
@@ -29,100 +29,127 @@ This format is defined in ISO 25178-71 and supports both ASCII and binary
 variants.
 """
 
-import struct
-
-import numpy as np
-
 from ..Exceptions import (
     CorruptFile,
     FileFormatMismatch,
-    MetadataAlreadyFixedByFile,
     UnsupportedFormatFeature,
 )
-from ..Support.UnitConversion import get_unit_conversion_factor
-from ..UniformLineScanAndTopography import Topography
-from .common import OpenFromAny
-from .Reader import ChannelInfo, MagicMatch, ReaderBase
+from .binary import (
+    BinaryArray,
+    BinaryStructure,
+    TextHeader,
+    TextMatrix,
+    Validate,
+)
+from .expr import C, Cond, F, Tup, V
+from .Reader import Check, CompoundLayout, DeclarativeReaderBase, If
 
-# Magic bytes for ASCII and binary formats
-MAGIC_ASCII = b"aISO-1.0"
-MAGIC_BINARY = b"bISO-1.0"
+# Magic strings for ASCII and binary variants
+_MAGIC_ASCII = "aISO-1.0"
+_MAGIC_BINARY = "bISO-1.0"
 
-# Fixed unit in SDF files is meters
-FIXED_UNIT = "m"
+# Fixed unit in SDF files is meters; we report in micrometers
+_FIXED_UNIT = "m"
 
-# Data type mapping (from ISO 25178-71)
-DTYPE_MAP = {
-    5: np.dtype("<i2"),  # INT16
-    6: np.dtype("<i4"),  # INT32
-    7: np.dtype("<f8"),  # DOUBLE
-}
+# Data type mapping (from ISO 25178-71): 5 = INT16, 6 = INT32, 7 = DOUBLE
+_DATA_TYPES = (5, 6, 7)
+_dtype = Cond(
+    C.header.DataType == 5,
+    F.dtype("<i2"),
+    Cond(C.header.DataType == 6, F.dtype("<i4"), F.dtype("<f8")),
+)
 
-# Invalid value markers for each data type
-INVALID_VALUE_MAP = {
-    5: -(2**15),  # INT16 minimum
-    6: -(2**31),  # INT32 minimum
-    7: np.nan,  # NaN for doubles
-}
+# A pixel is undefined if it is NaN or, for the integer data types,
+# carries the type's invalid marker (the type's minimum value). ASCII
+# files with an integer DataType may also mark invalid points with the
+# same numeric marker as the binary variant.
+_invalid_mask = Cond(
+    C.header.DataType == 7,
+    F.isnan(V),
+    F.isnan(V)
+    | (V == Cond(C.header.DataType == 5, -(2**15), -(2**31))),
+)
 
-# Binary header layout (ISO 25178-71)
-# 8 bytes magic + 10 bytes ManufacID + 12 bytes CreateDate + 12 bytes ModDate
-# + 2 bytes NumPoints + 2 bytes NumProfiles + 4x8 bytes (Xscale, Yscale, Zscale, Zres)
-# + 3 bytes (Compression, DataType, CheckType)
-BINARY_HEADER_FORMAT = "<8s10s12s12sHHddddbbb"
-BINARY_HEADER_SIZE = struct.calcsize(BINARY_HEADER_FORMAT)
+_binary_layout = CompoundLayout(
+    [
+        BinaryStructure(
+            [
+                ("ManufacID", "10s"),
+                ("CreateDate", "12s"),
+                ("ModDate", "12s"),
+                ("NumPoints", "H", Validate(V > 0, CorruptFile)),
+                ("NumProfiles", "H", Validate(V > 0, CorruptFile)),
+                ("Xscale", "d"),
+                ("Yscale", "d"),
+                ("Zscale", "d"),
+                ("Zresolution", "d"),
+                # Note: `b` denotes raw bytes in the layout language; the
+                # flag fields are read as unsigned `B` instead (the ISO
+                # spec says signed, but the defined values are 0-7)
+                ("Compression", "B"),
+                (
+                    "DataType",
+                    "B",
+                    Validate(V.isin(*_DATA_TYPES), UnsupportedFormatFeature),
+                ),
+                ("CheckType", "B"),
+            ],
+            byte_order="<",
+            name="header",
+        ),
+        BinaryArray(
+            "data",
+            Tup(C.header.NumProfiles, C.header.NumPoints),
+            _dtype,
+            conversion_fun=F.transpose(V),  # Transpose to (nx, ny) order
+        ),
+    ]
+)
+
+_ascii_layout = CompoundLayout(
+    [
+        TextHeader(
+            name="header",
+            separator="=",
+            terminator="*",
+            converters={
+                "NumPoints": F.int(V),
+                "NumProfiles": F.int(V),
+                "Xscale": F.float(V),
+                "Yscale": F.float(V),
+                "Zscale": F.float(V),
+                "Zresolution": F.float(V),
+                "Compression": F.int(V),
+                "DataType": F.int(V),
+                "CheckType": F.int(V),
+            },
+        ),
+        Check(
+            (F.get(C.header, "NumPoints", None) != None)  # noqa: E711
+            & (F.get(C.header, "NumProfiles", None) != None)  # noqa: E711
+            & (F.get(C.header, "Xscale", None) != None)  # noqa: E711
+            & (F.get(C.header, "Yscale", None) != None)  # noqa: E711
+            & (F.get(C.header, "Zscale", None) != None)  # noqa: E711
+            & (F.get(C.header, "DataType", None) != None),  # noqa: E711
+            CorruptFile,
+            "Missing required field in SDF header",
+        ),
+        Check(
+            C.header.DataType.isin(*_DATA_TYPES),
+            UnsupportedFormatFeature,
+            "Unsupported DataType in SDF file",
+        ),
+        TextMatrix(
+            "data",
+            Tup(C.header.NumProfiles, C.header.NumPoints),
+            bad_markers=("BAD",),
+            conversion_fun=F.transpose(V),  # Transpose to (nx, ny) order
+        ),
+    ]
+)
 
 
-def _parse_ascii_header(content):
-    """Parse the ASCII header section."""
-    header = {}
-    type_map = {
-        "ManufacID": str,
-        "CreateDate": str,
-        "ModDate": str,
-        "NumPoints": int,
-        "NumProfiles": int,
-        "Xscale": float,
-        "Yscale": float,
-        "Zscale": float,
-        "Zresolution": float,
-        "Compression": int,
-        "DataType": int,
-        "CheckType": int,
-    }
-
-    for line in content.strip().splitlines():
-        if "=" in line:
-            name, value = line.split("=", 1)
-            name = name.strip()
-            value = value.strip()
-            if name in type_map:
-                header[name] = type_map[name](value)
-
-    return header
-
-
-def _read_ascii_data(data_section, num_points, num_profiles, z_scale, data_type):
-    """Parse the ASCII data section."""
-    # Replace BAD markers with NaN
-    data_section = data_section.replace("BAD", "NAN")
-
-    # Parse data
-    data = np.array(data_section.split(), dtype=np.float64)
-    data = data.reshape(num_profiles, num_points)
-
-    # ASCII files with an integer DataType may also mark invalid points
-    # with the same numeric marker as the binary variant
-    invalid_value = INVALID_VALUE_MAP[data_type]
-    if not np.isnan(invalid_value):
-        data[data == invalid_value] = np.nan
-
-    data *= z_scale
-
-    return data
-
-
-class SDFReader(ReaderBase):
+class SDFReader(DeclarativeReaderBase):
     _format = "sdf"
     _mime_types = ["application/x-iso25178-sdf"]
     _file_extensions = ["sdf"]
@@ -133,213 +160,55 @@ This reader imports ISO 25178-71 Surface Data File (SDF) format files.
 Both ASCII and binary variants are supported.
 """
 
-    @classmethod
-    def can_read(cls, buffer: bytes) -> MagicMatch:
-        if len(buffer) < 8:
-            return MagicMatch.MAYBE
-        if buffer.startswith(MAGIC_ASCII) or buffer.startswith(MAGIC_BINARY):
-            return MagicMatch.YES
-        return MagicMatch.NO
+    _magic = [
+        (0, _MAGIC_ASCII.encode("ascii")),
+        (0, _MAGIC_BINARY.encode("ascii")),
+    ]
 
-    def __init__(self, fobj):
-        self._fobj = fobj
-
-        with OpenFromAny(fobj, "rb") as f:
-            magic = f.read(8)
-
-            if magic == MAGIC_ASCII:
-                self._is_binary = False
-                self._parse_ascii_file(f)
-            elif magic == MAGIC_BINARY:
-                self._is_binary = True
-                self._parse_binary_file(f)
-            else:
-                raise FileFormatMismatch(
-                    f"Invalid SDF magic: expected 'aISO-1.0' or 'bISO-1.0', "
-                    f"got '{magic.decode('ascii', errors='replace')}'"
-                )
-
-    def _parse_ascii_file(self, f):
-        """Parse ASCII format SDF file."""
-        # Read entire file as text
-        f.seek(0)
-        content = f.read().decode("ascii")
-
-        # Split into sections (header, data, trailer) separated by *
-        sections = content.split("*")
-        if len(sections) < 3:
-            raise CorruptFile("Invalid ASCII SDF file: missing section delimiters")
-
-        header_section = sections[0].lstrip()
-        data_section = sections[1]
-
-        # Parse header
-        self._header = _parse_ascii_header(header_section)
-
-        # Validate required fields
-        required = ["NumPoints", "NumProfiles", "Xscale", "Yscale", "Zscale", "DataType"]
-        for field in required:
-            if field not in self._header:
-                raise CorruptFile(f"Missing required field '{field}' in SDF header")
-
-        if self._header["DataType"] not in DTYPE_MAP:
-            raise UnsupportedFormatFeature(
-                f"Unsupported DataType in SDF file: {self._header['DataType']}"
-            )
-
-        # Compute conversion factor from meters to micrometers
-        self._unit_factor = get_unit_conversion_factor(FIXED_UNIT, "µm")
-
-        # Store data section for later parsing
-        self._data_section = data_section
-
-        # Create channel info
-        nx = self._header["NumPoints"]
-        ny = self._header["NumProfiles"]
-        step_x = self._header["Xscale"] * self._unit_factor
-        step_y = self._header["Yscale"] * self._unit_factor
-
-        self._channels = [
-            ChannelInfo(
-                self,
-                0,
-                name="Default",
-                dim=2,
-                nb_grid_pts=(nx, ny),
-                physical_sizes=(step_x * nx, step_y * ny),
-                uniform=True,
-                unit="µm",
-                info={"raw_metadata": self._header},
-            )
+    _file_layout = CompoundLayout(
+        [
+            BinaryStructure(
+                [
+                    (
+                        "magic",
+                        "8s",
+                        Validate(
+                            V.isin(_MAGIC_ASCII, _MAGIC_BINARY),
+                            FileFormatMismatch,
+                        ),
+                    ),
+                ],
+                byte_order="<",
+                name="prefix",
+            ),
+            If(
+                C.prefix.magic == _MAGIC_BINARY,
+                _binary_layout,
+                _ascii_layout,
+            ),
         ]
+    )
 
-    def _parse_binary_file(self, f):
-        """Parse binary format SDF file."""
-        f.seek(0)
-
-        # Read binary header
-        header_data = f.read(BINARY_HEADER_SIZE)
-        unpacked = struct.unpack(BINARY_HEADER_FORMAT, header_data)
-
-        self._header = {
-            "ManufacID": unpacked[1].decode("ascii", errors="replace").strip("\x00"),
-            "CreateDate": unpacked[2].decode("ascii", errors="replace").strip("\x00"),
-            "ModDate": unpacked[3].decode("ascii", errors="replace").strip("\x00"),
-            "NumPoints": unpacked[4],
-            "NumProfiles": unpacked[5],
-            "Xscale": unpacked[6],
-            "Yscale": unpacked[7],
-            "Zscale": unpacked[8],
-            "Zresolution": unpacked[9],
-            "Compression": unpacked[10],
-            "DataType": unpacked[11],
-            "CheckType": unpacked[12],
+    _channel_bindings = [
+        {
+            "name": "Default",
+            "dim": 2,
+            "nb_grid_pts": Tup(C.header.NumPoints, C.header.NumProfiles),
+            # Lengths are stored in meters, we report micrometers
+            "physical_sizes": Tup(
+                C.header.Xscale
+                * C.header.NumPoints
+                * F.unit_conversion_factor(_FIXED_UNIT, "µm"),
+                C.header.Yscale
+                * C.header.NumProfiles
+                * F.unit_conversion_factor(_FIXED_UNIT, "µm"),
+            ),
+            "height_scale_factor": C.header.Zscale
+            * F.unit_conversion_factor(_FIXED_UNIT, "µm"),
+            "uniform": True,
+            "unit": "µm",
+            "info": {"raw_metadata": C.header},
+            "data": C.data,
+            "mask": {"source": C.data, "rule": _invalid_mask},
         }
-
-        if self._header["DataType"] not in DTYPE_MAP:
-            raise UnsupportedFormatFeature(
-                f"Unsupported DataType in SDF file: {self._header['DataType']}"
-            )
-
-        # Store data offset
-        self._data_offset = f.tell()
-
-        # Compute conversion factor from meters to micrometers
-        self._unit_factor = get_unit_conversion_factor(FIXED_UNIT, "µm")
-
-        # Create channel info
-        nx = self._header["NumPoints"]
-        ny = self._header["NumProfiles"]
-        step_x = self._header["Xscale"] * self._unit_factor
-        step_y = self._header["Yscale"] * self._unit_factor
-
-        self._channels = [
-            ChannelInfo(
-                self,
-                0,
-                name="Default",
-                dim=2,
-                nb_grid_pts=(nx, ny),
-                physical_sizes=(step_x * nx, step_y * ny),
-                uniform=True,
-                unit="µm",
-                info={"raw_metadata": self._header},
-            )
-        ]
-
-    @property
-    def channels(self):
-        return self._channels
-
-    def topography(
-        self,
-        channel_index=None,
-        physical_sizes=None,
-        height_scale_factor=None,
-        unit=None,
-        info={},
-        periodic=False,
-        subdomain_locations=None,
-        nb_subdomain_grid_pts=None,
-    ):
-        if channel_index is None:
-            channel_index = self._default_channel_index
-
-        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
-            raise RuntimeError("This reader does not support MPI parallelization.")
-
-        if physical_sizes is not None:
-            raise MetadataAlreadyFixedByFile("physical_sizes")
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile("unit")
-
-        channel = self._channels[channel_index]
-        nx = self._header["NumPoints"]
-        ny = self._header["NumProfiles"]
-        data_type = self._header["DataType"]
-        z_scale = self._header["Zscale"] * self._unit_factor
-
-        if self._is_binary:
-            # Read binary data
-            with OpenFromAny(self._fobj, "rb") as f:
-                f.seek(self._data_offset)
-                dtype = DTYPE_MAP[data_type]
-                data = np.frombuffer(
-                    f.read(nx * ny * dtype.itemsize), dtype=dtype
-                ).reshape(ny, nx)
-
-            # Mark invalid values
-            invalid_value = INVALID_VALUE_MAP[data_type]
-            data = data.astype(np.float64)
-            if not np.isnan(invalid_value):
-                data[data == invalid_value] = np.nan
-            data *= z_scale
-        else:
-            # Parse ASCII data
-            data = _read_ascii_data(self._data_section, nx, ny, z_scale, data_type)
-
-        # Transpose to get (nx, ny) ordering
-        data = data.T
-
-        _info = dict(self._header)
-        _info.update(info)
-
-        if height_scale_factor is not None:
-            return Topography(
-                data * height_scale_factor,
-                channel.physical_sizes,
-                unit=channel.unit,
-                info=_info,
-                periodic=periodic,
-            )
-
-        return Topography(
-            data,
-            channel.physical_sizes,
-            unit=channel.unit,
-            info=_info,
-            periodic=periodic,
-        )
-
-    channels.__doc__ = ReaderBase.channels.__doc__
-    topography.__doc__ = ReaderBase.topography.__doc__
+    ]

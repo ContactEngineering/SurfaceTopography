@@ -26,11 +26,12 @@
 Reader for TrueMap TMD files.
 """
 
-import numpy as np
-
 from ..Exceptions import CorruptFile, FileFormatMismatch
 from .binary import BinaryArray, BinaryStructure, Validate
-from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase, MagicMatch
+from .expr import C, F, Tup, V
+from .Reader import CompoundLayout, DeclarativeReaderBase
+
+_MAGIC = "Binary TrueMap Data File v2.0"
 
 
 class TMDReader(DeclarativeReaderBase):
@@ -43,15 +44,7 @@ class TMDReader(DeclarativeReaderBase):
 This reader imports TrueMap TMD data files.
 """
 
-    _MAGIC = b"Binary TrueMap Data File v2.0"
-
-    @classmethod
-    def can_read(cls, buffer: bytes) -> MagicMatch:
-        if len(buffer) < len(cls._MAGIC):
-            return MagicMatch.MAYBE
-        if buffer.startswith(cls._MAGIC):
-            return MagicMatch.YES
-        return MagicMatch.NO
+    _magic = [(0, _MAGIC.encode("ascii"))]
 
     _file_layout = CompoundLayout(
         [
@@ -60,32 +53,13 @@ This reader imports TrueMap TMD data files.
                     (
                         "magic",
                         "32s",
-                        Validate(
-                            lambda x, context: x.startswith("Binary TrueMap Data File v2.0"),
-                            FileFormatMismatch,
-                        ),
+                        Validate(V[: len(_MAGIC)] == _MAGIC, FileFormatMismatch),
                     ),
                     ("comment", "24s"),
-                    (
-                        "nb_grid_pts_x",
-                        "<I",
-                        Validate(lambda x, context: x > 0, CorruptFile),
-                    ),
-                    (
-                        "nb_grid_pts_y",
-                        "<I",
-                        Validate(lambda x, context: x > 0, CorruptFile),
-                    ),
-                    (
-                        "length_x",
-                        "<f",
-                        Validate(lambda x, context: x > 0, CorruptFile),
-                    ),
-                    (
-                        "length_y",
-                        "<f",
-                        Validate(lambda x, context: x > 0, CorruptFile),
-                    ),
+                    ("nb_grid_pts_x", "<I", Validate(V > 0, CorruptFile)),
+                    ("nb_grid_pts_y", "<I", Validate(V > 0, CorruptFile)),
+                    ("length_x", "<f", Validate(V > 0, CorruptFile)),
+                    ("length_y", "<f", Validate(V > 0, CorruptFile)),
                     ("offset_x", "<f"),
                     ("offset_y", "<f"),
                 ],
@@ -93,41 +67,27 @@ This reader imports TrueMap TMD data files.
             ),
             BinaryArray(
                 "data",
-                lambda context: (
-                    context.header.nb_grid_pts_y,
-                    context.header.nb_grid_pts_x,
-                ),
-                lambda context: np.dtype("<f4"),
-                conversion_fun=lambda x: x.T,  # Transpose to (nx, ny) order
+                Tup(C.header.nb_grid_pts_y, C.header.nb_grid_pts_x),
+                F.dtype("<f4"),
+                conversion_fun=F.transpose(V),  # Transpose to (nx, ny) order
             ),
         ]
     )
 
-    @property
-    def channels(self):
-        header = self._metadata.header
-
-        # Parse comment for metadata
-        comment = header.comment
-        if isinstance(comment, bytes):
-            comment = comment.decode("utf-8", errors="replace").strip("\x00\r\n ")
-
-        return [
-            ChannelInfo(
-                self,
-                0,
-                name="Default",
-                dim=2,
-                nb_grid_pts=(header.nb_grid_pts_x, header.nb_grid_pts_y),
-                physical_sizes=(header.length_x, header.length_y),
-                height_scale_factor=1.0,
-                uniform=True,
-                unit="µm",
-                info={
-                    "instrument": {"vendor": "TrueMap"},
-                    "comment": comment,
-                    "raw_metadata": header,
-                },
-                tags={"reader": self._metadata.data},
-            )
-        ]
+    _channel_bindings = [
+        {
+            "name": "Default",
+            "dim": 2,
+            "nb_grid_pts": Tup(C.header.nb_grid_pts_x, C.header.nb_grid_pts_y),
+            "physical_sizes": Tup(C.header.length_x, C.header.length_y),
+            "height_scale_factor": 1.0,
+            "uniform": True,
+            "unit": "µm",
+            "info": {
+                "instrument": {"vendor": "TrueMap"},
+                "comment": F.strip(C.header.comment),
+                "raw_metadata": C.header,
+            },
+            "data": C.data,
+        }
+    ]

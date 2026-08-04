@@ -1,5 +1,5 @@
 #
-# Copyright 2025 Lars Pastewka
+# Copyright 2025-2026 Lars Pastewka
 #
 # ### MIT license
 #
@@ -26,23 +26,24 @@
 Reader for Nanofocus NMS files.
 """
 
-import struct
-
-import numpy as np
-
-from ..Exceptions import MetadataAlreadyFixedByFile
-from ..UniformLineScanAndTopography import Topography
+from ..Exceptions import FileFormatMismatch
+from .binary import BinaryArray, BinaryStructure, Validate
 from .common import OpenFromAny
-from .Reader import ChannelInfo, MagicMatch, ReaderBase
+from .expr import C, F, Tup, V
+from .Reader import CompoundLayout, DeclarativeReaderBase, Seek
 
-# Header layout with fixed offsets
-HEADER_SIZE = 3468
-OFFSET_Z = 16  # zmin, zmax (2 doubles)
-OFFSET_POINTS = 1368  # nx, ny (2 unsigned ints)
-OFFSET_SPACING = 1376  # dx, dy (2 doubles)
+# The header has a fixed size; the fields we interpret sit at fixed
+# offsets within it
+_HEADER_SIZE = 3468
+_OFFSET_Z = 16  # zmin, zmax (2 doubles)
+_OFFSET_POINTS = 1368  # nx, ny (2 unsigned ints), followed by dx, dy (2 doubles)
+
+# NMS files carry no magic; the plausibility checks on the header fields
+# and the file-size check in `_validate_metadata` are the only detection
+# mechanism, hence validation failures report a format mismatch
 
 
-class NMSReader(ReaderBase):
+class NMSReader(DeclarativeReaderBase):
     _format = "nms"
     _mime_types = ["application/x-nanofocus-nms"]
     _file_extensions = ["nms"]
@@ -52,143 +53,90 @@ class NMSReader(ReaderBase):
 This reader imports Nanofocus NMS data files.
 """
 
-    @classmethod
-    def can_read(cls, buffer: bytes) -> MagicMatch:
-        # NMS files don't have a clear magic signature
-        # We need to try parsing and see if it makes sense
-        return MagicMatch.MAYBE
+    # NMS files don't have a clear magic signature; detection needs to
+    # try parsing (`_magic = None` answers "maybe")
+    _magic = None
 
-    def __init__(self, fobj):
-        self._fobj = fobj
+    _file_layout = CompoundLayout(
+        [
+            CompoundLayout(
+                [
+                    Seek(_OFFSET_Z, comment="z range"),
+                    BinaryStructure(
+                        [("zmin", "d"), ("zmax", "d")],
+                        byte_order="<",
+                    ),
+                    Seek(_OFFSET_POINTS, comment="grid dimensions and spacing"),
+                    BinaryStructure(
+                        [
+                            (
+                                "nb_grid_pts_x",
+                                "I",
+                                Validate(
+                                    (V > 0) & (V <= 100000), FileFormatMismatch
+                                ),
+                            ),
+                            (
+                                "nb_grid_pts_y",
+                                "I",
+                                Validate(
+                                    (V > 0) & (V <= 100000), FileFormatMismatch
+                                ),
+                            ),
+                            # Grid spacing in mm
+                            ("dx_mm", "d", Validate(V > 0, FileFormatMismatch)),
+                            ("dy_mm", "d", Validate(V > 0, FileFormatMismatch)),
+                        ],
+                        byte_order="<",
+                    ),
+                ],
+                name="header",
+            ),
+            Seek(_HEADER_SIZE, comment="height data"),
+            BinaryArray(
+                "data",
+                Tup(C.header.nb_grid_pts_y, C.header.nb_grid_pts_x),
+                F.dtype("<u2"),
+                # The data is stored as uint16 scaled between zmin and
+                # zmax; rescale and transpose to (nx, ny) ordering
+                conversion_fun=F.transpose(
+                    V / (2**16 - 2) * (C.header.zmax - C.header.zmin)
+                    + C.header.zmin
+                ),
+            ),
+        ]
+    )
 
-        with OpenFromAny(fobj, "rb") as f:
-            # Read z range
-            f.seek(OFFSET_Z)
-            zmin, zmax = struct.unpack("<2d", f.read(16))
-
-            # Read grid dimensions
-            f.seek(OFFSET_POINTS)
-            nx, ny = struct.unpack("<2I", f.read(8))
-
-            # Read spacing (in mm)
-            f.seek(OFFSET_SPACING)
-            dx_mm, dy_mm = struct.unpack("<2d", f.read(16))
-
-            # Validate dimensions and spacing
-            if nx == 0 or ny == 0:
-                raise ValueError("Invalid grid dimensions in NMS file")
-            if dx_mm <= 0 or dy_mm <= 0:
-                raise ValueError("Invalid spacing in NMS file")
-            if nx > 100000 or ny > 100000:
-                raise ValueError("Grid dimensions too large for NMS file")
-
-            # Validate file size matches expected data size
-            f.seek(0, 2)  # Seek to end
-            file_size = f.tell()
-            expected_data_size = nx * ny * 2  # uint16 data
-            expected_file_size = HEADER_SIZE + expected_data_size
-            if file_size < expected_file_size:
-                raise ValueError(
-                    f"File too small for NMS format: {file_size} < {expected_file_size}"
-                )
-
-            # Convert spacing from mm to µm
-            dx = dx_mm * 1000.0
-            dy = dy_mm * 1000.0
-
-            self._nx = nx
-            self._ny = ny
-            self._zmin = zmin
-            self._zmax = zmax
-
-            # Physical sizes in micrometers
-            physical_size_x = dx * nx
-            physical_size_y = dy * ny
-
-            self._metadata = {
-                "zmin": zmin,
-                "zmax": zmax,
-                "dx_mm": dx_mm,
-                "dy_mm": dy_mm,
-            }
-
-            self._channels = [
-                ChannelInfo(
-                    self,
-                    0,
-                    name="Default",
-                    dim=2,
-                    nb_grid_pts=(nx, ny),
-                    physical_sizes=(physical_size_x, physical_size_y),
-                    uniform=True,
-                    unit="µm",
-                    info={"raw_metadata": self._metadata},
-                )
-            ]
-
-    @property
-    def channels(self):
-        return self._channels
-
-    def topography(
-        self,
-        channel_index=None,
-        physical_sizes=None,
-        height_scale_factor=None,
-        unit=None,
-        info={},
-        periodic=False,
-        subdomain_locations=None,
-        nb_subdomain_grid_pts=None,
-    ):
-        if channel_index is None:
-            channel_index = self._default_channel_index
-
-        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
-            raise RuntimeError("This reader does not support MPI parallelization.")
-
-        if physical_sizes is not None:
-            raise MetadataAlreadyFixedByFile("physical_sizes")
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile("unit")
-
-        channel = self._channels[channel_index]
-
-        with OpenFromAny(self._fobj, "rb") as f:
-            f.seek(HEADER_SIZE)
-            raw_data = np.frombuffer(
-                f.read(self._nx * self._ny * 2), dtype=np.uint16
-            ).reshape(self._ny, self._nx)
-
-        # Scale uint16 data to height values
-        # The data is stored as uint16 scaled between zmin and zmax
-        data = (
-            raw_data.astype(np.float64) / (2**16 - 2) * (self._zmax - self._zmin)
-            + self._zmin
+    def _validate_metadata(self):
+        # The file must be large enough to hold the full raster. Since the
+        # format has no magic, this is the de-facto detection mechanism
+        # and cannot be expressed in the file layout.
+        header = self._metadata.header
+        expected_file_size = (
+            _HEADER_SIZE + 2 * header.nb_grid_pts_x * header.nb_grid_pts_y
         )
-
-        # Transpose to get (nx, ny) ordering
-        data = data.T
-
-        _info = dict(self._metadata)
-        _info.update(info)
-
-        if height_scale_factor is not None:
-            return Topography(
-                data * height_scale_factor,
-                channel.physical_sizes,
-                unit=channel.unit,
-                info=_info,
-                periodic=periodic,
+        with OpenFromAny(self.file_path, "rb") as f:
+            f.seek(0, 2)
+            file_size = f.tell()
+        if file_size < expected_file_size:
+            raise FileFormatMismatch(
+                f"File too small for NMS format: {file_size} < "
+                f"{expected_file_size}"
             )
 
-        return Topography(
-            data,
-            channel.physical_sizes,
-            unit=channel.unit,
-            info=_info,
-            periodic=periodic,
-        )
-
-    channels.__doc__ = ReaderBase.channels.__doc__
-    topography.__doc__ = ReaderBase.topography.__doc__
+    _channel_bindings = [
+        {
+            "name": "Default",
+            "dim": 2,
+            "nb_grid_pts": Tup(C.header.nb_grid_pts_x, C.header.nb_grid_pts_y),
+            # Physical sizes in micrometers (spacing is in mm)
+            "physical_sizes": Tup(
+                C.header.dx_mm * 1000.0 * C.header.nb_grid_pts_x,
+                C.header.dy_mm * 1000.0 * C.header.nb_grid_pts_y,
+            ),
+            "uniform": True,
+            "unit": "µm",
+            "info": {"raw_metadata": C.header},
+            "data": C.data,
+        }
+    ]

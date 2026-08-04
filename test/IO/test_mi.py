@@ -99,7 +99,7 @@ def test_topography():
 
     # Check one height value
     np.testing.assert_allclose(
-        topography._heights[0, 0], -0.4986900329589844, rtol=1e-6
+        topography.heights()[0, 0], -0.4986900329589844, rtol=1e-6
     )
 
     # Check out if metadata from global and the channel are both in the

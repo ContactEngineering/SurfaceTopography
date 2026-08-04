@@ -27,14 +27,10 @@
 # https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/surffile.c
 #
 
-import datetime
-
-import numpy as np
-
 from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature
-from ..Support.UnitConversion import get_unit_conversion_factor
-from .binary import BinaryArray, BinaryStructure, Convert, RawBuffer, Validate
-from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase, MagicMatch
+from .binary import BinaryArray, BinaryStructure, RawBuffer, Validate
+from .expr import C, Cond, F, Tup, V
+from .Reader import CompoundLayout, DeclarativeReaderBase
 
 
 class SURReader(DeclarativeReaderBase):
@@ -47,15 +43,7 @@ class SURReader(DeclarativeReaderBase):
 This reader imports Digital Surf SUR data files.
 """
 
-    _MAGIC = b"DIGITAL SURF"
-
-    @classmethod
-    def can_read(cls, buffer: bytes) -> MagicMatch:
-        if len(buffer) < len(cls._MAGIC):
-            return MagicMatch.MAYBE  # Buffer too short to determine
-        if buffer.startswith(cls._MAGIC):
-            return MagicMatch.YES
-        return MagicMatch.NO
+    _magic = [(0, b"DIGITAL SURF")]
 
     _file_layout = CompoundLayout(
         [
@@ -78,42 +66,22 @@ This reader imports Digital Surf SUR data files.
                     (
                         "itemsize",
                         "H",
-                        Validate(
-                            lambda x, context: x in [16, 32], UnsupportedFormatFeature
-                        ),
+                        Validate(V.isin(16, 32), UnsupportedFormatFeature),
                     ),
                     ("zmin", "i"),
                     ("zmax", "i"),
-                    (
-                        "nb_grid_pts_x",
-                        "i",
-                        Validate(lambda x, context: x > 0, CorruptFile),
-                    ),
-                    (
-                        "nb_grid_pts_y",
-                        "i",
-                        Validate(lambda x, context: x > 0, CorruptFile),
-                    ),
+                    ("nb_grid_pts_x", "i", Validate(V > 0, CorruptFile)),
+                    ("nb_grid_pts_y", "i", Validate(V > 0, CorruptFile)),
                     (
                         "nb_points",
                         "I",
                         Validate(
-                            lambda x, context: x
-                            == context["nb_grid_pts_x"] * context["nb_grid_pts_y"],
-                            CorruptFile,
+                            V == C.nb_grid_pts_x * C.nb_grid_pts_y, CorruptFile
                         ),
                     ),
-                    (
-                        "grid_spacing_x",
-                        "f",
-                        Validate(lambda x, context: x > 0, CorruptFile),
-                    ),
-                    (
-                        "grid_spacing_y",
-                        "f",
-                        Validate(lambda x, context: x > 0, CorruptFile),
-                    ),
-                    ("height_scale_factor", "f", Convert(float)),
+                    ("grid_spacing_x", "f", Validate(V > 0, CorruptFile)),
+                    ("grid_spacing_y", "f", Validate(V > 0, CorruptFile)),
+                    ("height_scale_factor", "f", F.float(V)),
                     ("name_x", "16s"),
                     ("name_y", "16s"),
                     ("data_name", "16s"),
@@ -123,31 +91,32 @@ This reader imports Digital Surf SUR data files.
                     ("x_unit", "16s"),
                     ("y_unit", "16s"),
                     ("data_unit", "16s"),
+                    # The unit ratios validate that the respective unit
+                    # pairs are convertible into each other
                     (
                         "x_unit_ratio",
                         "f",
                         Validate(
-                            lambda x, context: get_unit_conversion_factor(
-                                context.x_unit, context.delta_x_unit
-                            )
+                            F.unit_conversion_factor(C.x_unit, C.delta_x_unit)
+                            != None  # noqa: E711
                         ),
                     ),
                     (
                         "y_unit_ratio",
                         "f",
                         Validate(
-                            lambda x, context: get_unit_conversion_factor(
-                                context.y_unit, context.delta_y_unit
-                            )
+                            F.unit_conversion_factor(C.y_unit, C.delta_y_unit)
+                            != None  # noqa: E711
                         ),
                     ),
                     (
                         "data_unit_ratio",
                         "f",
                         Validate(
-                            lambda x, context: get_unit_conversion_factor(
-                                context.data_unit, context.delta_data_unit
+                            F.unit_conversion_factor(
+                                C.data_unit, C.delta_data_unit
                             )
+                            != None  # noqa: E711
                         ),
                     ),
                     ("imprint", "H"),
@@ -177,66 +146,59 @@ This reader imports Digital Surf SUR data files.
                 ],
                 name="header",
             ),
-            RawBuffer("comment", lambda context: context.header.comment_size),
-            RawBuffer("private", lambda context: context.header.private_size),
+            RawBuffer("comment", C.header.comment_size),
+            RawBuffer("private", C.header.private_size),
             BinaryArray(
                 "data",
-                lambda context: (
-                    context.header.nb_grid_pts_y,
-                    context.header.nb_grid_pts_x,
+                Tup(C.header.nb_grid_pts_y, C.header.nb_grid_pts_x),
+                Cond(
+                    C.header.itemsize == 16, F.dtype("<i2"), F.dtype("<i4")
                 ),
-                lambda context: (
-                    np.dtype("<i2")
-                    if context.header.itemsize == 16
-                    else np.dtype("<i4")
-                ),
-                conversion_fun=lambda arr: arr.T,
+                conversion_fun=F.transpose(V),
             ),
         ]
     )
 
-    @property
-    def channels(self):
-        header = self._metadata.header
-
-        instrument_info = {"vendor": "Digital Surf"}
-        if header.instrument_name:
-            instrument_info["name"] = header.instrument_name
-
-        info = {"instrument": instrument_info, "raw_metadata": header}
-
-        try:
-            info["acquisition_time"] = datetime.datetime(
-                header.year,
-                header.month,
-                header.day,
-                header.hour,
-                header.minute,
-                header.second,
-            )
-        except ValueError:
-            # This can fail if the date is not valid, e.g. if there are just zeros
-            pass
-
-        unit = header.delta_data_unit
-        fac_x = get_unit_conversion_factor(header.delta_x_unit, unit)
-        fac_y = get_unit_conversion_factor(header.delta_y_unit, unit)
-
-        return [
-            ChannelInfo(
-                self,
-                0,  # channel index
-                name="Default",
-                dim=2,
-                nb_grid_pts=(header.nb_grid_pts_x, header.nb_grid_pts_y),
-                physical_sizes=(
-                    fac_x * header.grid_spacing_x * header.nb_grid_pts_x,
-                    fac_y * header.grid_spacing_y * header.nb_grid_pts_y,
+    _channel_bindings = [
+        {
+            "name": "Default",
+            "dim": 2,
+            "nb_grid_pts": Tup(C.header.nb_grid_pts_x, C.header.nb_grid_pts_y),
+            # Lateral lengths are converted to the unit of the height data
+            "physical_sizes": Tup(
+                F.unit_conversion_factor(
+                    C.header.delta_x_unit, C.header.delta_data_unit
+                )
+                * C.header.grid_spacing_x
+                * C.header.nb_grid_pts_x,
+                F.unit_conversion_factor(
+                    C.header.delta_y_unit, C.header.delta_data_unit
+                )
+                * C.header.grid_spacing_y
+                * C.header.nb_grid_pts_y,
+            ),
+            "height_scale_factor": C.header.height_scale_factor,
+            "uniform": True,
+            "unit": C.header.delta_data_unit,
+            "info": {
+                "instrument": {
+                    "vendor": "Digital Surf",
+                    "name": Cond(
+                        C.header.instrument_name != "",
+                        C.header.instrument_name,
+                        None,
+                    ),
+                },
+                "acquisition_time": F.make_datetime(
+                    C.header.year,
+                    C.header.month,
+                    C.header.day,
+                    C.header.hour,
+                    C.header.minute,
+                    C.header.second,
                 ),
-                height_scale_factor=header.height_scale_factor,
-                uniform=True,
-                unit=unit,
-                info=info,
-                tags={"reader": self._metadata.data},
-            )
-        ]
+                "raw_metadata": C.header,
+            },
+            "data": C.data,
+        }
+    ]

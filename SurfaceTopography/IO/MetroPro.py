@@ -28,13 +28,22 @@
 # https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/metropro.c
 #
 
-import datetime
-
-import numpy as np
-
-from ..Exceptions import FileFormatMismatch
+from ..Exceptions import CorruptFile, FileFormatMismatch
 from .binary import BinaryArray, BinaryStructure, RawBuffer, Validate
-from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase, If, MagicMatch
+from .expr import C, Cond, F, Tup, V
+from .Reader import CompoundLayout, DeclarativeReaderBase, If
+
+_MAGIC1 = b"\x88\x1b\x03\x6f"
+_MAGIC2 = b"\x88\x1b\x03\x70"
+_MAGIC3 = b"\x88\x1b\x03\x71"
+
+# `phase_res` selects the phase resolution; its validity is checked in the
+# file layout
+_max_phase = Cond(
+    C.header1.phase_res == 0,
+    4096,
+    Cond(C.header1.phase_res == 1, 32768, 131072),
+)
 
 
 class MetroProReader(DeclarativeReaderBase):
@@ -47,17 +56,7 @@ class MetroProReader(DeclarativeReaderBase):
 This reader imports Zygo MetroPro data files.
 """
 
-    _MAGIC1 = b"\x88\x1b\x03\x6f"
-    _MAGIC2 = b"\x88\x1b\x03\x70"
-    _MAGIC3 = b"\x88\x1b\x03\x71"
-
-    @classmethod
-    def can_read(cls, buffer: bytes) -> MagicMatch:
-        if len(buffer) < 4:
-            return MagicMatch.MAYBE
-        if buffer[:4] in [cls._MAGIC1, cls._MAGIC2, cls._MAGIC3]:
-            return MagicMatch.YES
-        return MagicMatch.NO
+    _magic = [(0, _MAGIC1), (0, _MAGIC2), (0, _MAGIC3)]
 
     _file_layout = CompoundLayout(
         [
@@ -67,12 +66,11 @@ This reader imports Zygo MetroPro data files.
                         "magic",
                         "4s",
                         Validate(
-                            lambda x, ctx: x.encode("latin1")
-                            in [
-                                b"\x88\x1b\x03\x6f",
-                                b"\x88\x1b\x03\x70",
-                                b"\x88\x1b\x03\x71",
-                            ],
+                            V.isin(
+                                _MAGIC1.decode("latin1"),
+                                _MAGIC2.decode("latin1"),
+                                _MAGIC3.decode("latin1"),
+                            ),
                             FileFormatMismatch,
                         ),
                     ),
@@ -115,7 +113,7 @@ This reader imports Zygo MetroPro data files.
                     ("rad_crv_veasure_eeq", ">h"),
                     ("min_mod", ">i"),
                     ("min_mod_count", ">i"),
-                    ("phase_res", ">h"),
+                    ("phase_res", ">h", Validate(V.isin(0, 1, 2), CorruptFile)),
                     ("min_area", ">i"),
                     ("discon_action", ">h"),
                     ("discon_filter", ">f"),
@@ -233,7 +231,7 @@ This reader imports Zygo MetroPro data files.
                 name="header1",
             ),
             If(
-                lambda ctx: ctx.header1.magic.encode("latin1") == b"\x88\x1b\x03\x71",
+                C.header1.magic == _MAGIC3.decode("latin1"),
                 BinaryStructure(
                     [
                         ("films_mode", ">h"),
@@ -305,73 +303,53 @@ This reader imports Zygo MetroPro data files.
             ),
             RawBuffer(
                 "ac_data",
-                lambda ctx: 2
-                * ctx.header1.ac_n_buckets
-                * ctx.header1.ac_org_height
-                * ctx.header1.ac_org_width,
+                2
+                * C.header1.ac_n_buckets
+                * C.header1.ac_org_height
+                * C.header1.ac_org_width,
             ),
             BinaryArray(
                 "data",
-                lambda ctx: (ctx.header1.cn_org_height, ctx.header1.cn_org_width),
-                lambda ctx: np.dtype(">i"),
-                conversion_fun=lambda x: x.T,
-                mask_fun=lambda x, ctx: x >= 2147483640,
+                Tup(C.header1.cn_org_height, C.header1.cn_org_width),
+                F.dtype(">i4"),
+                conversion_fun=F.transpose(V),
+                mask_fun=V >= 2147483640,
             ),
         ]
     )
 
-    def _validate_metadata(self):
-        self._header = self._metadata.header1
-        if "header3" in self._metadata:
-            self._header.update(self._metadata.header3)
-
-    _MAX_PHASE = {0: 4096, 1: 32768, 2: 131072}
-
-    @property
-    def channels(self):
-        # All good, now initialize some convenience variables
-        nx, ny = self._header["cn_org_width"], self._header["cn_org_height"]
-        physical_sizes = (
-            self._header["lateral_res"] * nx,
-            self._header["lateral_res"] * ny,
-        )
-
-        # `phase_res` should only have values 0, 1 or 2. If this fails, the file is likely corrupt.
-        max_phase = self._MAX_PHASE[self._header["phase_res"]]
-
-        height_scale_factor = (
-            self._header["intf_scale_factor"]
-            * self._header["obliquity_factor"]
-            * self._header["wavelength_in"]
-            / max_phase
-        )
-        if self._header["sign"]:
-            height_scale_factor *= -1
-
-        serial = str(self._header["sys_serial"])
-        if "sys_serial2" in self._header and self._header["sys_serial2"] != 0:
-            serial += f"/{self._header['sys_serial2']}"
-
-        info = {
-            "acquisition_time": datetime.datetime.fromtimestamp(
-                self._header["time_stamp"]
+    _channel_bindings = [
+        {
+            "name": "Default",
+            "dim": 2,
+            "nb_grid_pts": Tup(C.header1.cn_org_width, C.header1.cn_org_height),
+            "physical_sizes": Tup(
+                C.header1.lateral_res * C.header1.cn_org_width,
+                C.header1.lateral_res * C.header1.cn_org_height,
             ),
-            "instrument": {"vendor": "Zygo", "serial": serial},
-            "raw_metadata": self._header,
+            "height_scale_factor": Cond(C.header1.sign != 0, -1.0, 1.0)
+            * C.header1.intf_scale_factor
+            * C.header1.obliquity_factor
+            * C.header1.wavelength_in
+            / _max_phase,
+            "uniform": True,
+            "unit": "m",
+            "info": {
+                "acquisition_time": F.from_timestamp(C.header1.time_stamp),
+                "instrument": {
+                    "vendor": "Zygo",
+                    "serial": F.str(C.header1.sys_serial)
+                    + Cond(
+                        C.header1.sys_serial2 != 0,
+                        "/" + F.str(C.header1.sys_serial2),
+                        "",
+                    ),
+                },
+                # The optional `header3` section is merged into the header
+                "raw_metadata": F.merge(
+                    C.header1, F.get(C, "header3", {})
+                ),
+            },
+            "data": C.data,
         }
-
-        return [
-            ChannelInfo(
-                self,
-                0,  # channel index
-                name="Default",
-                dim=2,
-                nb_grid_pts=(nx, ny),
-                physical_sizes=physical_sizes,
-                height_scale_factor=height_scale_factor,
-                uniform=True,
-                unit="m",
-                info=info,
-                tags={"reader": self._metadata.data},
-            )
-        ]
+    ]

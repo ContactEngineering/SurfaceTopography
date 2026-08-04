@@ -22,18 +22,37 @@
 # SOFTWARE.
 #
 
+import inspect
 import math
 import numbers
 import os
 import struct
 import zlib
 from struct import calcsize, unpack
+from zipfile import BadZipFile, ZipFile
 
+import defusedxml.ElementTree as ElementTree
 import numpy as np
 
+from ..Exceptions import CorruptFile, FileFormatMismatch
+from .expr import Expr
 
-class ValidationError(Exception):
+
+class ValidationError(CorruptFile):
+    """
+    Raised when a `Validate` hook without an explicit exception class
+    fails. A plain validation failure means the file is corrupt, hence
+    this is a `CorruptFile` (and thus `ReadFileError`); the format
+    description contract maps it to the `corrupt_file` error taxonomy
+    name.
+    """
     pass
+
+
+def _identity(x):
+    """Default (no-op) hook; shared so that serialization can detect
+    unset hooks by identity."""
+    return x
 
 
 class AttrDict(dict):
@@ -219,11 +238,13 @@ class LayoutWithNameBase:
             return self._name
 
     def to_dict(self):
-        """Convert layout to dictionary for JSON serialization"""
-        return {
-            'type': self.__class__.__name__,
-            'name': self._name if not callable(self._name) else {'__type__': 'lambda', 'source': 'callable_name'}
-        }
+        """
+        Serialize this layout to the JSON representation defined by the
+        format description contract (see
+        `SurfaceTopography.IO.description`).
+        """
+        from .description import layout_to_dict
+        return layout_to_dict(self)
 
 
 class BinaryStructure(LayoutWithNameBase):
@@ -250,32 +271,6 @@ class BinaryStructure(LayoutWithNameBase):
         self._byte_order = byte_order
         self._name = name
 
-    def to_dict(self):
-        res = super().to_dict()
-        res.update({
-            'byte_order': self._byte_order,
-            'structure': []
-        })
-        for entry in self._structure_format:
-            name, format = entry[:2]
-            entry_dict = {'name': name, 'format': format}
-            if len(entry) > 2:
-                validator = entry[2]
-                if validator:
-                    if isinstance(validator, Validate):
-                        entry_dict['validate'] = {'type': 'Validate', 'value': validator._value}
-                    elif callable(validator):
-                        entry_dict['validate'] = {'type': 'lambda', 'source': 'callable_validator'}
-            if len(entry) > 3:
-                converter = entry[3]
-                if converter:
-                    if isinstance(converter, Convert):
-                        entry_dict['convert'] = {'type': 'Convert', 'fun': 'callable_convert'}
-                    elif callable(converter):
-                        entry_dict['convert'] = {'type': 'lambda', 'source': 'callable_converter'}
-            res['structure'].append(entry_dict)
-        return res
-
     def from_stream(self, stream_obj, context):
         """
         Decode stream into dictionary.
@@ -301,7 +296,7 @@ class BinaryStructure(LayoutWithNameBase):
 
 
 class BinaryArray:
-    def __init__(self, name, shape, dtype, conversion_fun=lambda x: x, mask_fun=None):
+    def __init__(self, name, shape, dtype, conversion_fun=_identity, mask_fun=None):
         """
         Defines flat binary data to be read into a numpy array.
 
@@ -317,7 +312,9 @@ class BinaryArray:
             dictionary.
         conversion_fun : function
             Function that converts the array after reading. This can be useful
-            for example to change the data format or transpose the array.
+            for example to change the data format or transpose the array. The
+            function receives the array as its first argument and can
+            optionally accept the context dictionary as a second argument.
         mask_fun : function
             Function that returns a mask with undefined data points.
         """
@@ -401,7 +398,22 @@ class BinaryArray:
         arr = np.frombuffer(buffer, dtype=dtype).reshape(shape)
         if self._mask_fun is not None:
             arr = np.ma.masked_array(arr, mask=self._mask_fun(arr, context))
-        return self._conversion_fun(arr)
+        if isinstance(self._conversion_fun, Expr):
+            # Expressions always receive the parser context. Do not fall
+            # through to the signature introspection below: operator
+            # overloading on expression objects defeats `inspect.signature`
+            # (its internals compare the object against `type`/`object`,
+            # which builds an expression whose truth value raises), and the
+            # resulting fallback would silently drop the context.
+            return self._conversion_fun.evaluate(context, arr)
+        try:
+            nb_params = len(inspect.signature(self._conversion_fun).parameters)
+        except (TypeError, ValueError):
+            nb_params = 1
+        if nb_params >= 2:
+            return self._conversion_fun(arr, context)
+        else:
+            return self._conversion_fun(arr)
 
 
 class RawBuffer:
@@ -538,6 +550,265 @@ class TextBuffer(LayoutWithNameBase):
         return {self.name(context): text}
 
 
+class TextLine(LayoutWithNameBase):
+    """
+    Reads a single text line from a binary stream and stores its stripped
+    content.
+
+    Parameters
+    ----------
+    name : str
+        Name of the entry in the result dictionary.
+    encoding : str, optional
+        Text encoding of the line. Default: 'latin-1'.
+    """
+
+    def __init__(self, name, encoding="latin-1"):
+        self._name = name
+        self._encoding = encoding
+
+    def from_stream(self, stream_obj, context):
+        line = stream_obj.readline().decode(self._encoding, errors="replace")
+        return {self.name(context): line.strip()}
+
+
+class TextHeader(LayoutWithNameBase):
+    """
+    Parses a line-oriented text header of `key <separator> value` entries
+    from a binary stream.
+
+    The header region is delimited either by an exact byte count (`size`),
+    a terminator line (`terminator`), a terminating key (`stop_key`), or
+    the end of the stream. In line-delimited mode, the stream is left
+    positioned directly after the last consumed line, so binary data
+    following the header can be read by subsequent layout nodes. (Line
+    mode requires an ASCII-compatible encoding of the newline character;
+    use `size` for encodings like UTF-16.)
+
+    Parameters
+    ----------
+    name : str, optional
+        Name of this structure in the result dictionary. If None, the
+        parsed entries are merged into the enclosing context.
+        (Default: None)
+    encoding : str, optional
+        Text encoding. Undecodable bytes are replaced. (Default: 'latin-1')
+    separator : str, optional
+        Separator between key and value. Ignored if `key_width` is set.
+        (Default: '=')
+    key_width : int, optional
+        If set, the key is a fixed-width column of this many characters
+        and the value is the remainder of the line. (Default: None)
+    comment_prefixes : tuple of str, optional
+        Lines starting with one of these prefixes are skipped. The check
+        runs on the unstripped line, so ' ' skips indented lines.
+        (Default: ())
+    sections : str, optional
+        If 'ini', lines of the form `[Name]` start a named section and
+        subsequent entries are stored in a nested dictionary under that
+        name. (Default: None)
+    section_key : str, optional
+        If set, each occurrence of this key starts a new record;
+        subsequent entries (including this key) are stored in the record,
+        and the records form a list stored under `sections_name`.
+        (Default: None)
+    sections_name : str, optional
+        Name of the record list for `section_key`.
+        (Default: 'sections')
+    terminator : str, optional
+        Exact (stripped) line that ends the header. The line is consumed
+        but not stored. (Default: None)
+    stop_key : str, optional
+        Key whose entry ends the header. The entry is stored at the top
+        level and consumed. (Default: None)
+    size : int, callable or expression, optional
+        Exact size of the header region in bytes. The whole region is
+        consumed and parsed; unparseable content is skipped.
+        (Default: None)
+    converters : dict, optional
+        Maps keys to callables (or expressions) that convert the value,
+        e.g. `{'headersize': F.int(V)}`. (Default: None)
+    strict : bool, optional
+        If True, a non-empty line that is neither a comment, a section
+        marker nor a key-value pair raises `CorruptFile`; if False, such
+        lines are skipped. (Default: False)
+    """
+
+    def __init__(self, name=None, encoding="latin-1", separator="=",
+                 key_width=None, comment_prefixes=(), sections=None,
+                 section_key=None, sections_name="sections",
+                 terminator=None, stop_key=None, size=None,
+                 converters=None, strict=False):
+        self._name = name
+        self._encoding = encoding
+        self._separator = separator
+        self._key_width = key_width
+        self._comment_prefixes = tuple(comment_prefixes)
+        self._sections = sections
+        self._section_key = section_key
+        self._sections_name = sections_name
+        self._terminator = terminator
+        self._stop_key = stop_key
+        self._size = size
+        self._converters = {} if converters is None else converters
+        self._strict = strict
+
+    def _iter_lines(self, stream_obj, context):
+        if self._size is not None:
+            size = self._size(context) if callable(self._size) else self._size
+            text = stream_obj.read(size).decode(
+                self._encoding, errors="replace"
+            )
+            yield from text.split("\n")
+        else:
+            while True:
+                raw = stream_obj.readline()
+                if not raw:
+                    return
+                yield raw.decode(self._encoding, errors="replace")
+
+    def _convert(self, key, value):
+        converter = self._converters.get(key)
+        if converter is None:
+            return value
+        if isinstance(converter, Expr):
+            return converter.evaluate({}, value)
+        return converter(value)
+
+    def from_stream(self, stream_obj, context):
+        result = AttrDict()
+        records = []
+        current = result
+        for raw_line in self._iter_lines(stream_obj, context):
+            line = raw_line.rstrip("\r\n")
+            if any(line.startswith(p) for p in self._comment_prefixes):
+                continue
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if self._terminator is not None and stripped == self._terminator:
+                break
+            if (
+                self._sections == "ini"
+                and stripped.startswith("[")
+                and stripped.endswith("]")
+            ):
+                section = AttrDict()
+                result[stripped[1:-1]] = section
+                current = section
+                continue
+            if self._key_width is not None:
+                key = line[: self._key_width].strip()
+                value = line[self._key_width:].strip()
+            else:
+                if self._separator not in stripped:
+                    if self._strict:
+                        raise CorruptFile(
+                            f"Header line `{stripped}` is not a key-value "
+                            f"pair."
+                        )
+                    continue
+                key, value = stripped.split(self._separator, 1)
+                key = key.strip()
+                value = value.strip()
+            value = self._convert(key, value)
+            if self._stop_key is not None and key == self._stop_key:
+                result[key] = value
+                break
+            if self._section_key is not None and key == self._section_key:
+                current = AttrDict()
+                records.append(current)
+            current[key] = value
+        if self._section_key is not None:
+            result[self._sections_name] = records
+        name = self.name(context)
+        if name is None:
+            return result
+        else:
+            return {name: result}
+
+
+class _StoredArrayProxy:
+    """Reader proxy around data that was already parsed at layout time."""
+
+    def __init__(self, data):
+        self._data = data
+
+    def __call__(self, stream_obj):
+        return self._data
+
+
+class TextMatrix(LayoutWithNameBase):
+    """
+    Reads a matrix of whitespace-separated numbers from a text region of a
+    binary stream.
+
+    Reads lines until the number of values given by `shape` has been
+    consumed; the values are parsed into a float64 array. Unlike
+    `BinaryArray`, the values are parsed when the layout is executed (a
+    text region cannot be skipped without scanning it); the result
+    dictionary nevertheless holds a lazy-style reader proxy for
+    consistency.
+
+    Parameters
+    ----------
+    name : str
+        Name of the array.
+    shape : tuple, callable or expression
+        Shape of the resulting array.
+    encoding : str, optional
+        Text encoding. (Default: 'ascii')
+    bad_markers : tuple of str, optional
+        Tokens marking invalid values, parsed as NaN. (Default: ('BAD',))
+    conversion_fun : function or expression, optional
+        Conversion applied to the parsed array, e.g. a transposition.
+        (Default: identity)
+    """
+
+    def __init__(self, name, shape, encoding="ascii", bad_markers=("BAD",),
+                 conversion_fun=_identity):
+        self._name = name
+        self._shape = shape
+        self._encoding = encoding
+        self._bad_markers = tuple(bad_markers)
+        self._conversion_fun = conversion_fun
+
+    def from_stream(self, stream_obj, context):
+        shape = self._shape(context) if callable(self._shape) else self._shape
+        nb_values = int(np.prod(shape))
+        tokens = []
+        while len(tokens) < nb_values:
+            raw = stream_obj.readline()
+            if not raw:
+                raise CorruptFile(
+                    f"End of stream after reading {len(tokens)} of "
+                    f"{nb_values} values."
+                )
+            tokens += raw.decode(self._encoding, errors="replace").split()
+        if len(tokens) > nb_values:
+            raise CorruptFile(
+                f"Data region contains more than the expected "
+                f"{nb_values} values."
+            )
+        try:
+            values = np.array(
+                [
+                    np.nan if token in self._bad_markers else float(token)
+                    for token in tokens
+                ]
+            )
+        except ValueError as exc:
+            raise CorruptFile(
+                "Data region contains a token that is not a number."
+            ) from exc
+        arr = values.reshape(shape)
+        if isinstance(self._conversion_fun, Expr):
+            arr = self._conversion_fun.evaluate(context, arr)
+        else:
+            arr = self._conversion_fun(arr)
+        return {self.name(context): _StoredArrayProxy(arr)}
+
+
 class TLVContainer(LayoutWithNameBase):
     """
     Reads TLV (Tag-Length-Value) encoded blocks from a binary stream.
@@ -552,9 +823,22 @@ class TLVContainer(LayoutWithNameBase):
     tag_map : dict
         Maps tag IDs to layout classes. Each layout class must have a
         `from_stream(stream_obj, context)` method. Special values:
-        - None or missing: store raw bytes
+        - None or missing: store raw bytes (but see `default`)
         - 'text': treat as ASCII text
         - Layout class instance: use that layout to parse
+        The context passed to each entry's layout contains the previously
+        parsed *named* entries of this container, so later entries can
+        reference earlier ones (like within a `CompoundLayout`), e.g. for
+        data-dependent array shapes.
+    default : layout, optional
+        Layout used for tags that are missing from `tag_map`, e.g.
+        `Skip()` to skip unknown blocks without reading them. If None,
+        unmapped tags store their raw bytes. Default: None.
+    hex_tag_keys : bool, optional
+        If True, entries are stored under hexadecimal string keys (e.g.
+        '0x66') instead of integer tags. Use this when the parsed
+        entries end up in reported metadata, which must survive a JSON
+        round trip (JSON has no integer object keys). Default: False.
     name : str, optional
         Name for this container in the result dict. Default: None.
     tag_format : str, optional
@@ -580,7 +864,7 @@ class TLVContainer(LayoutWithNameBase):
 
     def __init__(self, tag_map, name=None, tag_format='<H', size_format='<Q',
                  count=None, container_size=None, store_by_name=True,
-                 entry_prefix_format=None):
+                 entry_prefix_format=None, default=None, hex_tag_keys=False):
         self._tag_map = tag_map
         self._name = name
         self._tag_format = tag_format
@@ -589,6 +873,8 @@ class TLVContainer(LayoutWithNameBase):
         self._container_size = container_size
         self._store_by_name = store_by_name
         self._entry_prefix_format = entry_prefix_format
+        self._default = default
+        self._hex_tag_keys = hex_tag_keys
 
     def name(self, context):
         return self._name
@@ -611,7 +897,7 @@ class TLVContainer(LayoutWithNameBase):
 
     def _parse_entry(self, stream_obj, tag, size, context):
         """Parse a single TLV entry based on its tag."""
-        layout = self._tag_map.get(tag)
+        layout = self._tag_map.get(tag, self._default)
 
         if layout is None:
             # Unknown tag - store raw bytes
@@ -668,6 +954,9 @@ class TLVContainer(LayoutWithNameBase):
             Dictionary with parsed entries keyed by tag ID.
         """
         entries = {}
+        # Previously parsed named entries, made visible to the layouts of
+        # subsequent entries (like within a `CompoundLayout`)
+        named_entries = AttrDict()
         start_pos = stream_obj.tell()
 
         # Determine how many entries to read
@@ -701,15 +990,20 @@ class TLVContainer(LayoutWithNameBase):
                     break
 
             # Parse entry
-            entry, layout_name = self._parse_entry(stream_obj, tag, size, context)
+            entry, layout_name = self._parse_entry(
+                stream_obj, tag, size, AttrDict({**context, **named_entries})
+            )
+            if layout_name:
+                named_entries[layout_name] = entry
 
             # Store by tag ID
-            if tag in entries:
-                if not isinstance(entries[tag], list):
-                    entries[tag] = [entries[tag]]
-                entries[tag].append(entry)
+            tag_key = hex(tag) if self._hex_tag_keys else tag
+            if tag_key in entries:
+                if not isinstance(entries[tag_key], list):
+                    entries[tag_key] = [entries[tag_key]]
+                entries[tag_key].append(entry)
             else:
-                entries[tag] = entry
+                entries[tag_key] = entry
 
             # Also store by name if available and enabled
             if self._store_by_name and layout_name:
@@ -768,6 +1062,482 @@ class LayoutWithTrailingData(LayoutWithNameBase):
         if name:
             return {name: result}
         return result
+
+
+class XMLStructure(LayoutWithNameBase):
+    """
+    Parses an XML document from a stream into a nested dictionary.
+
+    Elements with children become attribute-accessible dictionaries keyed by
+    tag name; leaf elements are reported as their text content.
+
+    Parameters
+    ----------
+    name : str, optional
+        Name of this structure in the result dictionary. If None, the parsed
+        dictionary is merged into the enclosing context. (Default: None)
+    converters : dict, optional
+        Maps leaf tag names to callables that convert the element's text
+        content, e.g. `{'MeterPerPixel': float}`. (Default: None)
+    """
+
+    def __init__(self, name=None, converters=None):
+        self._name = name
+        self._converters = {} if converters is None else converters
+
+    def _element_to_dict(self, element):
+        if len(element) == 0:
+            converter = self._converters.get(element.tag)
+            if converter is not None:
+                if isinstance(converter, Expr):
+                    # Explicit dispatch: expressions receive the element
+                    # text as the value, never as a (dict-typed) context
+                    return converter.evaluate({}, element.text)
+                return converter(element.text)
+            return element.text
+        return AttrDict(
+            {child.tag: self._element_to_dict(child) for child in element}
+        )
+
+    def from_stream(self, stream_obj, context):
+        root = ElementTree.parse(stream_obj).getroot()
+        result = self._element_to_dict(root)
+        name = self.name(context)
+        if name is None:
+            return result
+        else:
+            return {name: result}
+
+
+class _ZipMemberProxy:
+    """
+    Wraps a lazy reader (e.g. a `BinaryArray` proxy) returned by a member
+    layout of a `ZipContainer` such that calling it with the outer file
+    stream transparently reopens the archive member.
+    """
+
+    def __init__(self, container, member_name, reader, context):
+        self._container = container
+        self._member_name = member_name
+        self._reader = reader
+        self._context = context
+
+    def __call__(self, stream_obj):
+        with ZipFile(stream_obj, "r") as zip_file:
+            member_stream = self._container._open_member(
+                zip_file, self._member_name, self._context
+            )
+            try:
+                return self._reader(member_stream)
+            finally:
+                member_stream.close()
+
+
+class ZipMemberLoop:
+    """
+    Entry of a `ZipContainer` that parses one archive member per element
+    of a list, e.g. per-layer data files whose names come from previously
+    parsed metadata. The member-name expression and the layout see the
+    current element as `item` and its index as `item_index` in their
+    context; the per-element results are collected into a list.
+
+    Parameters
+    ----------
+    items : callable or expression
+        Evaluated against the context (which contains the previously
+        parsed members); must yield a list.
+    member_name : callable or expression
+        Name of the archive member to parse for the current element.
+    structure : layout
+        Layout used to parse each member.
+    name : str
+        Context name of the list of results.
+    """
+
+    def __init__(self, items, member_name, structure, name):
+        self._items = items
+        self._member_name = member_name
+        self._structure = structure
+        self._name = name
+
+
+class ZipContainer(LayoutWithNameBase):
+    """
+    Interprets the stream as a ZIP archive and parses selected members of the
+    archive, each with its own layout.
+
+    Only members that are named in the layout are parsed; all other members
+    of the archive are ignored. Lazy readers (e.g. `BinaryArray` proxies)
+    returned by member layouts are wrapped such that calling them with the
+    outer file stream transparently reopens the archive member. Note that the
+    position of the stream is undefined after this container has been parsed.
+
+    Parameters
+    ----------
+    members : list
+        List describing the archive members to parse, processed in order.
+        Each entry is one of
+
+        - a tuple of two or three entries
+              (member_name, layout[, optional])
+          where `member_name` is the name of the file within the archive
+          (a string, or an expression evaluated against the previously
+          parsed members), `layout` is a layout class instance used to
+          parse it, and `optional` indicates whether the member may be
+          missing from the archive (or the name expression may evaluate
+          to None). (Default for `optional`: False)
+        - a `ZipMemberLoop`, parsing one member per element of a list
+        - a layout node that does not read from the stream (e.g. `Check`
+          or `Let`), executed against the previously parsed members
+    name : str, optional
+        Name of this structure in the result dictionary. If None, the
+        parsed members are merged into the enclosing context.
+        (Default: None)
+    stream_filter : callable, optional
+        Callable with signature `stream_filter(stream_obj, context)` that
+        wraps the raw member stream, e.g. for decompression. Note that the
+        returned stream only needs to support reading and forward seeking.
+        (Default: None)
+    mismatch_error : Exception, optional
+        Exception raised when the stream is not a ZIP archive or a
+        required member is missing. Use `FileFormatMismatch` when the
+        member is what identifies the format (e.g. `main.xml` of an
+        X3P). (Default: CorruptFile)
+    """
+
+    def __init__(self, members, name=None, stream_filter=None,
+                 mismatch_error=CorruptFile):
+        self._members = members
+        self._name = name
+        self._stream_filter = stream_filter
+        self._mismatch_error = mismatch_error
+
+    def _open_member(self, zip_file, member_name, context):
+        stream = zip_file.open(member_name, "r")
+        if self._stream_filter is not None:
+            stream = self._stream_filter(stream, context)
+        return stream
+
+    def _wrap_lazy_readers(self, value, member_name, context):
+        if isinstance(value, dict):
+            return type(value)(
+                {
+                    key: self._wrap_lazy_readers(v, member_name, context)
+                    for key, v in value.items()
+                }
+            )
+        elif isinstance(value, list):
+            return [self._wrap_lazy_readers(v, member_name, context) for v in value]
+        elif callable(value):
+            return _ZipMemberProxy(self, member_name, value, context)
+        else:
+            return value
+
+    def _parse_member(self, zip_file, member_names, member_name, layout,
+                      member_context, outer_context):
+        if member_name not in member_names:
+            return None
+        member_stream = self._open_member(zip_file, member_name, outer_context)
+        try:
+            result = layout.from_stream(member_stream, member_context)
+        finally:
+            member_stream.close()
+        return self._wrap_lazy_readers(result, member_name, outer_context)
+
+    def from_stream(self, stream_obj, context):
+        local_context = AttrDict()
+
+        def entry_context(**extra):
+            return AttrDict(
+                {**local_context, **extra, "__parent__": context}
+            )
+
+        try:
+            with ZipFile(stream_obj, "r") as zip_file:
+                member_names = set(zip_file.namelist())
+                for entry in self._members:
+                    if isinstance(entry, ZipMemberLoop):
+                        # One member per element of a list
+                        if callable(entry._items):
+                            items = entry._items(entry_context())
+                        else:
+                            items = entry._items
+                        results = []
+                        for index, item in enumerate(items):
+                            item_context = entry_context(
+                                item=item, item_index=index
+                            )
+                            if callable(entry._member_name):
+                                member_name = entry._member_name(item_context)
+                            else:
+                                member_name = entry._member_name
+                            result = self._parse_member(
+                                zip_file, member_names, member_name,
+                                entry._structure, item_context, context,
+                            )
+                            if result is None:
+                                raise CorruptFile(
+                                    f"Archive member `{member_name}` is "
+                                    f"missing."
+                                )
+                            results.append(result)
+                        local_context[entry._name] = results
+                        continue
+                    elif hasattr(entry, "from_stream"):
+                        # A layout node that does not read from the
+                        # stream, e.g. `Check` or `Let`
+                        local_context.update(
+                            entry.from_stream(None, entry_context())
+                        )
+                        continue
+                    member_name, layout = entry[:2]
+                    optional = entry[2] if len(entry) > 2 else False
+                    if callable(member_name):
+                        member_name = member_name(entry_context())
+                    if member_name is None:
+                        # E.g. an absent optional link in the metadata
+                        if optional:
+                            continue
+                        raise self._mismatch_error(
+                            "The name of a required archive member is "
+                            "undefined."
+                        )
+                    result = self._parse_member(
+                        zip_file, member_names, member_name, layout,
+                        entry_context(), context,
+                    )
+                    if result is None:
+                        if optional:
+                            continue
+                        raise self._mismatch_error(
+                            f"Archive member `{member_name}` is missing."
+                        )
+                    local_context.update(result)
+        except BadZipFile as exc:
+            raise self._mismatch_error(
+                "Stream is not a valid ZIP archive."
+            ) from exc
+        name = self.name(context)
+        if name is None:
+            return local_context
+        else:
+            return {name: local_context}
+
+
+def _sanitize_tag_value(value):
+    """
+    Map a TIFF tag value to the JSON-compatible value model of the format
+    description contract. Returns None for values that must not surface
+    into reported metadata (bulk byte blobs, arrays); enum values become
+    `[name, value]` pairs.
+    """
+    import enum
+
+    if isinstance(value, enum.Enum):
+        return [value.name, value.value]
+    elif isinstance(value, (bool, int, float, str)) or value is None:
+        return value
+    elif isinstance(value, (tuple, list)):
+        sanitized = [_sanitize_tag_value(v) for v in value]
+        return [v for v in sanitized if v is not None]
+    elif isinstance(value, dict):
+        # E.g. a parsed Exif IFD
+        return {
+            str(key): sanitized
+            for key, sanitized in (
+                (key, _sanitize_tag_value(v)) for key, v in value.items()
+            )
+            if sanitized is not None
+        }
+    else:
+        # Bulk data (bytes, arrays) and unknown objects are not metadata
+        return None
+
+
+class _TIFFPageProxy:
+    """Lazy reader materializing the raster image of a TIFF page."""
+
+    def __init__(self, page_index, conversion_fun, context):
+        self._page_index = page_index
+        self._conversion_fun = conversion_fun
+        self._context = context
+
+    def __call__(self, stream_obj):
+        from tifffile import TiffFile
+
+        with TiffFile(stream_obj) as tiff_file:
+            arr = tiff_file.pages[self._page_index].asarray()
+        if isinstance(self._conversion_fun, Expr):
+            return self._conversion_fun.evaluate(self._context, arr)
+        return self._conversion_fun(arr)
+
+
+class _TIFFTagProxy:
+    """
+    Wraps a lazy reader returned by a tag layout of a `TIFFContainer`
+    such that calling it with the outer file stream transparently
+    re-reads the tag's byte value.
+    """
+
+    def __init__(self, page_index, tag_code, reader):
+        self._page_index = page_index
+        self._tag_code = tag_code
+        self._reader = reader
+
+    def __call__(self, stream_obj):
+        import io
+
+        from tifffile import TiffFile
+
+        with TiffFile(stream_obj) as tiff_file:
+            value = (
+                tiff_file.pages[self._page_index].tags[self._tag_code].value
+            )
+        return self._reader(io.BytesIO(value))
+
+
+class TIFFContainer(LayoutWithNameBase):
+    """
+    Interprets the stream as a TIFF file and reports its pages.
+
+    The result contains a list `pages`; each page is a record with
+
+    - `index`: the page index,
+    - `shape`: the shape of the page's raster image,
+    - `tags`: the page's tag values, keyed by the standard tag name, by
+      the name from `tag_names`, or by the hexadecimal tag code (e.g.
+      '0x8050') for unknown private tags. Values follow the contract's
+      value model (enums become `[name, value]` pairs; byte blobs and
+      arrays are omitted),
+    - `image`: a lazy reader materializing the page's raster image,
+    - one list per `tag_groups` entry (see below), and
+    - the results of `tag_layouts` (see below).
+
+    Parameters
+    ----------
+    name : str, optional
+        Name of this structure in the result dictionary. If None, the
+        `pages` list is merged into the enclosing context.
+        (Default: None)
+    tag_names : dict, optional
+        Maps numeric tag codes of private tags to names, e.g.
+        `{0x8000: 'FileFormatVersion'}`. (Default: None)
+    tag_groups : dict, optional
+        Repeating private-tag blocks, mapping a group name to
+        `{'first': <code>, 'stride': <code stride>, 'names': {<offset>:
+        <name>}}`. Tags with code `first + i * stride + offset` are
+        collected into the i-th record of the group's list.
+        (Default: None)
+    tag_layouts : dict, optional
+        Maps numeric tag codes to layouts that parse the tag's byte
+        value, in declaration order; the results are merged into the
+        page record, and lazy readers within them re-read the tag on
+        demand. Use this for vendor headers and rasters stored in
+        private tags. (Default: None)
+    image_conversion : function or expression, optional
+        Conversion applied to page raster images, e.g. a transposition.
+        (Default: identity)
+    """
+
+    def __init__(self, name=None, tag_names=None, tag_groups=None,
+                 tag_layouts=None, image_conversion=_identity):
+        self._name = name
+        self._tag_names = {} if tag_names is None else tag_names
+        self._tag_groups = {} if tag_groups is None else tag_groups
+        self._tag_layouts = {} if tag_layouts is None else tag_layouts
+        self._image_conversion = image_conversion
+
+    def _wrap_lazy_readers(self, value, page_index, tag_code):
+        if isinstance(value, dict):
+            return type(value)(
+                {
+                    key: self._wrap_lazy_readers(v, page_index, tag_code)
+                    for key, v in value.items()
+                }
+            )
+        elif isinstance(value, list):
+            return [
+                self._wrap_lazy_readers(v, page_index, tag_code)
+                for v in value
+            ]
+        elif callable(value):
+            return _TIFFTagProxy(page_index, tag_code, value)
+        else:
+            return value
+
+    def _assign_tag(self, record, groups, code, tag):
+        """Store a tag value into the page record or a tag group."""
+        value = _sanitize_tag_value(tag.value)
+        if value is None:
+            return
+        if code in self._tag_names:
+            record.tags[self._tag_names[code]] = value
+            return
+        for group_name, group in self._tag_groups.items():
+            offset = code - group["first"]
+            if offset >= 0 and offset % group["stride"] in group["names"]:
+                index = offset // group["stride"]
+                records = groups[group_name]
+                while len(records) <= index:
+                    records.append(AttrDict())
+                records[index][
+                    group["names"][offset % group["stride"]]
+                ] = value
+                return
+        if tag.name != str(code):
+            # A standard tag known to the TIFF library
+            record.tags[tag.name] = value
+        else:
+            record.tags[hex(code)] = value
+
+    def _parse_page(self, page_index, page, context):
+        import io
+
+        record = AttrDict(
+            {
+                "index": page_index,
+                "shape": list(page.shape),
+                "tags": AttrDict(),
+            }
+        )
+        groups = {group_name: [] for group_name in self._tag_groups}
+        for code, tag in page.tags.items():
+            self._assign_tag(record, groups, code, tag)
+        record.update(groups)
+        record["image"] = _TIFFPageProxy(
+            page_index,
+            self._image_conversion,
+            AttrDict({**record, "__parent__": context}),
+        )
+        for code, layout in self._tag_layouts.items():
+            if code not in page.tags:
+                continue
+            result = layout.from_stream(
+                io.BytesIO(page.tags[code].value),
+                AttrDict({**record, "__parent__": context}),
+            )
+            record.update(
+                self._wrap_lazy_readers(result, page_index, code)
+            )
+        return record
+
+    def from_stream(self, stream_obj, context):
+        from tifffile import TiffFile, TiffFileError
+
+        try:
+            with TiffFile(stream_obj) as tiff_file:
+                pages = [
+                    self._parse_page(page_index, page, context)
+                    for page_index, page in enumerate(tiff_file.pages)
+                ]
+        except TiffFileError as exc:
+            raise FileFormatMismatch("This is not a TIFF file.") from exc
+        local_context = AttrDict({"pages": pages})
+        name = self.name(context)
+        if name is None:
+            return local_context
+        else:
+            return {name: local_context}
 
 
 class ZlibBlockChain(LayoutWithNameBase):

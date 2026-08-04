@@ -31,11 +31,12 @@ from enum import Enum
 
 import numpy as np
 
-from ..Exceptions import MetadataAlreadyFixedByFile
+from ..Exceptions import ERROR_CLASSES, CorruptFile, MetadataAlreadyFixedByFile
 from ..Metadata import InfoModel
 from ..UniformLineScanAndTopography import Topography
-from .binary import AttrDict, LayoutWithNameBase
+from .binary import AttrDict, LayoutWithNameBase, _identity
 from .common import OpenFromAny
+from .expr import Expr
 
 
 class MagicMatch(Enum):
@@ -950,26 +951,10 @@ class ReaderBase(metaclass=abc.ABCMeta):
 class CompoundLayout(LayoutWithNameBase):
     """Declare a file layout"""
 
-    def __init__(self, structures, name=None, context_mapper=lambda x: x):
+    def __init__(self, structures, name=None, context_mapper=_identity):
         self._structures = structures
         self._name = name
         self._context_mapper = context_mapper
-
-    def to_dict(self):
-        res = super().to_dict()
-        res.update(
-            {
-                "structures": [
-                    (
-                        s.to_dict()
-                        if hasattr(s, "to_dict")
-                        else {"type": "lambda", "source": "callable_structure"}
-                    )
-                    for s in self._structures
-                ]
-            }
-        )
-        return res
 
     def from_stream(self, stream_obj, context):
         local_context = AttrDict()
@@ -994,17 +979,8 @@ class If:
         self._context_mapper = context_mapper
 
     def to_dict(self):
-        return {
-            "type": "If",
-            "args": [
-                (
-                    a.to_dict()
-                    if hasattr(a, "to_dict")
-                    else {"type": "lambda", "source": "callable_arg"}
-                )
-                for a in self._args
-            ],
-        }
+        from .description import layout_to_dict
+        return layout_to_dict(self)
 
     def name(self, context):
         nb_conditions = len(self._args) // 2
@@ -1029,6 +1005,92 @@ class If:
             return self._args[2 * nb_conditions].from_stream(stream_obj, context)
 
 
+class Switch:
+    """
+    Select a structure from a mapping, keyed by a context value.
+
+    This is the layout-level analog of a switch/case statement, for
+    tag-driven formats where a tag read earlier determines the layout of
+    the following block (see the `TLVContainer` alternative for formats
+    where tag and block are adjacent).
+
+    Parameters
+    ----------
+    key : callable or expression
+        Evaluated against the context; the result selects the case.
+    cases : dict
+        Maps key values to layout class instances.
+    default : layout, optional
+        Layout used when no case matches. If None, a non-matching key
+        raises `CorruptFile`. (Default: None)
+    """
+
+    def __init__(self, key, cases, default=None):
+        self._key = key
+        self._cases = cases
+        self._default = default
+
+    def _select(self, context):
+        key = self._key(context) if callable(self._key) else self._key
+        try:
+            return self._cases[key]
+        except KeyError:
+            if self._default is not None:
+                return self._default
+            raise CorruptFile(
+                f"Switch key has value '{key}', which matches no case."
+            )
+
+    def name(self, context):
+        return self._select(context).name(context)
+
+    def to_dict(self):
+        from .description import layout_to_dict
+        return layout_to_dict(self)
+
+    def from_stream(self, stream_obj, context):
+        return self._select(context).from_stream(stream_obj, context)
+
+
+class Check:
+    """
+    Validates a condition against the context without reading from the
+    stream. Use this for consistency checks between previously parsed
+    values, e.g. cross-structure validation that a `Validate` field hook
+    cannot express.
+
+    Parameters
+    ----------
+    condition : bool, callable or expression
+        Evaluated against the context; a false result raises.
+    exception : Exception, optional
+        Exception class to raise. (Default: CorruptFile)
+    comment : str, optional
+        Message of the raised exception (and documentation of the check).
+    """
+
+    def __init__(self, condition, exception=CorruptFile, comment=None):
+        self._condition = condition
+        self._exception = exception
+        self._comment = comment
+
+    def to_dict(self):
+        from .description import layout_to_dict
+        return layout_to_dict(self)
+
+    def from_stream(self, stream_obj, context):
+        if callable(self._condition):
+            passed = self._condition(context)
+        else:
+            passed = self._condition
+        if not passed:
+            raise self._exception(
+                self._comment
+                or f"Validation of `{self._condition!r}` failed."
+            )
+        return {}
+
+
 class Skip:
     """
     Skips over bytes in a binary stream without storing them.
@@ -1051,15 +1113,8 @@ class Skip:
         self._comment = comment
 
     def to_dict(self):
-        return {
-            "type": "Skip",
-            "size": (
-                self._size
-                if not callable(self._size)
-                else {"__type__": "lambda", "source": "callable_size"}
-            ),
-            "comment": self._comment,
-        }
+        from .description import layout_to_dict
+        return layout_to_dict(self)
 
     def from_stream(self, stream_obj, context):
         if self._size is None:
@@ -1069,6 +1124,33 @@ class Skip:
         else:
             size = self._size
         stream_obj.seek(size, os.SEEK_CUR)
+        return {}
+
+
+class Seek:
+    """
+    Moves the stream to an absolute position. Use this for formats whose
+    header carries absolute offsets to data regions.
+
+    Parameters
+    ----------
+    offset : int, callable or expression
+        Absolute stream position to seek to.
+    comment : str, optional
+        Description of the target region (for documentation).
+    """
+
+    def __init__(self, offset, comment=None):
+        self._offset = offset
+        self._comment = comment
+
+    def to_dict(self):
+        from .description import layout_to_dict
+        return layout_to_dict(self)
+
+    def from_stream(self, stream_obj, context):
+        offset = self._offset(context) if callable(self._offset) else self._offset
+        stream_obj.seek(offset)
         return {}
 
 
@@ -1112,25 +1194,6 @@ class SizedChunk(LayoutWithNameBase):
         self._name = name
         self._context_mapper = context_mapper
         self._debug = debug
-
-    def to_dict(self):
-        res = super().to_dict()
-        res.update(
-            {
-                "size": (
-                    self._size
-                    if not callable(self._size)
-                    else {"__type__": "lambda", "source": "callable_size"}
-                ),
-                "structure": (
-                    self._structure.to_dict()
-                    if hasattr(self._structure, "to_dict")
-                    else {"type": "lambda", "source": "callable_structure"}
-                ),
-                "mode": self._mode,
-            }
-        )
-        return res
 
     def from_stream(self, stream_obj, context):
         """
@@ -1215,24 +1278,6 @@ class For(LayoutWithNameBase):
         if self._name is None:
             raise ValueError("`For` statement must have a name.")
 
-    def to_dict(self):
-        res = super().to_dict()
-        res.update(
-            {
-                "range": (
-                    self._range
-                    if not callable(self._range)
-                    else {"__type__": "lambda", "source": "callable_range"}
-                ),
-                "structure": (
-                    self._structure.to_dict()
-                    if hasattr(self._structure, "to_dict")
-                    else {"type": "lambda", "source": "callable_structure"}
-                ),
-            }
-        )
-        return res
-
     def from_stream(self, stream_obj, context):
         local_context = []
         if callable(self._range):
@@ -1242,6 +1287,76 @@ class For(LayoutWithNameBase):
         for i in range(nb_elements):
             local_context += [self._structure.from_stream(stream_obj, context)]
         return {self.name(context): local_context}
+
+
+class ForEach(LayoutWithNameBase):
+    """
+    Repeat a structure for each element of a previously parsed list, e.g.
+    for the payloads of a directory of blocks. The structure's context
+    contains the current element as `item` and its index as `item_index`
+    (mirroring the `foreach` of channel bindings); the per-element results
+    are collected into a list.
+
+    Parameters
+    ----------
+    items : callable or expression
+        Evaluated against the context; must yield a list.
+    structure : structure definition
+        Structure parsed once per list element.
+    name : str
+        Context name of the list of results.
+    """
+
+    def __init__(self, items, structure, name=None):
+        self._items = items
+        self._structure = structure
+        self._name = name
+
+        if self._name is None:
+            raise ValueError("`ForEach` statement must have a name.")
+
+    def from_stream(self, stream_obj, context):
+        if callable(self._items):
+            items = self._items(context)
+        else:
+            items = self._items
+        local_context = []
+        for index, item in enumerate(items):
+            local_context += [
+                self._structure.from_stream(
+                    stream_obj,
+                    AttrDict({**context, "item": item, "item_index": index}),
+                )
+            ]
+        return {self.name(context): local_context}
+
+
+class Let:
+    """
+    Stores computed values into the context without reading from the
+    stream. Use this to make values from an enclosing scope (e.g. the
+    `item` of a `ForEach`) part of a structure's result, or to name
+    intermediate expressions.
+
+    Parameters
+    ----------
+    values : dict
+        Maps names to literals or expressions evaluated against the
+        context.
+    """
+
+    def __init__(self, values):
+        self._values = values
+
+    def to_dict(self):
+        from .description import layout_to_dict
+        return layout_to_dict(self)
+
+    def from_stream(self, stream_obj, context):
+        return {
+            key: value(context) if callable(value) else value
+            for key, value in self._values.items()
+        }
 
 
 class While(LayoutWithNameBase):
@@ -1278,9 +1393,60 @@ class While(LayoutWithNameBase):
 class DeclarativeReaderBase(ReaderBase):
     """
     Base class for automatic readers.
+
+    Subclasses declare the file structure via the `_file_layout` class
+    member and either override the `channels` property or declare the
+    mapping from parsed metadata to channels via the `_channel_bindings`
+    class member (see the format description contract,
+    `docs/format_description_contract.rst`).
+
+    `_channel_bindings` is a list of dictionaries with the entries
+
+    - `name`, `dim`, `unit`, `periodic`, `uniform`: literals or
+      expressions
+    - `nb_grid_pts`, `physical_sizes`: expressions evaluating to tuples
+    - `height_scale_factor`: literal, expression or absent (unscaled)
+    - `info`: (nested) dictionary of literals or expressions; entries
+      that evaluate to `None` are omitted from the channel information
+      (except within `raw_metadata`, which is reported verbatim and may
+      legitimately contain nulls, e.g. NaN-sanitized header fields)
+    - `data`: expression resolving to a lazy array reader within the
+      parsed metadata
+    - `mask`: optional dictionary `{"source": <expression resolving to a
+      lazy array reader>, "rule": <expression over the source array (`V`)
+      and the parsed metadata (`C`), true marks undefined pixels>}`
+    - `foreach`: optional expression evaluating to a list; one channel is
+      emitted per element, with the element available as `C.item` and its
+      index as `C.item_index` in all other expressions of the binding
+    - `where`: optional expression; if it evaluates falsy for a `foreach`
+      element (or for the whole binding without `foreach`), no channel is
+      emitted
+    - `checks`: optional list of dictionaries `{"condition": <expression>,
+      "error": <error taxonomy name>, "message": <str>}`, evaluated per
+      emitted channel; a falsy condition raises the named error
+
+    Expressions are evaluated against the parsed metadata context.
     """
 
     _file_layout = None
+    _channel_bindings = None
+
+    # Declarative magic-byte detection: a list of (offset, bytes)
+    # alternatives, or None if the format has no reliable magic. See the
+    # `format.magic` section of the format description contract.
+    _magic = None
+
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        if cls._magic is None:
+            return MagicMatch.MAYBE
+        buffer_too_short = False
+        for offset, magic_bytes in cls._magic:
+            if len(buffer) < offset + len(magic_bytes):
+                buffer_too_short = True
+            elif buffer[offset:offset + len(magic_bytes)] == magic_bytes:
+                return MagicMatch.YES
+        return MagicMatch.MAYBE if buffer_too_short else MagicMatch.NO
 
     def __init__(self, file_path):
         if self._file_layout is None:
@@ -1300,6 +1466,141 @@ class DeclarativeReaderBase(ReaderBase):
     @property
     def metadata(self):
         return self._metadata
+
+    @staticmethod
+    def _evaluate_binding(value, context):
+        """Evaluate a channel-binding entry against the metadata context."""
+        if isinstance(value, Expr):
+            return value.evaluate(context)
+        elif callable(value):
+            # A plain callable taking the context
+            return value(context)
+        elif isinstance(value, dict):
+            return {
+                key: DeclarativeReaderBase._evaluate_binding(v, context)
+                for key, v in value.items()
+            }
+        elif isinstance(value, (list, tuple)):
+            return [
+                DeclarativeReaderBase._evaluate_binding(v, context) for v in value
+            ]
+        else:
+            return value
+
+    def _make_data_reader(self, binding, context):
+        """
+        Construct the lazy reader callable for a channel: resolves the
+        data handle and applies the undefined-data mask rule.
+        """
+        data_proxy = self._evaluate_binding(binding["data"], context)
+        mask = binding.get("mask")
+        if mask is None:
+            return data_proxy
+
+        try:
+            source_proxy = self._evaluate_binding(mask["source"], context)
+        except KeyError:
+            # The mask source does not resolve, e.g. because an optional
+            # archive member is absent from this file: the channel is
+            # unmasked
+            return data_proxy
+        rule = mask["rule"]
+
+        def read(stream_obj):
+            data = data_proxy(stream_obj)
+            if source_proxy is data_proxy:
+                source = data
+            else:
+                source = source_proxy(stream_obj)
+            # The rule sees the source array as the value and the parsed
+            # metadata as the context, so it can depend on header fields
+            # (e.g. a data-type-specific invalid marker)
+            if isinstance(rule, Expr):
+                mask = rule.evaluate(context, source)
+            else:
+                mask = rule(source, context)
+            return np.ma.masked_array(data, mask=mask)
+
+        return read
+
+    @staticmethod
+    def _prune_undefined_info(info):
+        """
+        Drop `None` entries from an evaluated `info` dictionary so that
+        optional metadata (e.g. an invalid acquisition date or an absent
+        instrument name) is omitted rather than reported as null. The
+        `raw_metadata` entry is kept verbatim; it may legitimately contain
+        nulls (e.g. NaN-sanitized header fields).
+        """
+        pruned = {}
+        for key, value in info.items():
+            if key == "raw_metadata":
+                pruned[key] = value
+            elif isinstance(value, dict):
+                pruned[key] = DeclarativeReaderBase._prune_undefined_info(value)
+            elif value is not None:
+                pruned[key] = value
+        return pruned
+
+    _CHANNEL_INFO_KEYS = [
+        "name",
+        "dim",
+        "nb_grid_pts",
+        "physical_sizes",
+        "height_scale_factor",
+        "periodic",
+        "uniform",
+        "unit",
+        "info",
+    ]
+
+    @property
+    def channels(self):
+        if self._channel_bindings is None:
+            raise NotImplementedError(
+                "Please declare `_channel_bindings` or override the "
+                "`channels` property."
+            )
+        channels = []
+        for binding in self._channel_bindings:
+            foreach = binding.get("foreach")
+            if foreach is None:
+                contexts = [self._metadata]
+            else:
+                items = self._evaluate_binding(foreach, self._metadata)
+                contexts = [
+                    AttrDict(
+                        {**self._metadata, "item": item, "item_index": index}
+                    )
+                    for index, item in enumerate(items)
+                ]
+            for context in contexts:
+                where = binding.get("where")
+                if where is not None and not self._evaluate_binding(
+                    where, context
+                ):
+                    continue
+                for check in binding.get("checks", ()):
+                    if not self._evaluate_binding(check["condition"], context):
+                        raise ERROR_CLASSES[check.get("error", "corrupt_file")](
+                            check.get("message", "Channel validation failed.")
+                        )
+                kwargs = {
+                    key: self._evaluate_binding(binding[key], context)
+                    for key in self._CHANNEL_INFO_KEYS
+                    if key in binding
+                }
+                if "info" in kwargs:
+                    kwargs["info"] = self._prune_undefined_info(kwargs["info"])
+                channels.append(
+                    ChannelInfo(
+                        self,
+                        len(channels),
+                        tags={"reader": self._make_data_reader(binding, context)},
+                        **kwargs,
+                    )
+                )
+        return channels
 
     def topography(
         self,

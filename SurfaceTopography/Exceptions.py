@@ -103,6 +103,26 @@ class CorruptFile(ReadFileError):
     pass
 
 
+class UnsupportedSchema(ReadFileError):
+    """
+    Raised when a format description document cannot be executed: its
+    schema version is newer than this engine implements, or it contains
+    unknown node or function kinds. (See
+    docs/format_description_contract.rst.)
+    """
+    pass
+
+
+# Error taxonomy of the format description contract
+# (docs/format_description_contract.rst): maps the taxonomy names used in
+# serialized format descriptions to reader exception classes.
+ERROR_CLASSES = {
+    "format_mismatch": FileFormatMismatch,
+    "corrupt_file": CorruptFile,
+    "unsupported_feature": UnsupportedFormatFeature,
+}
+
+
 class MetadataAlreadyFixedByFile(ReadFileError):
     """
     Raised when instantiating a topography from a reader,

@@ -1,5 +1,5 @@
 #
-# Copyright 2023 Lars Pastewka
+# Copyright 2023-2026 Lars Pastewka
 #
 # ### MIT license
 #
@@ -21,229 +21,159 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-
 #
 # Reference information and implementations:
 # http://www.imagemet.com/WebHelp6/Default.htm#Reference_Guide/BCR_STM_File_Format.htm
 # https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/bcrfile.c
 #
 
-import logging
+from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature
+from .binary import BinaryArray, BinaryStructure, TextHeader
+from .expr import C, Cond, F, Tup, V
+from .Reader import Check, CompoundLayout, DeclarativeReaderBase, If, Seek
 
-import numpy as np
+_MAGIC = "fileformat = bcr"
 
-from .common import OpenFromAny
-from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile, UnsupportedFormatFeature
-from ..UniformLineScanAndTopography import Topography
-from ..Support.UnitConversion import get_unit_conversion_factor, is_length_unit
+# The header is either 2048 or 4096 characters; its exact length is given
+# by the `headersize` key, which sits within the first 2048 characters
+_MIN_HEADER_SIZE = 2048
 
-from .Reader import ReaderBase, ChannelInfo
+# Files of the `bcrstm` flavor hold 16-bit integer data, `bcrf` files
+# hold single-precision floating-point data. The `_unicode` suffix marks
+# UTF-16-encoded headers.
+_STM_FORMATS = ("bcrstm", "bcrstm_unicode")
+_ALL_FORMATS = ("bcrstm", "bcrf", "bcrstm_unicode", "bcrf_unicode")
 
-_log = logging.getLogger(__file__)
+# Void (undefined) pixels are marked by the maximum value of the
+# respective data type; `voidpixels` holds the *number* of void pixels in
+# the file, not the marker value. If the key is missing, the file
+# contains no void pixels.
+_VOID_STM = 32767
+_VOID_F = 3.4028e38
 
 
-class BCRReader(ReaderBase):
-    _format = 'bcr'
-    _mime_types = ['application/x-bcr-spm', 'application/x-bcrf-spm']
-    _file_extensions = ['bcr', 'bcrf']
-
-    _name = 'BCR-STM file format'
-    _description = '''
-BCR-STM and BCRF file formats
-'''
-
-    _MAGIC_BCRSTM = 'fileformat = bcrstm'
-    _MAGIC_BCRF = 'fileformat = bcrf'
-    _MAGIC_BCRSTM_UNICODE = 'fileformat = bcrstm_unicode'
-    _MAGIC_BCRF_UNICODE = 'fileformat = bcrf_unicode'  # we currently only have an example for this type
-
-    _MIN_HEADER_SIZE = 2048
-
-    def __init__(self, file_path):
-        """
-        Load NanoSurf easyScan data files.
-
-        Arguments
-        ---------
-        file_path : filename or file object
-             File or data stream to open.
-        """
-        self._file_path = file_path
-
-        # The start of the file is textual with metadata; we need to parse it
-        with OpenFromAny(self._file_path, 'rb') as fobj:
-            buffer = fobj.read(self._MIN_HEADER_SIZE)  # Header is either 2048 or 4096 bytes
-
-            # Check what type of file we are dealing with
-            if buffer.decode('latin-1').startswith(self._MAGIC_BCRSTM):
-                self._file_type = 'bcrstm'
-                self._encoding = 'latin-1'
-                data_type = 'i2'  # int16
-            elif buffer.decode('latin-1').startswith(self._MAGIC_BCRF):
-                self._file_type = 'bcrf'
-                self._encoding = 'latin-1'
-                data_type = 'f4'  # single precision flaot
-            elif buffer.decode('utf-16').startswith(self._MAGIC_BCRSTM):
-                self._file_type = 'bcrstm'
-                self._encoding = 'utf-16'
-                data_type = 'i2'  # int16
-            elif buffer.decode('utf-16').startswith(self._MAGIC_BCRF):
-                self._file_type = 'bcrf'
-                self._encoding = 'utf-16'
-                data_type = 'f4'  # single precision flaot
-            else:
-                raise FileFormatMismatch('This is not a BCR-STM/BCRF data file')
-
-            # Find out how long the header is
-            buffer_str = buffer.decode(self._encoding)
-            line, buffer_str = buffer_str.split('\n', 1)
-            line = line.strip()
-            self._headersize = None
-            eof = False
-            while not eof:
-                if not line.startswith('%'):
-                    key, value = line.split('=', 1)
-                    key = key.strip()
-                    value = value.strip()
-                    if key == 'headersize':
-                        self._headersize = int(value)
-                        break
-                try:
-                    line, buffer_str = buffer_str.split('\n', 1)
-                    line = line.strip()
-                except ValueError:
-                    eof = True
-            if self._headersize is None:
-                raise CorruptFile("Could not find 'headersize' key in file metadata")
-
-            # Header size is given in number of characters
-            if self._encoding == 'utf-16':
-                self._headersize *= 2
-
-            # We can now read and parse the full header
-            if self._headersize > self._MIN_HEADER_SIZE:
-                # Read rest of header
-                buffer += fobj.read(self._headersize - self._MIN_HEADER_SIZE)
-            buffer_str = buffer.decode(self._encoding)
-            line, buffer_str = buffer_str.split('\n', 1)
-            line = line.strip()
-            self._metadata = {}
-            eof = False
-            while not eof:
-                if not line.startswith('%') and not line.startswith('#'):
-                    try:
-                        key, value = line.split('=', 1)
-                        key = key.strip()
-                        value = value.strip()
-                        self._metadata[key] = value
-                    except ValueError:
-                        _log.warning(f"Skipping line '{line}' because it does not appear to be a key/value pair.")
-                try:
-                    line, buffer_str = buffer_str.split('\n', 1)
-                    line = line.strip()
-                except ValueError:
-                    eof = True
-
-        # Data layout
-        little_endian = int(self._metadata['intelmode'])
-        endian_str = '<' if little_endian else '>'
-        self._dtype = np.dtype(f'{endian_str}{data_type}')
-
-        xunit = self._metadata['xunit']
-        assert xunit == self._metadata['yunit']
-        zunit = self._metadata['zunit']
-
-        if not is_length_unit(zunit):
-            raise UnsupportedFormatFeature(f"This BCR/BCRF file reports data in units of '{zunit}'. This is not "
-                                           f"a height unit as expected for topography data.")
-
-        self._channels = [
-            ChannelInfo(self,
-                        0,  # channel index
-                        name='Default',
-                        dim=2,
-                        nb_grid_pts=(int(self._metadata['xpixels']), int(self._metadata['ypixels'])),
-                        physical_sizes=(float(self._metadata['xlength']), float(self._metadata['ylength'])),
-                        uniform=True,
-                        unit=xunit,
-                        height_scale_factor=float(self._metadata['bit2nm']) * get_unit_conversion_factor(zunit, xunit),
-                        info={
-                            'raw_metadata': self._metadata
-                        })
+def _variant(encoding, bytes_per_char):
+    """
+    The BCR file structure for one header encoding: a probe pass over the
+    first 2048 bytes locates the `headersize` key, a second pass parses
+    the full header, and the raster follows at the byte offset given by
+    the header size (which counts characters).
+    """
+    is_stm = C.header.fileformat.isin(*_STM_FORMATS)
+    little_endian = F.int(C.header.intelmode) != 0
+    return CompoundLayout(
+        [
+            TextHeader(
+                name="headersize_probe",
+                size=_MIN_HEADER_SIZE,
+                encoding=encoding,
+                comment_prefixes=("%", "#"),
+            ),
+            Check(
+                F.get(C.headersize_probe, "headersize", None) != None,  # noqa: E711
+                CorruptFile,
+                "Could not find 'headersize' key in file metadata",
+            ),
+            Seek(0),
+            TextHeader(
+                name="header",
+                size=F.int(C.headersize_probe.headersize) * bytes_per_char,
+                encoding=encoding,
+                comment_prefixes=("%", "#"),
+            ),
+            Check(
+                C.header.fileformat.isin(*_ALL_FORMATS), FileFormatMismatch
+            ),
+            Check(
+                C.header.xunit == C.header.yunit,
+                CorruptFile,
+                "x and y units differ",
+            ),
+            Check(
+                F.unit_conversion_factor(C.header.zunit, "m") != None,  # noqa: E711
+                UnsupportedFormatFeature,
+                "This BCR/BCRF file reports data in units that are not "
+                "height units as expected for topography data.",
+            ),
+            BinaryArray(
+                "data",
+                Tup(F.int(C.header.ypixels), F.int(C.header.xpixels)),
+                Cond(
+                    is_stm,
+                    Cond(little_endian, F.dtype("<i2"), F.dtype(">i2")),
+                    Cond(little_endian, F.dtype("<f4"), F.dtype(">f4")),
+                ),
+                conversion_fun=F.transpose(V),  # Transpose to (nx, ny) order
+                mask_fun=Cond(
+                    F.float(F.get(C.header, "voidpixels", 0)) > 0,
+                    Cond(is_stm, V == _VOID_STM, V >= _VOID_F),
+                    False,
+                ),
+            ),
         ]
+    )
 
-    @property
-    def channels(self):
-        return self._channels
 
-    def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, unit=None, info={}, periodic=False,
-                   subdomain_locations=None, nb_subdomain_grid_pts=None):
+class BCRReader(DeclarativeReaderBase):
+    _format = "bcr"
+    _mime_types = ["application/x-bcr-spm", "application/x-bcrf-spm"]
+    _file_extensions = ["bcr", "bcrf"]
 
-        if channel_index is None:
-            channel_index = self._default_channel_index
+    _name = "BCR-STM file format"
+    _description = """
+BCR-STM and BCRF file formats
+"""
 
-        if subdomain_locations is not None or \
-                nb_subdomain_grid_pts is not None:
-            raise RuntimeError(
-                'This reader does not support MPI parallelization.')
+    _magic = [
+        (0, _MAGIC.encode("latin-1")),
+        (0, _MAGIC.encode("utf-16-le")),
+        (0, b"\xff\xfe" + _MAGIC.encode("utf-16-le")),
+        (0, b"\xfe\xff" + _MAGIC.encode("utf-16-be")),
+    ]
 
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
+    _file_layout = CompoundLayout(
+        [
+            # Probe the leading bytes to detect the header encoding, then
+            # rewind; the file magic itself (the `fileformat` key) is
+            # validated within the branch
+            BinaryStructure(
+                [("magic", f"{2 * len(_MAGIC) + 2}b")],
+                name="encoding_probe",
+            ),
+            Seek(0),
+            If(
+                C.encoding_probe.magic[: len(_MAGIC)]
+                == _MAGIC.encode("latin-1"),
+                _variant("latin-1", 1),
+                C.encoding_probe.magic[: 2 * len(_MAGIC)]
+                == _MAGIC.encode("utf-16-le"),
+                _variant("utf-16-le", 2),
+                C.encoding_probe.magic[:2].isin(b"\xff\xfe", b"\xfe\xff"),
+                _variant("utf-16", 2),
+                Check(
+                    False,
+                    FileFormatMismatch,
+                    "This is not a BCR-STM/BCRF data file",
+                ),
+            ),
+        ]
+    )
 
-        channel = self._channels[channel_index]
-        with OpenFromAny(self._file_path, 'rb') as fobj:
-            sx, sy = self._check_physical_sizes(physical_sizes,
-                                                channel.physical_sizes)
-
-            nx, ny = channel.nb_grid_pts
-
-            fobj.seek(self._headersize)
-            data = np.frombuffer(fobj.read(nx * ny * self._dtype.itemsize), dtype=self._dtype).reshape(ny, nx).T
-
-        # internal information from file
-        _info = channel.info.copy()
-        _info.update(info)
-
-        # it is not allowed to provide extra `physical_sizes` here:
-        if physical_sizes is not None:
-            raise MetadataAlreadyFixedByFile('physical_sizes')
-
-        # the orientation of the heights is modified in order to match
-        # the image of gwyddion when plotted with imshow(t.heights().T)
-        # or pcolormesh(t.heights().T) for origin in lower left and
-        # with inverted y axis (cartesian coordinate system)
-
-        # `voidpixels` holds the *number* of void (undefined) pixels in the
-        # file, not the marker value; if the key is missing, the file
-        # contains no void pixels. Void pixels are marked by the maximum
-        # value of the respective data type: 32767 for 16-bit integer
-        # (bcrstm) files and single-precision FLT_MAX (~3.4028235e38) for
-        # floating-point (bcrf) files.
-        try:
-            nb_void_pixels = float(self._metadata.get('voidpixels', 0))
-        except ValueError:
-            nb_void_pixels = 0
-        if nb_void_pixels > 0:
-            if self._file_type == 'bcrstm':
-                mask = data == 32767
-            else:
-                mask = data >= 3.4028e38
-            data = np.ma.masked_array(data, mask=mask)
-        topography = Topography(
-            data,
-            physical_sizes=(sx, sy),
-            unit=channel.unit,
-            info=_info,
-            periodic=periodic)
-        if height_scale_factor is None:
-            height_scale_factor = channel.height_scale_factor
-        elif channel.height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile('height_scale_factor')
-        if height_scale_factor is not None:
-            topography = topography.scale(height_scale_factor)
-
-        return topography
-
-    channels.__doc__ = ReaderBase.channels.__doc__
-    topography.__doc__ = ReaderBase.topography.__doc__
+    _channel_bindings = [
+        {
+            "name": "Default",
+            "dim": 2,
+            "nb_grid_pts": Tup(
+                F.int(C.header.xpixels), F.int(C.header.ypixels)
+            ),
+            "physical_sizes": Tup(
+                F.float(C.header.xlength), F.float(C.header.ylength)
+            ),
+            "uniform": True,
+            "unit": C.header.xunit,
+            "height_scale_factor": F.float(C.header.bit2nm)
+            * F.unit_conversion_factor(C.header.zunit, C.header.xunit),
+            "info": {"raw_metadata": C.header},
+            "data": C.data,
+        }
+    ]

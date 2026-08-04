@@ -4,6 +4,70 @@ Change log for SurfaceTopography
 v1.23.0 (not yet released)
 --------------------------
 
+- BUG: ZON reader interprets the per-pixel validity mask; out-of-range and
+  operator-excluded pixels are now reported as undefined data instead of
+  placeholder heights
+- ENH: Rewrote the ZON reader in terms of the declarative file layout
+- ENH: New declarative layouts `ZipContainer` (parsing members of ZIP
+  archives, with optional decompression filter) and `XMLStructure` (parsing
+  XML documents into nested dictionaries)
+- ENH: `BinaryArray` conversion functions can now accept the parser context
+  as a second argument
+- BUG: `ValidationError` is now a subclass of `CorruptFile` (and thus
+  `ReadFileError`), so validation failures are caught like other reader
+  errors and match the `corrupt_file` error taxonomy of the format
+  description contract
+- MAINT: Channel-binding `info` entries that evaluate to `None` are
+  omitted from the channel information (matching the historic readers)
+  instead of being reported as null; `raw_metadata` is kept verbatim
+- ENH: Serializable expression mini-language for the declarative file
+  layouts (`SurfaceTopography.IO.expr`)
+- ENH: Complete JSON (de)serialization of declarative layouts, channel
+  bindings and full format description documents
+  (`SurfaceTopography.IO.description`), per the format description
+  contract; new `Switch` and `Seek` layout primitives
+- ENH: Declarative channel bindings in `DeclarativeReaderBase`
+  (`_channel_bindings`, including per-layer `foreach` and undefined-data
+  mask rules) and declarative magic-byte detection (`_magic`)
+- ENH: The ZMG, TMD, AL3D, SUR, MetroPro, PLU and ZON readers are now
+  fully declarative (lambda-free) and export to language-neutral format
+  description documents (`python -m SurfaceTopography.IO.export`)
+- ENH: Declarative parsing of text headers: new layout nodes `TextLine`,
+  `TextHeader` (line-oriented key-value headers with sections, comments
+  and several delimiting modes) and `TextMatrix` (whitespace-separated
+  number matrices), a `Check` node for cross-structure validation, and
+  new registry functions `split`, `flip`, `mangle_length_unit` and
+  `is_length_unit`
+- ENH: The BCR, MI, WSXM and SDF readers are now fully declarative and
+  export to format description documents
+- ENH: The PS, LEXT and JPK readers are now fully declarative and export
+  to format description documents; a new `TIFFContainer` layout node
+  (capability `tiff`) reports TIFF pages with their tags, raster images
+  and vendor-tag layouts, channel bindings gained `where` (filtered
+  channel emission) and `checks` (per-channel validation), and the
+  expression registry gained `match_records`,
+  `match_records_containing`, `index_by` and `parse_xml`
+- ENH: The OPD, PLUX and X3P readers are now fully declarative and
+  export to format description documents; new layout nodes `ForEach`
+  (repeat a structure per element of a previously parsed list) and `Let`
+  (store computed values into the context), `ZipContainer` members can
+  be named by expressions, looped over a list or interleaved with
+  stream-less nodes, and the expression registry gained `pluck`,
+  `values_with_prefix`, `reshape`, `isfinite`, `logical_not` and
+  `unpackbits`
+- ENH: The OS3D, NMS, VK and FRT readers are now also fully declarative
+  and export to format description documents; `TLVContainer` entries can
+  reference previously parsed named entries and skip unknown tags via a
+  `default` layout, and the expression registry gained `omit` and an
+  optional UTC offset for `make_datetime`. Note that the `raw_metadata`
+  of these four readers is now keyed by the parsed structures (e.g. by
+  numeric block tag for FRT) rather than the ad-hoc keys of the old
+  readers
+- TST: Round-trip CI gate: format descriptions must be complete and a
+  generic reader rehydrated from the JSON must reproduce the authored
+  readers on the example corpus
+- DOC: Design document and format-description contract (schema version 1)
+  for cross-language declarative file readers
 - BUG: Transposed and downsampled topographies report correct `pixel_size`; affected derivatives and PSDs for anisotropic pixels
 - BUG: Masked data is normalized by the number of defined points; changes `rms_height` and moments of files with undefined data
 - BUG: Power spectrum no longer halves the `q=0` entry when folding the +q and -q branches (#282)

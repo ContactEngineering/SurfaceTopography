@@ -1,5 +1,5 @@
 #
-# Copyright 2023 Lars Pastewka
+# Copyright 2023-2026 Lars Pastewka
 #
 # ### MIT license
 #
@@ -21,30 +21,120 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-
+#
 # Reference information and implementations:
 # https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/jpkscan.c
+#
 
-import enum
-import warnings
+from .binary import TIFFContainer
+from .expr import C, Cond, DictExpr, F, Tup, V
+from .Reader import DeclarativeReaderBase, MagicMatch
 
-import dateutil
-from dateutil.parser import UnknownTimezoneWarning
-from tifffile import TiffFile, TiffFileError
+# Global metadata tags; these appear on the first (thumbnail) page
+_GLOBAL_TAG_NAMES = {
+    0x8000: "FileFormatVersion",
+    0x8001: "ProgramVersion",
+    0x8002: "SavedByProgram",
+    0x8003: "StartDate",
+    0x8004: "Name",
+    0x8005: "Comment",
+    0x8006: "EndDate",
+    0x8007: "Sample",
+    0x8008: "UniqueID",
+    0x8009: "AccountName",
+    0x8010: "CantileverComment",
+    0x8011: "CantileverSpringConst",
+    0x8012: "CantileverCalibrated",
+    0x8013: "CantileverShape",
+    0x8014: "CantileverRadius",
+    0x8015: "ApproachID",
+    0x8030: "FeedbackMode",
+    0x8031: "FeedbackPGain",
+    0x8032: "FeedbackIGain",
+    0x8033: "FeedbackSetpoint",
+    0x8034: "FeedbackVar1",
+    0x8035: "FeedbackVar2",
+    0x8036: "FeedbackVar3",
+    0x8037: "FeedbackVar4",
+    0x8038: "FeedbackVar5",
+    0x8039: "ApproachIGain",
+    0x801A: "ApproachPGain",
+    0x801B: "TipsaverSetpoint",
+    0x801C: "TipsaverActive",
+    0x801D: "TipsaverLowerLimit",
+    0x8040: "GridX0",
+    0x8041: "GridY0",
+    0x8042: "GridULength",
+    0x8043: "GridVLength",
+    0x8044: "GridTheta",
+    0x8045: "GridReflect",
+    0x8046: "ScanWidth",
+    0x8047: "ScanLength",
+    0x8048: "Lineend",
+    0x8049: "ScanrateFrequency",
+    0x804A: "ScanrateDutycycle",
+    0x804B: "Motion",
+    0x804C: "ScanlineStart",
+    0x804D: "ScanlineSize",
+}
 
-from ..Exceptions import (
-    CorruptFile,
-    FileFormatMismatch,
-    MetadataAlreadyFixedByFile,
-    UnsupportedFormatFeature,
+# Per-channel metadata tags
+_CHANNEL_TAG_NAMES = {
+    0x8050: "Channel",
+    0x8051: "ChannelRetrace",
+    0x8052: "ChannelFancyName",
+    0x8060: "CalibrationAge",
+    0x8061: "CalibrationOperator",
+    0x8080: "NrOfSlots",
+    0x8081: "DefaultSlot",
+}
+
+# Each channel carries a number of data-interpretation "slots" as
+# repeating tag blocks of stride 0x30, starting at tag 0x8090
+_SLOT_TAG_NAMES = {
+    0x00: "SlotName",
+    0x01: "SlotType",
+    0x02: "SlotParent",
+    0x10: "CalibrationName",
+    0x11: "EncoderName",
+    0x12: "EncoderUnit",
+    0x13: "ScalingType",
+    # Multiplier and offset apply if ScalingType == 'LinearScaling'
+    0x14: "ScalingMultiply",
+    0x15: "ScalingOffset",
+    0x16: "ScalingVar3",
+    0x17: "ScalingVar4",
+    0x18: "ScalingVar5",
+}
+
+# Global metadata lives on the first page
+_global = C.pages[0].tags
+
+# The default slot of the current channel (page) determines the physical
+# interpretation of its data
+_slots_by_name = F.index_by(C.item.slots, "SlotName")
+_default_slot = F.get(
+    _slots_by_name, F.get(C.item.tags, "DefaultSlot", ""), {}
 )
-from ..Support.UnitConversion import get_unit_conversion_factor, is_length_unit
-from ..UniformLineScanAndTopography import Topography
-from .common import OpenFromAny
-from .Reader import ChannelInfo, ReaderBase
+_unit = F.get(_default_slot, "EncoderUnit", "")
+
+# Channel name, with a retrace marker appended for retrace channels
+_fancy_name = C.item.tags.ChannelFancyName
+_channel_name = Cond(
+    C.item.tags.ChannelRetrace != 0,
+    Cond(
+        _fancy_name[-1:] == ")",
+        _fancy_name[:-1] + ", retrace)",
+        _fancy_name + " (retrace)",
+    ),
+    _fancy_name,
+)
+
+# Conversion from meters to the reported unit
+_lateral_conversion = F.unit_conversion_factor("m", _unit)
 
 
-class JPKReader(ReaderBase):
+class JPKReader(DeclarativeReaderBase):
     _format = "jpk"
     _mime_types = ["application/x-jpk-image-scan"]
     _file_extensions = ["jpk"]
@@ -54,313 +144,94 @@ class JPKReader(ReaderBase):
 TIFF-based file format of JPK instruments (now Bruker)
 """
 
-    _global_tag_names = {
-        0x8000: "FileFormatVersion",
-        0x8001: "ProgramVersion",
-        0x8002: "SavedByProgram",
-        0x8003: "StartDate",
-        0x8004: "Name",
-        0x8005: "Comment",
-        0x8006: "EndDate",
-        0x8007: "Sample",
-        0x8008: "UniqueID",
-        0x8009: "AccountName",
-        0x8010: "CantileverComment",
-        0x8011: "CantileverSpringConst",
-        0x8012: "CantileverCalibrated",
-        0x8013: "CantileverShape",
-        0x8014: "CantileverRadius",
-        0x8015: "ApproachID",
-        0x8030: "FeedbackMode",
-        0x8031: "FeedbackPGain",
-        0x8032: "FeedbackIGain",
-        0x8033: "FeedbackSetpoint",
-        0x8034: "FeedbackVar1",
-        0x8035: "FeedbackVar2",
-        0x8036: "FeedbackVar3",
-        0x8037: "FeedbackVar4",
-        0x8038: "FeedbackVar5",
-        0x8039: "ApproachIGain",
-        0x801A: "ApproachPGain",
-        0x801B: "TipsaverSetpoint",
-        0x801C: "TipsaverActive",
-        0x801D: "TipsaverLowerLimit",
-        0x8040: "GridX0",
-        0x8041: "GridY0",
-        0x8042: "GridULength",
-        0x8043: "GridVLength",
-        0x8044: "GridTheta",
-        0x8045: "GridReflect",
-        0x8046: "ScanWidth",
-        0x8047: "ScanLength",
-        0x8048: "Lineend",
-        0x8049: "ScanrateFrequency",
-        0x804A: "ScanrateDutycycle",
-        0x804B: "Motion",
-        0x804C: "ScanlineStart",
-        0x804D: "ScanlineSize",
-        # 0x8050: 'ForceSettingsName',
-        # 0x8051: 'K_Length',
-        # 0x8052: 'ForceMap_Feedback_Mode',
-        # 0x8053: 'Z_Start',
-        # 0x8054: 'Z_End',
-        # 0x8055: 'Setpoint',
-        # 0x8056: 'PauseAtEnd',
-        # 0x8057: 'PauseAtStart',
-        # 0x8058: 'PauseOnTipsaver',
-        # 0x8059: 'TraceScanTime',
-        # 0x805A: 'RetraceScanTime',
-        # 0x805B: 'Z_Start_Pause_Option',
-        # 0x805C: 'Z_End_Pause_Option',
-        # 0x805D: 'Tipsaver_Pause_Option',
-        # 0x8060: 'Scanner',
-        # 0x8061: 'FitAlgorithmName',
-        # 0x8062: 'LastIndex',
-        # 0x8063: 'BackAndForth',
-    }
+    # TIFF magic bytes (little- and big-endian)
+    _MAGIC_TIFF = (b"II*\x00", b"MM\x00*")
 
-    _channel_tag_names = {
-        0x8050: "Channel",
-        0x8051: "ChannelRetrace",
-        0x8052: "ChannelFancyName",
-        0x8060: "CalibrationAge",
-        0x8061: "CalibrationOperator",
-        0x8080: "NrOfSlots",
-        0x8081: "DefaultSlot",
-    }
-
-    _slot_tag_names = {
-        0x8090: "SlotName",
-        0x8091: "SlotType",
-        0x8092: "SlotParent",
-        0x80A0: "CalibrationName",
-        0x80A1: "EncoderName",
-        0x80A2: "EncoderUnit",
-        0x80A3: "ScalingType",
-        0x80A4: "ScalingMultiply",  # This is only the multiplier if ScalingType == 'LinearScaling'
-        0x80A5: "ScalingOffset",  # This is only the offset if ScalingType == 'LinearScaling'
-        0x80A6: "ScalingVar3",
-        0x80A7: "ScalingVar4",
-        0x80A8: "ScalingVar5",
-    }
-
-    _tag_readers = {}
+    # A TIFF magic can only tell that the file *may* be a JPK file;
+    # detection needs to try parsing
+    _magic = None
 
     @classmethod
-    def _tag_value(cls, key, value):
-        # Try dedicated tag readers first
-        try:
-            return cls._tag_readers[key](value)
-        except KeyError:
-            pass
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        if len(buffer) < 4:
+            return MagicMatch.MAYBE  # Buffer too short to determine
+        if buffer.startswith(cls._MAGIC_TIFF):
+            # TIFF file, could be a JPK file
+            return MagicMatch.MAYBE
+        return MagicMatch.NO
 
-        # Generic treatment if failed
-        if isinstance(value, enum.Enum):
-            return [value.name, value.value]
-        else:
-            if isinstance(value, tuple):
-                value = list(value)
-            return value
+    _file_layout = TIFFContainer(
+        tag_names={**_GLOBAL_TAG_NAMES, **_CHANNEL_TAG_NAMES},
+        tag_groups={
+            "slots": {"first": 0x8090, "stride": 0x30, "names": _SLOT_TAG_NAMES}
+        },
+        # The data is stored line by line; transpose to (nx, ny) order
+        image_conversion=F.transpose(V),
+    )
 
-    # Reads in the positions of all the data and metadata
-    def __init__(self, file_path):
-        self._file_path = file_path
-
-        # All units appear to be picometers, also some files report 'INCH' as resolution unit
-        self._unit = "µm"
-
-        with OpenFromAny(self._file_path, "rb") as f:
-            try:
-                with TiffFile(f) as t:
-                    # Go through all pages and see what is in there
-                    global_metadata = {}
-                    channels = []
-                    for i, p in enumerate(t.pages):
-                        # We distinguish between global metadata, channel metadata and slots
-                        channel_metadata = {}
-                        slots = []
-                        uncategorized_metadata = {}
-                        for key, value in p.tags.items():
-                            v = self._tag_value(key, value.value)
-                            if value.name == str(key):
-                                try:
-                                    # Try to get name from global dictionary
-                                    key = self._global_tag_names[key]
-                                    global_metadata.update({key: v})
-                                except KeyError:
-                                    try:
-                                        # Try to get from channel dictionary
-                                        key = self._channel_tag_names[key]
-                                        channel_metadata.update({key: v})
-                                    except KeyError:
-                                        try:
-                                            # Try to get key from slot dictionary
-                                            slot_index = (key - 0x8090) // 0x30
-                                            if slot_index < 0:
-                                                raise KeyError
-                                            key = self._slot_tag_names[
-                                                key - slot_index * 0x30
-                                            ]
-                                            if slot_index == len(slots):
-                                                slots += [{key: v}]
-                                            elif slot_index == len(slots) - 1:
-                                                slots[slot_index][key] = v
-                                            else:
-                                                raise CorruptFile(
-                                                    "Metadata is missing a slot"
-                                                )
-                                        except KeyError:
-                                            # We don't know what this is
-                                            uncategorized_metadata.update({key: v})
-                            else:
-                                channel_metadata.update({value.name: v})
-
-                        # Reorganize slots into dictionary
-                        slot_dict = {}
-                        for slot in slots:
-                            slot_dict[slot["SlotName"]] = slot
-
-                        # Store slots to channel metadata
-                        channel_metadata["Slots"] = slot_dict
-                        channels += [channel_metadata]
-
-            except TiffFileError:
-                raise FileFormatMismatch(
-                    "This is not a TIFF file, so it cannot be a JPK file."
-                )
-
-        # Acquisition date
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", UnknownTimezoneWarning)
-            acquisition_time = dateutil.parser.parse(
-                global_metadata["StartDate"]
-            )  # There is also an EndDate
-
-        # We now detect channels with height information
-        self._channels = []
-        for page_index, channel in enumerate(channels):
-            slots = channel["Slots"]
-            default_slot_name = channel["DefaultSlot"]
-            default_slot = slots[default_slot_name]
-            default_slot_unit = default_slot["EncoderUnit"]
-            if is_length_unit(default_slot_unit) and "ChannelFancyName" in channel:
-                # This has units of length, so it is probably height information
-                name = channel["ChannelFancyName"]
-                if channel["ChannelRetrace"]:
-                    if name.endswith(")"):
-                        name = name[:-1] + ", retrace)"
-                    else:
-                        name = name + " (retrace)"
-
-                slot = default_slot
-                try:
-                    scaling_type = slot["ScalingType"]
-                except KeyError as exc:
-                    raise CorruptFile(
-                        "Default slot does not contain 'ScalingType' entry."
-                    ) from exc
-                if scaling_type == "LinearScaling":
-                    try:
-                        height_scale_factor = slot["ScalingMultiply"]
-                    except KeyError as exc:
-                        raise CorruptFile(
-                            "Default slot does not contain 'ScalingMultiply' entry."
-                        ) from exc
-                else:
-                    raise UnsupportedFormatFeature(
-                        "Cannot read file that contains data with scaling type "
-                        f"'{scaling_type}'."
-                    )
-
-                # Conversion from meters to reported unit
-                fac = get_unit_conversion_factor("m", default_slot_unit)
-
-                # Construct raw metadata dictionary. Note: `channel` is the
-                # metadata of the present channel; `channel_metadata` is a
-                # stale loop variable from the parsing loop above that
-                # always refers to the last TIFF page.
-                raw_metadata = global_metadata.copy()
-                raw_metadata.update(channel)
-
-                # Construct channel info
-                self._channels += [
-                    ChannelInfo(
-                        self,
-                        len(self._channels),  # channel index
-                        name=name,
-                        dim=2,
-                        nb_grid_pts=(channel["ImageWidth"], channel["ImageLength"]),
-                        physical_sizes=(
-                            fac * global_metadata["GridULength"],
-                            fac * global_metadata["GridVLength"],
-                        ),
-                        height_scale_factor=height_scale_factor,
-                        uniform=True,
-                        unit=default_slot_unit,
-                        info={
-                            "acquisition_time": acquisition_time,
-                            "instrument": {
-                                "vendor": "JPK Instruments",
-                                "software": str(global_metadata.get("ProgramVersion"))
-                                if "ProgramVersion" in global_metadata
-                                else None,
-                            },
-                            "raw_metadata": raw_metadata,
-                        },
-                        tags={"page_index": page_index},
-                    )
-                ]
-
-    @property
-    def channels(self):
-        return self._channels
-
-    def topography(
-        self,
-        channel_index=None,
-        physical_sizes=None,
-        height_scale_factor=None,
-        unit=None,
-        info={},
-        periodic=None,
-        subdomain_locations=None,
-        nb_subdomain_grid_pts=None,
-    ):
-        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
-            raise RuntimeError("This reader does not support MPI parallelization.")
-
-        if channel_index is None:
-            channel_index = self._default_channel_index
-
-        try:
-            channel = self.channels[channel_index]
-        except IndexError as exc:
-            raise RuntimeError(
-                f"Channel index must be in range 0 to {len(self._channels) - 1}."
-            ) from exc
-
-        if physical_sizes is not None:
-            raise MetadataAlreadyFixedByFile("physical_sizes")
-
-        if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile("height_scale_factor")
-
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile("unit")
-
-        with OpenFromAny(self._file_path, "rb") as f:
-            with TiffFile(f) as t:
-                height_data = t.pages[channel.tags["page_index"]].asarray().T
-                assert height_data.shape == channel.nb_grid_pts
-
-        _info = channel.info.copy()
-        _info.update(info)
-
-        topo = Topography(
-            height_data,
-            channel.physical_sizes,
-            unit=channel.unit,
-            periodic=False if periodic is None else periodic,
-            info=_info,
-        )
-        return topo.scale(channel.height_scale_factor)
+    _channel_bindings = [
+        {
+            # One channel per TIFF page; we only report channels whose
+            # data carries units of length (these are probably height
+            # information). The first page is a thumbnail without a
+            # channel name.
+            "foreach": C.pages,
+            "where": F.is_length_unit(_unit)
+            & (F.get(C.item.tags, "ChannelFancyName", None) != None),  # noqa: E711
+            "checks": [
+                {
+                    "condition": F.get(_default_slot, "ScalingType", None)
+                    != None,  # noqa: E711
+                    "error": "corrupt_file",
+                    "message": "Default slot does not contain 'ScalingType' "
+                    "entry.",
+                },
+                {
+                    "condition": F.get(_default_slot, "ScalingType", None)
+                    == "LinearScaling",
+                    "error": "unsupported_feature",
+                    "message": "Cannot read file that contains data with a "
+                    "scaling type other than 'LinearScaling'.",
+                },
+                {
+                    "condition": F.get(_default_slot, "ScalingMultiply", None)
+                    != None,  # noqa: E711
+                    "error": "corrupt_file",
+                    "message": "Default slot does not contain "
+                    "'ScalingMultiply' entry.",
+                },
+            ],
+            "name": _channel_name,
+            "dim": 2,
+            "nb_grid_pts": Tup(
+                C.item.tags.ImageWidth, C.item.tags.ImageLength
+            ),
+            "physical_sizes": Tup(
+                _lateral_conversion * _global.GridULength,
+                _lateral_conversion * _global.GridVLength,
+            ),
+            "height_scale_factor": _default_slot.ScalingMultiply,
+            "uniform": True,
+            "unit": _unit,
+            "info": {
+                "acquisition_time": F.parse_datetime(_global.StartDate),
+                "instrument": {
+                    "vendor": "JPK Instruments",
+                    "software": Cond(
+                        F.get(_global, "ProgramVersion", None)
+                        != None,  # noqa: E711
+                        F.str(_global.ProgramVersion),
+                        None,
+                    ),
+                },
+                "raw_metadata": F.merge(
+                    _global,
+                    F.merge(
+                        C.item.tags,
+                        DictExpr({"Slots": _slots_by_name}),
+                    ),
+                ),
+            },
+            "data": C.item.image,
+        }
+    ]

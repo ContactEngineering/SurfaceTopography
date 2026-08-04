@@ -27,12 +27,32 @@
 # https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/alicona.c
 #
 
-import numpy as np
-from numpy.lib.stride_tricks import as_strided
-
 from ..Exceptions import CorruptFile, FileFormatMismatch
-from .binary import BinaryStructure, Convert, Validate
-from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase, For, MagicMatch
+from .binary import BinaryArray, BinaryStructure, Validate
+from .expr import C, Cond, DictExpr, F, Tup, V
+from .Reader import CompoundLayout, DeclarativeReaderBase, For, Seek
+
+_MAGIC = b'AliconaImaging\x00\r\n'
+
+# The AL3D header is a tag list; this maps it to a key/value dictionary
+_tags = F.to_map(C.tags, "key", "value")
+
+_nx = F.int(_tags.Cols)
+_ny = F.int(_tags.Rows)
+
+# Rows of the depth image are padded to multiples of 8 bytes
+_row_elements = (_nx * 4 + 7) // 8 * 8 // 4
+
+# Invalid pixels are marked by NaN or by a marker value from the header.
+# The tolerance must be scaled with the magnitude of the marker; without
+# abs() a negative marker would make the mask unconditionally false.
+_INVALID_RELTOL = 1.5e-7
+_invalid = F.float(_tags.InvalidPixelValue)
+_invalid_mask = F.isnan(V) | Cond(
+    F.isnan(_invalid),
+    False,
+    F.abs(V - _invalid) < _INVALID_RELTOL * F.abs(_invalid),
+)
 
 
 class AL3DReader(DeclarativeReaderBase):
@@ -45,15 +65,7 @@ class AL3DReader(DeclarativeReaderBase):
 AL3D format of Alicona Imaging.
 '''
 
-    _MAGIC = b'AliconaImaging\x00\r\n'
-
-    @classmethod
-    def can_read(cls, buffer: bytes) -> MagicMatch:
-        if len(buffer) < len(cls._MAGIC):
-            return MagicMatch.MAYBE  # Buffer too short to determine
-        if buffer.startswith(cls._MAGIC):
-            return MagicMatch.YES
-        return MagicMatch.NO
+    _magic = [(0, _MAGIC)]
 
     _tag_structure = BinaryStructure([
         ('key', '20s'),
@@ -69,72 +81,53 @@ AL3D format of Alicona Imaging.
         ], byte_order='<', name='header'),
         BinaryStructure([
             ('key', '20s', Validate('Version', CorruptFile)),
-            ('value', '30s', Convert(lambda x: int(x))),
+            ('value', '30s', F.int(V)),
             ('crlf', '2s', Validate('\r\n', CorruptFile)),
         ], byte_order='<', name='version_tag'),
         BinaryStructure([
             ('key', '20s', Validate('TagCount', CorruptFile)),
-            ('value', '30s', Convert(lambda x: int(x))),
+            ('value', '30s', F.int(V)),
             ('crlf', '2s', Validate('\r\n', CorruptFile)),
         ], byte_order='<', name='tag_count_tag'),
-        For(lambda ctx: ctx.tag_count_tag.value, _tag_structure, name='tags')
+        For(C.tag_count_tag.value, _tag_structure, name='tags'),
+        # The depth image sits at an absolute offset given in the tag list
+        Seek(F.int(_tags.DepthImageOffset), comment='depth image'),
+        BinaryArray(
+            'data',
+            Tup(_ny, _row_elements),
+            F.dtype('<f4'),
+            conversion_fun=F.transpose(V[:, :_nx]),  # Crop row padding
+            mask_fun=_invalid_mask,
+        ),
     ])
 
-    # Relative tolerance for catching invalid pixels
-    _INVALID_RELTOL = 1.5e-7
-
-    def _validate_metadata(self):
-        self._header = {
-            'Version': self._metadata.version_tag.value,
-            'TagCount': self._metadata.tag_count_tag.value
-        }
-        for tag in self._metadata.tags:
-            self._header[tag.key] = tag.value
-
-    def read_height_data(self, f):
-        f.seek(int(self._header['DepthImageOffset']))
-        invalid_pixel_value = float(self._header['InvalidPixelValue'])
-        dtype = np.single
-        nx, ny = int(self._header['Cols']), int(self._header['Rows'])
-        # The row stride is already in bytes (rows are padded to multiples
-        # of 8 bytes); do not multiply by the item size again, which would
-        # read four times too much data (into the texture image and beyond)
-        rowstride = (nx * np.dtype(dtype).itemsize + 7) // 8 * 8
-        buffer = f.read(rowstride * ny)
-        data = as_strided(np.frombuffer(buffer, dtype=dtype), shape=(ny, nx),
-                          strides=(rowstride, np.dtype(dtype).itemsize))
-        mask = np.isnan(data)
-        if not np.isnan(invalid_pixel_value):
-            # Note: the tolerance must be scaled with the magnitude of the
-            # marker; without abs() a negative marker would make the mask
-            # unconditionally false
-            mask = np.logical_or(
-                mask,
-                np.abs(data - invalid_pixel_value) < self._INVALID_RELTOL * np.abs(invalid_pixel_value))
-        return np.ma.masked_array(data.T, mask=mask.T)
-
-    @property
-    def channels(self):
-        nx, ny = int(self._header['Cols']), int(self._header['Rows'])
-        instrument_info = {"vendor": "Alicona Imaging"}
-        if "CreatingApplication" in self._header:
-            instrument_info["software"] = self._header["CreatingApplication"]
-
-        return [
-            ChannelInfo(
-                self,
-                0,  # channel index
-                name="Default",
-                dim=2,
-                nb_grid_pts=(nx, ny),
-                physical_sizes=(
-                    nx * float(self._header["PixelSizeXMeter"]),
-                    ny * float(self._header["PixelSizeYMeter"]),
+    _channel_bindings = [
+        {
+            "name": "Default",
+            "dim": 2,
+            "nb_grid_pts": Tup(_nx, _ny),
+            "physical_sizes": Tup(
+                _nx * F.float(_tags.PixelSizeXMeter),
+                _ny * F.float(_tags.PixelSizeYMeter),
+            ),
+            "uniform": True,
+            "unit": "m",
+            "height_scale_factor": 1,
+            "info": {
+                "instrument": {
+                    "vendor": "Alicona Imaging",
+                    "software": F.get(_tags, "CreatingApplication", None),
+                },
+                "raw_metadata": F.merge(
+                    DictExpr(
+                        {
+                            "Version": C.version_tag.value,
+                            "TagCount": C.tag_count_tag.value,
+                        }
+                    ),
+                    _tags,
                 ),
-                uniform=True,
-                unit="m",
-                height_scale_factor=1,
-                info={"instrument": instrument_info, "raw_metadata": self._header},
-                tags={"reader": self.read_height_data},
-            )
-        ]
+            },
+            "data": C.data,
+        }
+    ]
