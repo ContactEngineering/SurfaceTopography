@@ -1,0 +1,700 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Format description contract &mdash; SurfaceTopography 1.22.0.dev48+g20e2ecf7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=f9597057"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="SurfaceTopography package" href="source/SurfaceTopography.html" />
+    <link rel="prev" title="Cross-language declarative file readers: design" href="declarative_readers_design.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            SurfaceTopography
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="supported_formats.html">Supported File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file_formats/index.html">File Format Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SurfaceTopography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="declarative_readers_design.html">Cross-language declarative file readers: design</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Format description contract</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#document-structure">Document structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#value-model">Value model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#expressions">Expressions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#node-catalog">Node catalog</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#operator-semantics">Operator semantics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#function-registry">Function registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-types">Data types</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#layout-nodes">Layout nodes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#two-phase-reading">Two-phase reading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#channel-bindings">Channel bindings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#capabilities">Capabilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#conformance-goldens">Conformance goldens</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#error-taxonomy">Error taxonomy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#change-policy">Change policy</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.html">SurfaceTopography package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Models.html">SurfaceTopography.Models package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SurfaceTopography</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Format description contract</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/format_description_contract.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="format-description-contract">
+<h1>Format description contract<a class="headerlink" href="#format-description-contract" title="Link to this heading"></a></h1>
+<dl class="field-list simple">
+<dt class="field-odd">Status<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Implemented (schema version 1) — Python engine in
+SurfaceTopography, C++ engine in SDSAlgorithms/libsdsio</p>
+</dd>
+<dt class="field-even">Schema version<span class="colon">:</span></dt>
+<dd class="field-even"><p>1</p>
+</dd>
+<dt class="field-odd">Date<span class="colon">:</span></dt>
+<dd class="field-odd"><p>2026-07-30</p>
+</dd>
+</dl>
+<p>This document is the normative contract between producers of format
+description documents (the SurfaceTopography exporter) and the engines
+that execute them (SurfaceTopography’s <code class="docutils literal notranslate"><span class="pre">DeclarativeReaderBase</span></code> and
+libsdsio’s <code class="docutils literal notranslate"><span class="pre">DeclarativeReader</span></code>). Where behavior is not specified here,
+engines must not rely on it agreeing across implementations.</p>
+<p>The key words <em>must</em>, <em>must not</em>, <em>should</em> and <em>may</em> are to be interpreted
+as in RFC 2119.</p>
+<p>Sections marked <strong>[draft]</strong> are expected to change before the contract is
+frozen; everything else is intended to be stable.</p>
+<section id="document-structure">
+<h2>Document structure<a class="headerlink" href="#document-structure" title="Link to this heading"></a></h2>
+<p>A format description is a single JSON document:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;schema_version&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+  <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;zon&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Keyence ZON&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;file_extensions&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;zon&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;mime_types&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;application/x-keyence-zon&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;magic&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">{</span><span class="s2">&quot;offset&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;bytes&quot;</span><span class="p">:</span> <span class="s2">&quot;S1BLMA==&quot;</span><span class="p">},</span>
+      <span class="p">{</span><span class="s2">&quot;offset&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;bytes&quot;</span><span class="p">:</span> <span class="s2">&quot;S1BLMQ==&quot;</span><span class="p">}</span>
+    <span class="p">]</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;capabilities&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="s2">&quot;zip&quot;</span><span class="p">,</span> <span class="s2">&quot;zstd&quot;</span><span class="p">,</span> <span class="s2">&quot;xml&quot;</span><span class="p">],</span>
+  <span class="s2">&quot;layout&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span><span class="n">layout</span> <span class="n">node</span><span class="o">...</span> <span class="p">},</span>
+  <span class="s2">&quot;channels&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="o">...</span><span class="n">channel</span> <span class="n">bindings</span><span class="o">...</span> <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">schema_version</span></code></dt><dd><p>Integer. Engines <em>must</em> refuse documents with a version greater than
+the one they implement, with a distinguishable “unsupported schema”
+error. Any change to this contract that an existing engine cannot
+safely ignore requires incrementing the version.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">format.magic</span></code></dt><dd><p>List of alternatives; each alternative matches if the file contains
+the given bytes (base64-encoded) at the given offset. Detection
+semantics: <em>yes</em> if any alternative matches; <em>no</em> if the probe buffer
+covers all alternatives and none match; <em>maybe</em> if the buffer is too
+short. An empty list means detection always answers <em>maybe</em> (trial
+parse required).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">capabilities</span></code></dt><dd><p>The complete list of capabilities the description requires (see
+<a class="reference internal" href="#capabilities">Capabilities</a>). Engines <em>must</em> be able to decide support from this
+list alone, without walking the layout.</p>
+</dd>
+</dl>
+</section>
+<section id="value-model">
+<h2>Value model<a class="headerlink" href="#value-model" title="Link to this heading"></a></h2>
+<p>Values flowing through the parser context and expressions are:</p>
+<ul class="simple">
+<li><p><strong>null</strong> — also the representation of scalar NaN read from a file
+(see below).</p></li>
+<li><p><strong>boolean</strong></p></li>
+<li><p><strong>integer</strong> — signed 64-bit. Unsigned fields are widened; values
+outside the signed 64-bit range are outside this contract.</p></li>
+<li><p><strong>float</strong> — IEEE-754 double precision. Fields of lower precision are
+widened on read.</p></li>
+<li><p><strong>string</strong> — Unicode. Strings decoded from files have trailing NUL
+bytes removed and leading/trailing ASCII whitespace stripped.</p></li>
+<li><p><strong>bytes</strong> — serialized as base64 where they appear in documents.</p></li>
+<li><p><strong>array</strong> — n-dimensional, typed; produced only by array layout
+primitives and by expression operations on arrays.</p></li>
+<li><p><strong>mapping / list</strong> — nested context structures produced by layout
+nodes.</p></li>
+</ul>
+<dl class="simple">
+<dt>Scalar NaN policy</dt><dd><p>A scalar float field whose value is NaN <em>must</em> be stored in the
+context as null. (Rationale: NaN breaks equality of metadata
+dictionaries; this mirrors long-standing SurfaceTopography
+behavior.) Arrays keep their NaN payloads; undefined <em>data points</em>
+are represented by masks, never by NaN sentinel comparisons hidden in
+engine code.</p>
+</dd>
+<dt>Datetimes</dt><dd><p>The neutral representation of a point in time is an ISO-8601 string
+with offset (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;2021-03-24T13:49:17-04:00&quot;</span></code>). The
+<code class="docutils literal notranslate"><span class="pre">parse_datetime</span></code> registry function normalizes vendor date strings to
+this form. Engines <em>may</em> expose a native datetime type to their host
+language, but the serialized form is the ISO string.</p>
+</dd>
+</dl>
+</section>
+<section id="expressions">
+<h2>Expressions<a class="headerlink" href="#expressions" title="Link to this heading"></a></h2>
+<p>Expressions are trees of nodes, each a JSON object with a <code class="docutils literal notranslate"><span class="pre">kind</span></code> key.
+Engines <em>must</em> reject unknown <code class="docutils literal notranslate"><span class="pre">kind</span></code> values with a distinguishable
+error. The Python authoring API lives in <code class="docutils literal notranslate"><span class="pre">SurfaceTopography.IO.expr</span></code>.</p>
+<section id="node-catalog">
+<h3>Node catalog<a class="headerlink" href="#node-catalog" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;lit&quot;,</span> <span class="pre">&quot;value&quot;:</span> <span class="pre">&lt;json&gt;}</span></code></dt><dd><p>Literal. <code class="docutils literal notranslate"><span class="pre">value</span></code> is any JSON scalar or list of scalars.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;bytes&quot;,</span> <span class="pre">&quot;value&quot;:</span> <span class="pre">&quot;&lt;base64&gt;&quot;}</span></code></dt><dd><p>Bytes literal.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;val&quot;}</span></code></dt><dd><p>The value currently being processed (the field under validation or
+conversion, the array under conversion, the stream under filtering).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;ctx&quot;,</span> <span class="pre">&quot;path&quot;:</span> <span class="pre">[&quot;header&quot;,</span> <span class="pre">&quot;nb_grid_pts_x&quot;]}</span></code></dt><dd><p>Context reference; resolves the path segment by segment in the
+current parser context. The segment <code class="docutils literal notranslate"><span class="pre">__parent__</span></code> refers to the
+enclosing context. Resolution failure is an engine error (corrupt
+description or file).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;binop&quot;,</span> <span class="pre">&quot;op&quot;:</span> <span class="pre">&quot;&lt;op&gt;&quot;,</span> <span class="pre">&quot;args&quot;:</span> <span class="pre">[&lt;node&gt;,</span> <span class="pre">&lt;node&gt;]}</span></code></dt><dd><p>Binary operation. Operators: <code class="docutils literal notranslate"><span class="pre">+</span> <span class="pre">-</span> <span class="pre">*</span> <span class="pre">/</span> <span class="pre">//</span> <span class="pre">%</span> <span class="pre">&amp;</span> <span class="pre">|</span> <span class="pre">^</span> <span class="pre">&lt;&lt;</span> <span class="pre">&gt;&gt;</span> <span class="pre">==</span> <span class="pre">!=</span> <span class="pre">&lt;</span> <span class="pre">&lt;=</span> <span class="pre">&gt;</span>
+<span class="pre">&gt;=</span> <span class="pre">in</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;unop&quot;,</span> <span class="pre">&quot;op&quot;:</span> <span class="pre">&quot;&lt;op&gt;&quot;,</span> <span class="pre">&quot;arg&quot;:</span> <span class="pre">&lt;node&gt;}</span></code></dt><dd><p>Unary operation. Operators: <code class="docutils literal notranslate"><span class="pre">neg</span></code>, <code class="docutils literal notranslate"><span class="pre">not</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;call&quot;,</span> <span class="pre">&quot;name&quot;:</span> <span class="pre">&quot;&lt;fn&gt;&quot;,</span> <span class="pre">&quot;args&quot;:</span> <span class="pre">[&lt;node&gt;,</span> <span class="pre">...]}</span></code></dt><dd><p>Invocation of a registry function (see <a class="reference internal" href="#function-registry">Function registry</a>).
+Unknown names <em>must</em> produce a distinguishable “unsupported function”
+error.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;tuple&quot;,</span> <span class="pre">&quot;items&quot;:</span> <span class="pre">[&lt;node&gt;,</span> <span class="pre">...]}</span></code></dt><dd><p>Fixed-length sequence (e.g. an array shape).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;cond&quot;,</span> <span class="pre">&quot;condition&quot;:</span> <span class="pre">&lt;node&gt;,</span> <span class="pre">&quot;then&quot;:</span> <span class="pre">&lt;node&gt;,</span> <span class="pre">&quot;otherwise&quot;:</span> <span class="pre">&lt;node&gt;}</span></code></dt><dd><p>Conditional with short-circuit evaluation: only the selected branch
+is evaluated.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;getitem&quot;,</span> <span class="pre">&quot;base&quot;:</span> <span class="pre">&lt;node&gt;,</span> <span class="pre">&quot;index&quot;:</span> <span class="pre">[&lt;part&gt;,</span> <span class="pre">...],</span> <span class="pre">&quot;tuple&quot;:</span> <span class="pre">&lt;bool&gt;}</span></code></dt><dd><p>Indexing and slicing. Each part is a node or
+<code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;slice&quot;,</span> <span class="pre">&quot;bounds&quot;:</span> <span class="pre">[&lt;start&gt;,</span> <span class="pre">&lt;stop&gt;,</span> <span class="pre">&lt;step&gt;]}</span></code> with each
+bound null or a node. <code class="docutils literal notranslate"><span class="pre">tuple</span></code> records whether the index was
+multi-axis.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;dict&quot;,</span> <span class="pre">&quot;items&quot;:</span> <span class="pre">{&quot;&lt;key&gt;&quot;:</span> <span class="pre">&lt;node&gt;,</span> <span class="pre">...}}</span></code></dt><dd><p>Mapping with static string keys, for context restructuring. Computed
+keys are not part of schema version 1.</p>
+</dd>
+</dl>
+</section>
+<section id="operator-semantics">
+<h3>Operator semantics<a class="headerlink" href="#operator-semantics" title="Link to this heading"></a></h3>
+<p>These follow Python semantics; C++ implementations must reproduce them:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">/</span></code> is true division and always yields a float.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">//</span></code> is <strong>floor</strong> division and <code class="docutils literal notranslate"><span class="pre">%</span></code> follows the sign of the divisor
+(Python semantics). Note that C++ <code class="docutils literal notranslate"><span class="pre">/</span></code> on integers truncates toward
+zero and <code class="docutils literal notranslate"><span class="pre">%</span></code> follows the dividend — a C++ engine <em>must not</em> map these
+operators directly.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">==</span></code>/<code class="docutils literal notranslate"><span class="pre">!=</span></code> compare by value; comparing values of unrelated types is
+unequal rather than an error. Ordering comparisons are defined for
+number–number and string–string (Unicode code point order) operands
+only.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">in</span></code> tests membership of a scalar in a list.</p></li>
+<li><p>Bitwise operators require integers (or booleans, treated as 0/1).</p></li>
+<li><p>Arithmetic, comparison and bitwise operators applied to arrays operate
+elementwise with numpy broadcasting semantics; <code class="docutils literal notranslate"><span class="pre">getitem</span></code> follows
+numpy/Python indexing including negative indices and slice clamping.
+Applied to a mapping, a string index performs key lookup (so context
+paths can continue past an index, e.g. <code class="docutils literal notranslate"><span class="pre">entries[0].prefix</span></code>).</p></li>
+<li><p>The condition of <code class="docutils literal notranslate"><span class="pre">cond</span></code> must evaluate to a boolean or integer
+(nonzero is true). Arrays as conditions are an error.</p></li>
+</ul>
+</section>
+<section id="function-registry">
+<h3>Function registry<a class="headerlink" href="#function-registry" title="Link to this heading"></a></h3>
+<p>The registry is a <strong>closed list</strong>; extending it is a contract revision.
+Schema version 1 defines, under the <code class="docutils literal notranslate"><span class="pre">core</span></code> capability:</p>
+<p>Datetime-producing functions appear only inside the <code class="docutils literal notranslate"><span class="pre">info</span></code> section of
+channel bindings. Engines that do not expose <code class="docutils literal notranslate"><span class="pre">info</span></code> (see <a class="reference internal" href="#channel-bindings">Channel
+bindings</a>) <em>may</em> evaluate them to null.</p>
+<p>Capability-gated functions (see <a class="reference internal" href="#capabilities">Capabilities</a>):</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Capability</p></th>
+<th class="head"><p>Semantics</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>zstd_reader</p></td>
+<td><p>zstd</p></td>
+<td><p>Wrap a stream in zstandard decompression.</p></td>
+</tr>
+<tr class="row-odd"><td><p>zlib_reader</p></td>
+<td><p>zlib</p></td>
+<td><p>Wrap a stream in zlib decompression.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="data-types">
+<h3>Data types<a class="headerlink" href="#data-types" title="Link to this heading"></a></h3>
+<p>Array data types are denoted by strings of the form
+<code class="docutils literal notranslate"><span class="pre">[&lt;byte</span> <span class="pre">order&gt;]&lt;type&gt;&lt;size&gt;</span></code> where byte order is <code class="docutils literal notranslate"><span class="pre">&lt;</span></code> (little-endian,
+default), <code class="docutils literal notranslate"><span class="pre">&gt;</span></code> (big-endian) or <code class="docutils literal notranslate"><span class="pre">=</span></code> (host); type is <code class="docutils literal notranslate"><span class="pre">i</span></code> (signed
+integer), <code class="docutils literal notranslate"><span class="pre">u</span></code> (unsigned integer) or <code class="docutils literal notranslate"><span class="pre">f</span></code> (IEEE-754 float); and size is
+the item size in bytes (<code class="docutils literal notranslate"><span class="pre">i</span></code>/<code class="docutils literal notranslate"><span class="pre">u</span></code>: 1, 2, 4, 8; <code class="docutils literal notranslate"><span class="pre">f</span></code>: 4, 8). Examples:
+<code class="docutils literal notranslate"><span class="pre">&lt;i4</span></code>, <code class="docutils literal notranslate"><span class="pre">&gt;f8</span></code>, <code class="docutils literal notranslate"><span class="pre">u1</span></code>.</p>
+<p>Binary structure field formats use the Python <code class="docutils literal notranslate"><span class="pre">struct</span></code> mini-language
+restricted to the codes <code class="docutils literal notranslate"><span class="pre">b</span> <span class="pre">B</span> <span class="pre">h</span> <span class="pre">H</span> <span class="pre">i</span> <span class="pre">I</span> <span class="pre">q</span> <span class="pre">Q</span> <span class="pre">f</span> <span class="pre">d</span> <span class="pre">s</span></code> plus the
+SurfaceTopography extensions <code class="docutils literal notranslate"><span class="pre">u</span></code> (UTF-8 string), <code class="docutils literal notranslate"><span class="pre">U</span></code> (UTF-16 string),
+<code class="docutils literal notranslate"><span class="pre">t</span></code>/<code class="docutils literal notranslate"><span class="pre">T</span></code> (Pascal strings with 16/32-bit length), with optional decimal
+repeat counts and optional per-field <code class="docutils literal notranslate"><span class="pre">&lt;</span></code>/<code class="docutils literal notranslate"><span class="pre">&gt;</span></code> prefix.</p>
+<dl class="simple">
+<dt>Byte order</dt><dd><p>Structure-level byte order is <code class="docutils literal notranslate"><span class="pre">&lt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">=</span></code> only. The native
+byte order <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> <em>must not</em> appear in exported documents; the
+exporter rewrites it to <code class="docutils literal notranslate"><span class="pre">=</span></code>. (Rationale: the Python engine unpacks
+fields individually, so <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> never introduces alignment padding and
+is equivalent to <code class="docutils literal notranslate"><span class="pre">=</span></code> — but a whole-struct reimplementation would
+disagree. Discovered the hard way in libsdsio.) The rewrite is only
+size-preserving for standard-size codes; the exporter refuses to
+serialize an <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> structure containing a native-size code
+(<code class="docutils literal notranslate"><span class="pre">l</span> <span class="pre">L</span> <span class="pre">n</span> <span class="pre">N</span> <span class="pre">P</span></code>, whose widths are platform-dependent) instead of
+silently changing the field width.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="layout-nodes">
+<h2>Layout nodes<a class="headerlink" href="#layout-nodes" title="Link to this heading"></a></h2>
+<p>Layout nodes form the parse tree executed against the stream. Each is a
+JSON object with a <code class="docutils literal notranslate"><span class="pre">type</span></code> key naming the node and an optional <code class="docutils literal notranslate"><span class="pre">name</span></code>
+under which its result is stored in the enclosing context (an absent or
+null name merges the result into the enclosing context). Engines <em>must</em>
+reject unknown <code class="docutils literal notranslate"><span class="pre">type</span></code> values.</p>
+<p>The per-node field schemas are those produced by the reference
+implementation’s serializer (<code class="docutils literal notranslate"><span class="pre">SurfaceTopography.IO.description</span></code>) and are
+frozen with schema version 1; the reference serializer’s output <em>is</em> the
+normative schema. The catalog:</p>
+<p>Core nodes (capability <code class="docutils literal notranslate"><span class="pre">core</span></code>):</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">CompoundLayout</span></code></dt><dd><p>Ordered sequence of child nodes sharing one context.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">BinaryStructure</span></code></dt><dd><p>Sequence of scalar fields. Each field is
+<code class="docutils literal notranslate"><span class="pre">{&quot;name&quot;:</span> <span class="pre">&lt;string|null&gt;,</span> <span class="pre">&quot;format&quot;:</span> <span class="pre">&lt;struct</span> <span class="pre">format&gt;,</span>
+<span class="pre">&quot;hooks&quot;:</span> <span class="pre">[&lt;hook&gt;,</span> <span class="pre">...]}</span></code> where a hook is either
+<code class="docutils literal notranslate"><span class="pre">{&quot;validate&quot;:</span> <span class="pre">{&quot;value&quot;:</span> <span class="pre">&lt;literal</span> <span class="pre">or</span> <span class="pre">boolean</span> <span class="pre">expression&gt;,</span>
+<span class="pre">&quot;error&quot;:</span> <span class="pre">&lt;taxonomy</span> <span class="pre">name&gt;}}</span></code> or <code class="docutils literal notranslate"><span class="pre">{&quot;convert&quot;:</span> <span class="pre">&lt;expression&gt;}</span></code>, applied
+in order. A literal validate value is an equality check; an expression
+is evaluated with the field value bound to <code class="docutils literal notranslate"><span class="pre">val</span></code>. A null field name
+discards the value after hooks run.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">BinaryArray</span></code></dt><dd><p>Bulk data. Shape (tuple expression), dtype (expression), optional
+conversion expression and optional mask expression. Produces a <em>lazy
+array handle</em> (see <a class="reference internal" href="#two-phase-reading">Two-phase reading</a>), never inline data.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">RawBuffer</span></code> / <code class="docutils literal notranslate"><span class="pre">TextBuffer</span></code></dt><dd><p>Sized byte/text blocks; text decoding per the Value model.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">Skip</span></code></dt><dd><p>Advance the stream without storing.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">Seek</span></code></dt><dd><p>Move the stream to an absolute position (offset expression), for
+formats whose header carries absolute offsets to data regions.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">If</span></code></dt><dd><p>Condition/branch pairs plus optional default; selects a child layout.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">For</span></code></dt><dd><p>Repeat a child layout <em>n</em> times (count expression), collecting a
+list.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">While</span></code> <strong>[draft]</strong></dt><dd><p>Repeat while a condition holds.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">Switch</span></code></dt><dd><p>Select a child layout from a list of cases keyed by a context value
+(tag-driven formats such as OIR); optional default. A key matching no
+case and no default is a corrupt-file error.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">SizedChunk</span></code></dt><dd><p>Execute a child layout inside a size-bounded window; the stream
+position afterwards is the window end regardless of how much the
+child consumed.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">Check</span></code></dt><dd><p>Validates a condition against the context without reading from the
+stream; a false result raises the error named by the <code class="docutils literal notranslate"><span class="pre">error</span></code>
+taxonomy entry. Use for consistency checks between previously parsed
+values.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">ForEach</span></code></dt><dd><p>Repeats a structure for each element of a previously parsed list
+(e.g. the payloads of a block directory). The structure’s context
+contains the current element as <code class="docutils literal notranslate"><span class="pre">item</span></code> and its index as
+<code class="docutils literal notranslate"><span class="pre">item_index</span></code>; the per-element results form a list.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">Let</span></code></dt><dd><p>Stores expression values into the context without reading from the
+stream, e.g. to make the <code class="docutils literal notranslate"><span class="pre">item</span></code> of an enclosing <code class="docutils literal notranslate"><span class="pre">ForEach</span></code> part
+of a structure’s result.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">TLVContainer</span></code></dt><dd><p>Tag-length-value sequences with a tag→layout mapping. The context
+passed to each entry’s layout contains the previously parsed <em>named</em>
+entries of the container, so later entries can reference earlier
+ones (e.g. for data-dependent array shapes). An optional <code class="docutils literal notranslate"><span class="pre">default</span></code>
+layout handles tags missing from the mapping (e.g. <code class="docutils literal notranslate"><span class="pre">Skip</span></code> to skip
+unknown blocks); without it, unmapped tags store their raw bytes.
+Within an entry’s layout, the entry’s payload size is available as
+the context value <code class="docutils literal notranslate"><span class="pre">_block_size</span></code>. With <code class="docutils literal notranslate"><span class="pre">hex_tag_keys</span></code> true,
+entries are stored under hexadecimal string keys (<code class="docutils literal notranslate"><span class="pre">&quot;0x66&quot;</span></code>)
+instead of integer tags — required when the entries end up in
+reported metadata, which must survive a JSON round trip.</p>
+</dd>
+</dl>
+<p>Capability-gated nodes:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Node</p></th>
+<th class="head"><p>Capability</p></th>
+<th class="head"><p>Semantics</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ZipContainer</p></td>
+<td><p>zip</p></td>
+<td><p>Parse named members of a ZIP archive, each
+with its own layout; optional stream-filter
+expression (e.g. zstd) applied per member;
+members may be optional. Member names may be
+expressions over the previously parsed
+members (e.g. data files named within an XML
+index); a member entry may loop over a list
+(<code class="docutils literal notranslate"><span class="pre">foreach</span></code>, one member per element, with
+<code class="docutils literal notranslate"><span class="pre">item</span></code>/<code class="docutils literal notranslate"><span class="pre">item_index</span></code> in context); entries
+without a <code class="docutils literal notranslate"><span class="pre">member</span></code> key are stream-less
+nodes (<code class="docutils literal notranslate"><span class="pre">Check</span></code>, <code class="docutils literal notranslate"><span class="pre">Let</span></code>) executed in
+order. The <code class="docutils literal notranslate"><span class="pre">mismatch_error</span></code> taxonomy name
+(default <code class="docutils literal notranslate"><span class="pre">corrupt_file</span></code>) is raised when
+the stream is not a ZIP archive or a
+required member is missing.</p></td>
+</tr>
+<tr class="row-odd"><td><p>XMLStructure</p></td>
+<td><p>xml</p></td>
+<td><p>Parse an XML document into a nested mapping;
+per-tag converter expressions.</p></td>
+</tr>
+<tr class="row-even"><td><p>ZlibBlockChain</p></td>
+<td><p>zlib</p></td>
+<td><p>Chained zlib blocks with prefix headers
+(MNT-style).</p></td>
+</tr>
+<tr class="row-odd"><td><p>TextLine</p></td>
+<td><p>text</p></td>
+<td><p>One text line, stripped.</p></td>
+</tr>
+<tr class="row-even"><td><p>TextHeader</p></td>
+<td><p>text</p></td>
+<td><p>Line-oriented <code class="docutils literal notranslate"><span class="pre">key</span> <span class="pre">&lt;sep&gt;</span> <span class="pre">value</span></code> header:
+configurable separator or fixed-width key
+column, comment prefixes, INI-style or
+key-triggered sections, delimited by a byte
+count, terminator line, stop key or EOF;
+per-key converter expressions.</p></td>
+</tr>
+<tr class="row-odd"><td><p>TextMatrix</p></td>
+<td><p>text</p></td>
+<td><p>Whitespace-separated number matrix of a
+given shape; bad-value tokens parse as NaN;
+optional conversion expression. Values are
+materialized in phase A (a text region
+cannot be sized without scanning it).</p></td>
+</tr>
+<tr class="row-even"><td><p>TIFFContainer</p></td>
+<td><p>tiff</p></td>
+<td><p>Parse the stream as a TIFF file (baseline
+TIFF 6.0 with the compression schemes of
+the corpus). Reports a <code class="docutils literal notranslate"><span class="pre">pages</span></code> list; each
+page holds <code class="docutils literal notranslate"><span class="pre">index</span></code>, <code class="docutils literal notranslate"><span class="pre">shape</span></code>, a <code class="docutils literal notranslate"><span class="pre">tags</span></code>
+mapping (standard tag names, names from
+<code class="docutils literal notranslate"><span class="pre">tag_names</span></code> for private tags, hexadecimal
+codes otherwise; enums as [name, value]
+pairs; byte blobs and arrays omitted), an
+<code class="docutils literal notranslate"><span class="pre">image</span></code> handle to the page raster
+(<code class="docutils literal notranslate"><span class="pre">image_conversion</span></code> expression applied on
+materialization), repeating private-tag
+blocks collected into record lists per
+<code class="docutils literal notranslate"><span class="pre">tag_groups</span></code> (first code, stride, offset
+names), and the results of <code class="docutils literal notranslate"><span class="pre">tag_layouts</span></code>
+(layouts executed against the byte value of
+a private tag, in declaration order, with
+lazy readers re-reading the tag on demand).</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="two-phase-reading">
+<h2>Two-phase reading<a class="headerlink" href="#two-phase-reading" title="Link to this heading"></a></h2>
+<p>Engines <em>must</em> implement a two-phase protocol:</p>
+<dl class="simple">
+<dt>Phase A — metadata</dt><dd><p>Execute the layout. Scalar fields, strings and small buffers are
+materialized into the context. <code class="docutils literal notranslate"><span class="pre">BinaryArray</span></code> nodes record a
+<strong>handle</strong> — source (root stream or container member), offset within
+that source, shape, dtype, conversion and mask expressions — and
+<em>must not</em> retain bulk data. Skipping over bulk data by forward
+seeking (or reading-and-discarding on non-seekable member streams) is
+the expected cost of this phase.</p>
+</dd>
+<dt>Phase B — data</dt><dd><p>Materialize the handles referenced by a channel’s bindings, applying
+the recorded conversion and mask expressions. Re-opening the source
+(including re-opening archive members and re-applying decompression
+filters) is the engine’s responsibility.</p>
+</dd>
+</dl>
+<p>The root stream <em>must</em> be seekable. Container member streams need only
+support reading and forward seeking.</p>
+</section>
+<section id="channel-bindings">
+<h2>Channel bindings<a class="headerlink" href="#channel-bindings" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">channels</span></code> section maps parsed metadata to the neutral result
+model. Every field value is either a JSON literal or an expression over
+the metadata context:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>{
+  &quot;index&quot;: 0,
+  &quot;name&quot;: &quot;default&quot;,
+  &quot;dim&quot;: 2,
+  &quot;nb_grid_pts&quot;: &lt;expr → [nx, ny]&gt;,
+  &quot;physical_sizes&quot;: &lt;expr → [sx, sy]&gt;,
+  &quot;unit&quot;: &quot;m&quot;,
+  &quot;height_scale_factor&quot;: &lt;expr | number | null&gt;,
+  &quot;periodic&quot;: false,
+  &quot;uniform&quot;: true,
+  &quot;info&quot;: { &quot;&lt;key&gt;&quot;: &lt;expr | literal&gt;, ... },
+  &quot;data&quot;: &lt;ctx path to an array handle&gt;,
+  &quot;mask&quot;: {
+    &quot;source&quot;: &lt;ctx path to an array handle&gt;,
+    &quot;rule&quot;: &lt;expr, val bound to the source array, → boolean array&gt;
+  }
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Physical heights are <code class="docutils literal notranslate"><span class="pre">raw</span> <span class="pre">value</span> <span class="pre">×</span> <span class="pre">height_scale_factor</span></code> in <code class="docutils literal notranslate"><span class="pre">unit</span></code>.
+A null <code class="docutils literal notranslate"><span class="pre">height_scale_factor</span></code> means heights are returned unscaled.</p></li>
+<li><p><strong>Array convention</strong>: data arrays are indexed <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code> — shape
+<code class="docutils literal notranslate"><span class="pre">(nx,</span> <span class="pre">ny)</span></code> with the first index running along the physical x
+direction. Descriptions are responsible for any crop/transpose needed
+to satisfy this (via conversion expressions).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mask</span></code> is optional; where present, true marks an <strong>undefined</strong> pixel.
+Engines map undefined pixels to their native representation (masked
+arrays in numpy, NaN in Eigen fields). Example rules:
+<code class="docutils literal notranslate"><span class="pre">(V</span> <span class="pre">&amp;</span> <span class="pre">3)</span> <span class="pre">!=</span> <span class="pre">0</span></code> (ZON validity codes), <code class="docutils literal notranslate"><span class="pre">V</span> <span class="pre">==</span> <span class="pre">1000001.0</span></code> (PLU
+sentinel, with <code class="docutils literal notranslate"><span class="pre">source</span></code> = <code class="docutils literal notranslate"><span class="pre">data</span></code>). If the mask <code class="docutils literal notranslate"><span class="pre">source</span></code> path does
+not resolve — e.g. an optional archive member is absent from a
+particular file — the channel is unmasked.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">info</span></code> values must be JSON-representable (see Value model for
+datetimes). Engines other than the reference implementation <em>may</em> not
+expose <code class="docutils literal notranslate"><span class="pre">info</span></code>; the conformance goldens do not cover it.</p></li>
+<li><p>Formats with a variable number of channels (e.g. PLU layers) declare a
+<code class="docutils literal notranslate"><span class="pre">foreach</span></code> entry: an expression evaluating to a context list. One
+channel is emitted per element; within all other expressions of the
+binding, the element is available as the context key <code class="docutils literal notranslate"><span class="pre">item</span></code> and its
+zero-based index as <code class="docutils literal notranslate"><span class="pre">item_index</span></code>.</p></li>
+<li><p>An optional <code class="docutils literal notranslate"><span class="pre">where</span></code> expression filters the emitted channels: when it
+evaluates falsy for a <code class="docutils literal notranslate"><span class="pre">foreach</span></code> element (or for the whole binding
+without <code class="docutils literal notranslate"><span class="pre">foreach</span></code>), no channel is emitted. Example: JPK emits
+channels only for TIFF pages whose default slot carries a length unit.</p></li>
+<li><p>An optional <code class="docutils literal notranslate"><span class="pre">checks</span></code> list validates each emitted channel:
+<code class="docutils literal notranslate"><span class="pre">{&quot;condition&quot;:</span> <span class="pre">&lt;expr&gt;,</span> <span class="pre">&quot;error&quot;:</span> <span class="pre">&lt;error</span> <span class="pre">taxonomy</span> <span class="pre">name&gt;,</span> <span class="pre">&quot;message&quot;:</span>
+<span class="pre">&lt;str&gt;}</span></code> — a falsy condition raises the named error. Use this for
+per-channel constraints that a layout-level <code class="docutils literal notranslate"><span class="pre">Check</span></code> cannot express
+(e.g. an unsupported scaling type on a height channel).</p></li>
+</ul>
+</section>
+<section id="capabilities">
+<h2>Capabilities<a class="headerlink" href="#capabilities" title="Link to this heading"></a></h2>
+<p>v0.1 defines: <code class="docutils literal notranslate"><span class="pre">core</span></code>, <code class="docutils literal notranslate"><span class="pre">zlib</span></code>, <code class="docutils literal notranslate"><span class="pre">zstd</span></code>, <code class="docutils literal notranslate"><span class="pre">zip</span></code>, <code class="docutils literal notranslate"><span class="pre">xml</span></code>, <code class="docutils literal notranslate"><span class="pre">text</span></code>,
+<code class="docutils literal notranslate"><span class="pre">tiff</span></code>.</p>
+<p>An engine built without a capability <em>must</em> report a description
+requiring it as <em>known but unsupported</em> (distinguishable from both “not
+this format” and “corrupt file”) using the <code class="docutils literal notranslate"><span class="pre">capabilities</span></code> list alone.</p>
+</section>
+<section id="conformance-goldens">
+<h2>Conformance goldens<a class="headerlink" href="#conformance-goldens" title="Link to this heading"></a></h2>
+<p>For each fixture in the shared corpus, a golden document records the
+expected parse result, generated by the reference implementation
+(SurfaceTopography):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;schema_version&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+  <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;zon&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;fixture&quot;</span><span class="p">:</span> <span class="s2">&quot;zon-1.zon&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;channels&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+      <span class="s2">&quot;nb_grid_pts&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1779</span><span class="p">,</span> <span class="mi">2588</span><span class="p">],</span>
+      <span class="s2">&quot;physical_sizes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.004378</span><span class="p">,</span> <span class="mf">0.006369</span><span class="p">],</span>
+      <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;nb_undefined&quot;</span><span class="p">:</span> <span class="mi">15620</span><span class="p">,</span>
+      <span class="s2">&quot;probe_pixels&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;pos&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;pos&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mf">8.47e-05</span><span class="p">}</span>
+      <span class="p">],</span>
+      <span class="s2">&quot;masked_mean&quot;</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span>
+      <span class="s2">&quot;masked_rms&quot;</span><span class="p">:</span> <span class="o">...</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Probe values are physical heights in <code class="docutils literal notranslate"><span class="pre">unit</span></code>; null means the pixel is
+undefined. Probes cover the four corners, the center and interior
+points.</p></li>
+<li><p>Tolerances: probe pixels 1e-12 relative (decoded values, exact up to
+float widening); <code class="docutils literal notranslate"><span class="pre">masked_mean</span></code>/<code class="docutils literal notranslate"><span class="pre">masked_rms</span></code> 1e-9 relative
+(summation-order differences on multi-megapixel fixtures).</p></li>
+<li><p>Both engines run the same goldens; the goldens are regenerated only by
+the reference implementation.</p></li>
+</ul>
+</section>
+<section id="error-taxonomy">
+<h2>Error taxonomy<a class="headerlink" href="#error-taxonomy" title="Link to this heading"></a></h2>
+<p>Engines <em>must</em> distinguish at least:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Condition</p></th>
+<th class="head"><p>Python / C++ mapping</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Not this format (magic)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FileFormatMismatch</span></code> / <code class="docutils literal notranslate"><span class="pre">format_mismatch_error</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Corrupt or truncated file</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CorruptFile</span></code> / <code class="docutils literal notranslate"><span class="pre">corrupt_file_error</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Valid file, unsupported</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>feature variant</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">UnsupportedFormatFeature</span></code> /
+<code class="docutils literal notranslate"><span class="pre">unsupported_feature_error</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Description requires a</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>capability not built</p></td>
+<td><p>(registry-level report) /
+<code class="docutils literal notranslate"><span class="pre">unsupported_capability_error</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Document schema too new,</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>unknown node/function kind</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">UnsupportedSchema</span></code> (new) /
+<code class="docutils literal notranslate"><span class="pre">unsupported_schema_error</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>Truncation <em>must</em> raise (never silently zero-fill), and engines <em>should</em>
+sanity-bound array dimensions before allocation.</p>
+</section>
+<section id="change-policy">
+<h2>Change policy<a class="headerlink" href="#change-policy" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Additions of node kinds, registry functions or capabilities increment
+<code class="docutils literal notranslate"><span class="pre">schema_version</span></code>.</p></li>
+<li><p>Engines reject documents newer than they implement; they <em>must not</em>
+guess.</p></li>
+<li><p>Semantic changes to existing nodes are not permitted; define a new
+node instead.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="declarative_readers_design.html" class="btn btn-neutral float-left" title="Cross-language declarative file readers: design" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="source/SurfaceTopography.html" class="btn btn-neutral float-right" title="SurfaceTopography package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2015-2020 The Authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

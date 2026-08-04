@@ -1,0 +1,404 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cross-language declarative file readers: design &mdash; SurfaceTopography 1.22.0.dev48+g20e2ecf7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=f9597057"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Format description contract" href="format_description_contract.html" />
+    <link rel="prev" title="Contributing to SurfaceTopography" href="contributing.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            SurfaceTopography
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="supported_formats.html">Supported File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file_formats/index.html">File Format Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SurfaceTopography</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Cross-language declarative file readers: design</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#motivation">Motivation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#goals">Goals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#non-goals">Non-goals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#architecture-decisions">Architecture decisions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#source-of-truth-python-authors-json-is-the-contract">Source of truth: Python authors, JSON is the contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#expressions-instead-of-lambdas">Expressions instead of lambdas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generic-engines-descriptions-as-data">Generic engines, descriptions as data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-channel-binding-layer-is-part-of-the-description">The channel-binding layer is part of the description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#capabilities">Capabilities</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#phased-plan">Phased plan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#implementation-status-and-coverage">Implementation status and coverage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#workflow-for-a-new-format">Workflow for a new format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#risks">Risks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#prior-art">Prior art</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="format_description_contract.html">Format description contract</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.html">SurfaceTopography package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Models.html">SurfaceTopography.Models package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SurfaceTopography</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Cross-language declarative file readers: design</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/declarative_readers_design.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="cross-language-declarative-file-readers-design">
+<h1>Cross-language declarative file readers: design<a class="headerlink" href="#cross-language-declarative-file-readers-design" title="Link to this heading"></a></h1>
+<dl class="field-list simple">
+<dt class="field-odd">Status<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Implemented (Phases 0-5; see coverage below)</p>
+</dd>
+<dt class="field-even">Date<span class="colon">:</span></dt>
+<dd class="field-even"><p>2026-07-30</p>
+</dd>
+<dt class="field-odd">Scope<span class="colon">:</span></dt>
+<dd class="field-odd"><p>SurfaceTopography (Python) and SDSAlgorithms/libsdsio (C++)</p>
+</dd>
+</dl>
+<section id="motivation">
+<h2>Motivation<a class="headerlink" href="#motivation" title="Link to this heading"></a></h2>
+<p>SurfaceTopography contains readers for roughly forty topography file
+formats. A growing subset of these is <em>declarative</em>: the file structure is
+described by a tree of layout objects (<code class="docutils literal notranslate"><span class="pre">CompoundLayout</span></code>,
+<code class="docutils literal notranslate"><span class="pre">BinaryStructure</span></code>, <code class="docutils literal notranslate"><span class="pre">BinaryArray</span></code>, <code class="docutils literal notranslate"><span class="pre">ZipContainer</span></code>, …) that a generic
+engine (<code class="docutils literal notranslate"><span class="pre">DeclarativeReaderBase</span></code>) executes. Much of the knowledge encoded
+in these descriptions is hard-won reverse engineering (undocumented masks,
+padding rules, magic constants) that exists nowhere else.</p>
+<p>Standalone C++ applications built on SDSAlgorithms need the same readers.
+The current approach in <code class="docutils literal notranslate"><span class="pre">libsdsio</span></code> exports the Python layout trees to
+JSON and generates C++ code from them. This works for simple formats but
+breaks down wherever the Python description contains a lambda: the JSON
+contains an opaque placeholder, and the C++ generator compensates with
+per-format special cases hard-coded into the generator itself, plus
+hand-written per-format data-reading code that duplicates byte offsets,
+data types, scale factors and undefined-data markers. Every such
+duplication is a divergence waiting to happen.</p>
+<p>The goal of this design is a <strong>single, language-neutral source of format
+knowledge</strong>: a format description document that a Python engine and a C++
+engine execute with identical results, verified by a shared conformance
+corpus.</p>
+</section>
+<section id="goals">
+<h2>Goals<a class="headerlink" href="#goals" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>One description per file format, containing <em>all</em> format knowledge:
+parse layout, semantic channel bindings (grid size, physical sizes,
+units, height scaling, undefined-data rules) and registration metadata
+(magic bytes, file extensions, MIME types).</p></li>
+<li><p>Two engines — SurfaceTopography (Python) and libsdsio (C++) — that
+execute these descriptions with results equal within documented
+tolerances, enforced by shared golden tests.</p></li>
+<li><p>Incremental migration: every phase leaves both codebases better off
+even if later phases never happen.</p></li>
+</ol>
+</section>
+<section id="non-goals">
+<h2>Non-goals<a class="headerlink" href="#non-goals" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Covering <em>all</em> formats. Formats built on foreign container technologies
+(HDF5-based DATX, Gwyddion’s own serialization, text formats) remain
+native code per language, or unsupported in C++.</p></li>
+<li><p>A hand-editable interchange syntax. The interchange JSON is generated,
+not authored (see below).</p></li>
+<li><p>Bit-identical floating-point results. The conformance tests use
+documented tolerances.</p></li>
+</ul>
+</section>
+<section id="architecture-decisions">
+<h2>Architecture decisions<a class="headerlink" href="#architecture-decisions" title="Link to this heading"></a></h2>
+<section id="source-of-truth-python-authors-json-is-the-contract">
+<h3>Source of truth: Python authors, JSON is the contract<a class="headerlink" href="#source-of-truth-python-authors-json-is-the-contract" title="Link to this heading"></a></h3>
+<p>Format descriptions are <em>authored</em> as Python layout objects in
+SurfaceTopography — this keeps the fast iteration loop for reverse
+engineering (interactive exploration against real files, tests against the
+example corpus) and readable descriptions (operator-overloaded
+expressions, helper functions, comments). The <em>canonical contract</em> is the
+exported JSON document: a versioned artifact that provably contains
+everything, enforced by a CI gate requiring that</p>
+<ol class="arabic simple">
+<li><p>every declarative reader exports with <strong>zero</strong> opaque placeholders, and</p></li>
+<li><p>a reader rehydrated <em>from the JSON</em> parses the entire example corpus
+identically to the authored one.</p></li>
+</ol>
+<p>The JSON artifacts and conformance goldens are vendored into SDSAlgorithms
+with a regeneration script and a staleness check in CI. A dedicated
+format-description repository is a possible later refinement if a third
+consumer appears.</p>
+</section>
+<section id="expressions-instead-of-lambdas">
+<h3>Expressions instead of lambdas<a class="headerlink" href="#expressions-instead-of-lambdas" title="Link to this heading"></a></h3>
+<p>Data-dependent quantities (array shapes, validation conditions,
+conversions, conditional layouts) are expressed in a small, serializable
+expression language (<code class="docutils literal notranslate"><span class="pre">SurfaceTopography.IO.expr</span></code>) instead of Python
+lambdas. Expression objects are drop-in callable where the layout classes
+accept lambdas, and serialize to a JSON AST that a foreign-language
+interpreter evaluates. Named functions (<code class="docutils literal notranslate"><span class="pre">F.dtype</span></code>, <code class="docutils literal notranslate"><span class="pre">F.transpose</span></code>,
+<code class="docutils literal notranslate"><span class="pre">F.parse_datetime</span></code>, …) come from a <strong>closed registry</strong> — this registry
+is the exact list of primitives a foreign engine must provide, and
+additions to it require a contract revision. See
+<a class="reference internal" href="format_description_contract.html"><span class="doc">Format description contract</span></a> for the normative definition.</p>
+</section>
+<section id="generic-engines-descriptions-as-data">
+<h3>Generic engines, descriptions as data<a class="headerlink" href="#generic-engines-descriptions-as-data" title="Link to this heading"></a></h3>
+<p>Per-format reader <em>code</em> dissolves into per-format <em>descriptions</em>:</p>
+<ul class="simple">
+<li><p><strong>Python</strong>: <code class="docutils literal notranslate"><span class="pre">DeclarativeReaderBase</span></code> remains the single engine. A
+format contributes a layout, a declarative channel-binding section and
+registration metadata. Thin per-format classes remain as shims for
+backward-compatible imports and as escape hatches, but contain no
+logic.</p></li>
+<li><p><strong>C++</strong>: the code generator is retired in favor of a runtime
+<code class="docutils literal notranslate"><span class="pre">DeclarativeReader</span></code> that ingests the JSON descriptions (embedded into
+the binary at build time, optionally loadable from disk). One engine,
+one expression evaluator, one format registry keyed by magic bytes.
+Interpretation costs nothing measurable: parsing time is dominated by
+bulk data reads, not dispatch.</p></li>
+</ul>
+</section>
+<section id="the-channel-binding-layer-is-part-of-the-description">
+<h3>The channel-binding layer is part of the description<a class="headerlink" href="#the-channel-binding-layer-is-part-of-the-description" title="Link to this heading"></a></h3>
+<p>Experience from libsdsio shows that the semantic mapping — which parsed
+field is the grid size, how physical sizes are computed, where the height
+data lives, what marks an undefined pixel — is where hand-written C++
+diverges first (hand-derived byte offsets, re-implemented mask rules).
+This mapping therefore moves into the description as a declarative
+<code class="docutils literal notranslate"><span class="pre">channels</span></code> section using the same expression language. Bulk data access
+is <em>lazy</em>: the metadata pass records array handles (offset, shape, dtype,
+conversion); data is materialized only when a channel is read.</p>
+</section>
+<section id="capabilities">
+<h3>Capabilities<a class="headerlink" href="#capabilities" title="Link to this heading"></a></h3>
+<p>Container and compression primitives (zip archives, zstd, zlib, XML)
+each pull a dependency in C++. Descriptions declare the capabilities they
+require; an engine built without a capability reports “format known,
+capability not built” instead of failing obscurely.</p>
+</section>
+</section>
+<section id="phased-plan">
+<h2>Phased plan<a class="headerlink" href="#phased-plan" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt>Phase 0 — Contract specification (this document’s companion)</dt><dd><p>Normative spec of the description document: JSON schema, expression
+node catalog, function registry, semantic edge cases (byte order,
+division semantics, encodings, NaN policy), the neutral parse-result
+model, laziness semantics, capability names, conformance-golden
+schema, error taxonomy, versioning policy. See
+<a class="reference internal" href="format_description_contract.html"><span class="doc">Format description contract</span></a>.</p>
+</dd>
+<dt>Phase 1 — Python: expressions to production (SurfaceTopography)</dt><dd><p>Harden <code class="docutils literal notranslate"><span class="pre">expr.py</span></code> (bytes literals, <code class="docutils literal notranslate"><span class="pre">DictExpr</span></code>, <code class="docutils literal notranslate"><span class="pre">Switch</span></code> layout
+primitive, unified <code class="docutils literal notranslate"><span class="pre">(value,</span> <span class="pre">context)</span></code> converter call sites).
+Complete <code class="docutils literal notranslate"><span class="pre">to_dict()</span></code>/<code class="docutils literal notranslate"><span class="pre">from_dict()</span></code> for all layout classes. Add the
+declarative channel-binding layer to <code class="docutils literal notranslate"><span class="pre">DeclarativeReaderBase</span></code>. Port
+readers: the six formats already exported by libsdsio first (ZMG, TMD,
+AL3D, SUR, MetroPro, PLU), then ZON, MNT, and OIR as the hard-case
+validation. Land the round-trip equivalence CI gate.</p>
+</dd>
+<dt>Phase 2 — Contract artifacts</dt><dd><p>Grow the export script into a proper exporter emitting format
+descriptions and machine-readable conformance goldens (probe pixels,
+masked statistics, undefined-pixel counts). Wire vendoring plus a
+staleness CI check in SDSAlgorithms.</p>
+</dd>
+<dt>Phase 3 — C++: interpreter completion (SDSAlgorithms)</dt><dd><p>Expression evaluator over the AST (the <code class="docutils literal notranslate"><span class="pre">ctx</span></code> node maps onto the
+existing <code class="docutils literal notranslate"><span class="pre">AttrDict::get_nested</span></code>; operators reuse its numeric
+coercion). Extend the runtime with <code class="docutils literal notranslate"><span class="pre">If</span></code>, expression-driven
+validation, lazy array handles and mask materialization. Generic
+reader plus registry; delete the code generator and the hand-written
+per-format <code class="docutils literal notranslate"><span class="pre">topography()</span></code> methods; replace pasted golden values with
+a generic conformance runner.</p>
+</dd>
+<dt>Phase 4 — Containers and coverage</dt><dd><p>Add capability primitives to the C++ engine as demand dictates (zlib
+for MNT, zip+zstd for ZON, XML), each behind a build option. Continue
+porting readers; maintain an explicit coverage list.</p>
+</dd>
+<dt>Phase 5 — Governance</dt><dd><p>Documented workflow for new formats (author in Python → corpus tests →
+export → C++ conformance runs without writing C++) and the schema
+evolution policy.</p>
+</dd>
+</dl>
+</section>
+<section id="implementation-status-and-coverage">
+<h2>Implementation status and coverage<a class="headerlink" href="#implementation-status-and-coverage" title="Link to this heading"></a></h2>
+<p>Fully declarative formats (exported to description documents, executed by
+both engines, pinned by the conformance goldens): <strong>ZMG, TMD, AL3D, SUR,
+MetroPro, PLU, ZON</strong>. Of these, ZON requires the <code class="docutils literal notranslate"><span class="pre">zip</span></code>/<code class="docutils literal notranslate"><span class="pre">zstd</span></code>/<code class="docutils literal notranslate"><span class="pre">xml</span></code>
+capabilities, which the C++ engine does not implement yet: it rejects the
+description cleanly (<code class="docutils literal notranslate"><span class="pre">unsupported_capability_error</span></code>) while format
+detection still works from the document.</p>
+<p>Not yet declarative (Python-only, native readers): MNT (heuristic zlib
+block chains), OIR (context restructuring pending a <code class="docutils literal notranslate"><span class="pre">Switch</span></code>/<code class="docutils literal notranslate"><span class="pre">dict</span></code>
+port), and the container/text formats named under Non-goals.</p>
+<p>Key artifacts:</p>
+<ul class="simple">
+<li><p>Python engine: <code class="docutils literal notranslate"><span class="pre">SurfaceTopography/IO/expr.py</span></code> (expressions),
+<code class="docutils literal notranslate"><span class="pre">description.py</span></code> (serialization, generic reader factory),
+<code class="docutils literal notranslate"><span class="pre">Reader.py</span></code> (<code class="docutils literal notranslate"><span class="pre">DeclarativeReaderBase</span></code> with <code class="docutils literal notranslate"><span class="pre">_channel_bindings</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Switch</span></code>, <code class="docutils literal notranslate"><span class="pre">Seek</span></code>), <code class="docutils literal notranslate"><span class="pre">export.py</span></code> (artifact exporter).</p></li>
+<li><p>CI gates: <code class="docutils literal notranslate"><span class="pre">test/IO/test_description.py</span></code> (zero-opaque, rehydrated
+generic-reader equivalence over the corpus, deterministic export),
+<code class="docutils literal notranslate"><span class="pre">test/IO/test_expr.py</span></code>, <code class="docutils literal notranslate"><span class="pre">test/IO/test_declarative_reader_serialization.py</span></code>.</p></li>
+<li><p>C++ engine: <code class="docutils literal notranslate"><span class="pre">src/libsdsio/declarative_reader.{h,cpp}</span></code> in
+SDSAlgorithms (expression evaluator, layout interpreter, lazy array
+handles, registry with embedded descriptions);
+<code class="docutils literal notranslate"><span class="pre">tests/cpp/test_declarative_reader.cpp</span></code> is the golden conformance
+runner. The former code generator (<code class="docutils literal notranslate"><span class="pre">generate_from_json.py</span></code>), exported
+layout JSONs and hand-written per-format readers are retired.</p></li>
+<li><p>Contract artifacts: vendored in SDSAlgorithms under
+<code class="docutils literal notranslate"><span class="pre">src/libsdsio/descriptions/</span></code> and <code class="docutils literal notranslate"><span class="pre">tests/goldens/</span></code>, regenerated only
+by <code class="docutils literal notranslate"><span class="pre">update_format_descriptions.py</span></code> and pinned by
+<code class="docutils literal notranslate"><span class="pre">tests/python/test_format_descriptions.py</span></code>.</p></li>
+</ul>
+</section>
+<section id="workflow-for-a-new-format">
+<h2>Workflow for a new format<a class="headerlink" href="#workflow-for-a-new-format" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>Reverse engineer and author the reader in SurfaceTopography as a
+<code class="docutils literal notranslate"><span class="pre">DeclarativeReaderBase</span></code> subclass: <code class="docutils literal notranslate"><span class="pre">_file_layout</span></code> and
+<code class="docutils literal notranslate"><span class="pre">_channel_bindings</span></code> built from expressions (no lambdas), <code class="docutils literal notranslate"><span class="pre">_magic</span></code>
+for detection. Iterate against real files; add a fixture to
+<code class="docutils literal notranslate"><span class="pre">test/file_format_examples</span></code> and per-format tests.</p></li>
+<li><p>Register the format in <code class="docutils literal notranslate"><span class="pre">SurfaceTopography/IO/export.py</span></code> and in
+<code class="docutils literal notranslate"><span class="pre">test/IO/test_description.py</span></code>. The CI gate now enforces that the
+description is complete (zero opaque hooks) and that the rehydrated
+generic reader reproduces the authored one.</p></li>
+<li><p>In SDSAlgorithms, copy the fixture into <code class="docutils literal notranslate"><span class="pre">tests/datafiles</span></code> and run
+<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">update_format_descriptions.py</span></code>; commit the regenerated
+descriptions and goldens. The C++ conformance runner picks the new
+golden up automatically — no C++ code is written unless the format
+needs a new capability or layout primitive.</p></li>
+<li><p>If a new expression function or layout node is unavoidable, revise the
+contract (bump the schema version per the change policy) and implement
+the primitive in both engines in the same change set.</p></li>
+</ol>
+</section>
+<section id="risks">
+<h2>Risks<a class="headerlink" href="#risks" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt>Registry and expression creep</dt><dd><p>The function registry must remain a closed, reviewed list; otherwise
+the expression language slowly becomes a bad general-purpose language
+(the DFDL failure mode). Formats that cannot be expressed with the
+existing primitives are candidates for native readers, not for
+ad-hoc registry growth.</p>
+</dd>
+<dt>Semantic divergence at the edges</dt><dd><p>Byte order and alignment, floor vs. truncating division, string
+encodings, NaN handling. Mitigation: these are specified normatively
+in the contract, and the conformance goldens include masked
+statistics over full arrays, not only probe pixels.</p>
+</dd>
+<dt>Hard formats</dt><dd><p>OIR-class formats (nested TLV, tag-driven layout switching) test the
+limits of the declarative model. If a format does not go fully
+declarative in Phase 1, the fallback — native reader on both sides —
+is decided consciously there.</p>
+</dd>
+</dl>
+</section>
+<section id="prior-art">
+<h2>Prior art<a class="headerlink" href="#prior-art" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://kaitai.io/">Kaitai Struct</a> — YAML-based binary format DSL
+compiled to parsers in many languages; closest existing system, and the
+design reference for the expression language.</p></li>
+<li><p>DFDL (Data Format Description Language) — the standards-body take;
+cautionary example of expression-language growth.</p></li>
+<li><p><a class="reference external" href="https://github.com/google/wuffs">Wuffs</a> — memory-safe generated
+parsers for untrusted inputs; motivates generated/interpreted parsing
+with systematic bounds checks over hand-written C++.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="contributing.html" class="btn btn-neutral float-left" title="Contributing to SurfaceTopography" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="format_description_contract.html" class="btn btn-neutral float-right" title="Format description contract" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2015-2020 The Authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

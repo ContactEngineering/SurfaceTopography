@@ -340,6 +340,30 @@ SurfaceTopography.IO.common module
    :show-inheritance:
    :undoc-members:
 
+SurfaceTopography.IO.description module
+---------------------------------------
+
+.. automodule:: SurfaceTopography.IO.description
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+SurfaceTopography.IO.export module
+----------------------------------
+
+.. automodule:: SurfaceTopography.IO.export
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+SurfaceTopography.IO.expr module
+--------------------------------
+
+.. automodule:: SurfaceTopography.IO.expr
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Module contents
 ---------------
 
