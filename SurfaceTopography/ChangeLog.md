@@ -1,8 +1,8 @@
 Change log for SurfaceTopography
 ================================
 
-v1.23.0 (not yet released)
---------------------------
+v1.23.0 (05Aug26)
+-----------------
 
 - BUG: ZON reader interprets the per-pixel validity mask; out-of-range and
   operator-excluded pixels are now reported as undefined data instead of
