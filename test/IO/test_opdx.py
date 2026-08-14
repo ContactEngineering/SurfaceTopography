@@ -172,3 +172,26 @@ def test_opdx3(file_format_examples):
 
     x, y = np.loadtxt(f"{file_format_examples}/opdx-3.txt", unpack=True)
     np.testing.assert_allclose(t.heights(), y * 1e6)
+
+
+def test_read_anon_matrix(file_format_examples):
+    """
+    Some OPDx files (e.g. multi-line "stripe" scans) store the 2D height
+    matrix using the anonymous matrix data type (0x45, DEKTAK_ANON_MATRIX)
+    rather than the named matrix type (0x00, DEKTAK_MATRIX) that
+    `opdx-1.opdx`/`opdx-2.opdx` use. Reading such a file used to raise
+    "Don't know how to read type with id 69".
+
+    `opdx-4.opdx` is `opdx-2.opdx` with its primary channel's Matrix item
+    transplanted from the DEKTAK_MATRIX encoding to the DEKTAK_ANON_MATRIX
+    encoding (same pixel data, repacked header, surrounding container
+    lengths patched accordingly), so the two files must decode to the same
+    topography.
+    """
+    t_named = OPDxReader(os.path.join(file_format_examples, "opdx-2.opdx")).topography()
+    t_anon = OPDxReader(os.path.join(file_format_examples, "opdx-4.opdx")).topography()
+
+    assert t_anon.nb_grid_pts == t_named.nb_grid_pts
+    np.testing.assert_allclose(t_anon.physical_sizes, t_named.physical_sizes)
+    assert t_anon.unit == t_named.unit
+    np.testing.assert_allclose(t_anon.heights(), t_named.heights())
