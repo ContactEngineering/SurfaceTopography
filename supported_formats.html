@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Supported File Formats &mdash; SurfaceTopography 1.23.0 documentation</title>
+  <title>Supported File Formats &mdash; SurfaceTopography 1.23.0.dev2+g16317e68 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=b8112b1c"></script>
+      <script src="_static/documentation_options.js?v=b329de2d"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -312,15 +312,15 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography</span><span class="w"> </span><span class="kn">import</span> <span class="n">open_topography</span><span class="p">,</span> <span class="n">read_topography</span>
 
 <span class="c1"># Auto-detect format and open file</span>
-<span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">&quot;measurement.vk4&quot;</span><span class="p">)</span>
+<span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">"measurement.vk4"</span><span class="p">)</span>
 <span class="n">topography</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">()</span>
 
 <span class="c1"># Or read directly</span>
-<span class="n">topography</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span><span class="s2">&quot;measurement.vk4&quot;</span><span class="p">)</span>
+<span class="n">topography</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span><span class="s2">"measurement.vk4"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>For formats that don’t store physical sizes or units (e.g., NPY, HDF5), you must provide them:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">topography</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span><span class="s2">&quot;data.npy&quot;</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;um&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">topography</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span><span class="s2">"data.npy"</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span> <span class="n">unit</span><span class="o">=</span><span class="s2">"um"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -331,15 +331,15 @@
 <h3>Inspecting Channels<a class="headerlink" href="#inspecting-channels" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography</span><span class="w"> </span><span class="kn">import</span> <span class="n">open_topography</span>
 
-<span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">&quot;afm_scan.ibw&quot;</span><span class="p">)</span>
+<span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">"afm_scan.ibw"</span><span class="p">)</span>
 
 <span class="c1"># List all channels</span>
 <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">reader</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> (height=</span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">is_height_channel</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> (height=</span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">is_height_channel</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
 
 <span class="c1"># Access only height channels (backwards compatible)</span>
 <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">reader</span><span class="o">.</span><span class="n">height_channels</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Height channel: </span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Height channel: </span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -350,7 +350,7 @@
 <span class="n">topo</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="n">channel_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
 <span class="c1"># Method 2: By stable channel ID (recommended for database storage)</span>
-<span class="n">topo</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="n">channel_id</span><span class="o">=</span><span class="s2">&quot;Height&quot;</span><span class="p">)</span>
+<span class="n">topo</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="n">channel_id</span><span class="o">=</span><span class="s2">"Height"</span><span class="p">)</span>
 
 <span class="c1"># Method 3: By height channel index (backwards compatible, only counts height channels)</span>
 <span class="n">topo</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="n">height_channel_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -382,7 +382,7 @@
 </ul>
 <p>Example for database storage:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># When saving to database, store the channel_id</span>
-<span class="n">channel_to_store</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">channel_id</span>  <span class="c1"># e.g., &quot;Height&quot;</span>
+<span class="n">channel_to_store</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">channel_id</span>  <span class="c1"># e.g., "Height"</span>
 
 <span class="c1"># Later, when loading from database</span>
 <span class="n">topo</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="n">channel_id</span><span class="o">=</span><span class="n">channel_to_store</span><span class="p">)</span>
@@ -394,12 +394,12 @@
 <p>For databases that previously stored <code class="docutils literal notranslate"><span class="pre">height_channel_index</span></code> values, utility functions are provided to convert between the old and new systems:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography</span><span class="w"> </span><span class="kn">import</span> <span class="n">open_topography</span>
 
-<span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">&quot;scan.ibw&quot;</span><span class="p">)</span>
+<span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">"scan.ibw"</span><span class="p">)</span>
 
 <span class="c1"># Convert old height index to new channel_id</span>
 <span class="n">old_index</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># stored in database</span>
 <span class="n">new_id</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">height_index_to_channel_id</span><span class="p">(</span><span class="n">old_index</span><span class="p">)</span>
-<span class="c1"># new_id is now something like &quot;Height&quot; or &quot;ZSensor&quot;</span>
+<span class="c1"># new_id is now something like "Height" or "ZSensor"</span>
 
 <span class="c1"># Convert back if needed (only works for height channels)</span>
 <span class="n">recovered_index</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">channel_id_to_height_index</span><span class="p">(</span><span class="n">new_id</span><span class="p">)</span>
@@ -410,14 +410,14 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography</span><span class="w"> </span><span class="kn">import</span> <span class="n">open_topography</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">migrate_database_entry</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">old_height_index</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Migrate a database entry from height_index to channel_id.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Migrate a database entry from height_index to channel_id."""</span>
     <span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
     <span class="n">new_channel_id</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">height_index_to_channel_id</span><span class="p">(</span><span class="n">old_height_index</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">new_channel_id</span>
 
 <span class="c1"># Example usage</span>
-<span class="c1"># old_entry = {&quot;file&quot;: &quot;scan.ibw&quot;, &quot;channel&quot;: 0}</span>
-<span class="c1"># new_entry = {&quot;file&quot;: &quot;scan.ibw&quot;, &quot;channel_id&quot;: migrate_database_entry(&quot;scan.ibw&quot;, 0)}</span>
+<span class="c1"># old_entry = {"file": "scan.ibw", "channel": 0}</span>
+<span class="c1"># new_entry = {"file": "scan.ibw", "channel_id": migrate_database_entry("scan.ibw", 0)}</span>
 </pre></div>
 </div>
 </section>

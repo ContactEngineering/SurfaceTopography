@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contributing to SurfaceTopography &mdash; SurfaceTopography 1.23.0 documentation</title>
+  <title>Contributing to SurfaceTopography &mdash; SurfaceTopography 1.23.0.dev2+g16317e68 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=b8112b1c"></script>
+      <script src="_static/documentation_options.js?v=b329de2d"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -171,7 +171,7 @@ parallel test runner <a class="reference external" href="https://github.com/bccp
 <p>If a whole test file should only be run in serial
 and/or is incompatible with <cite>runtests</cite> (<cite>unittest</cite>), include following line:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pytestmark</span> <span class="o">=</span> <span class="n">pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">skipif</span><span class="p">(</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span><span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;tests only serial funcionalities, please execute with pytest&quot;</span><span class="p">)</span>
+        <span class="n">reason</span><span class="o">=</span><span class="s2">"tests only serial funcionalities, please execute with pytest"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The file will executed in a run with <cite>pytest</cite> and not with a (parallel) run with
@@ -200,7 +200,7 @@ happens. It is a good idea to let the plots ready for use:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="o">-</span> <span class="n">system</span><span class="o">.</span><span class="n">substrate</span><span class="o">.</span><span class="n">force</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;pressure&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="o">-</span> <span class="n">system</span><span class="o">.</span><span class="n">substrate</span><span class="o">.</span><span class="n">force</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">"pressure"</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>

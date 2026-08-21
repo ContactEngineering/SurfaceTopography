@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Format description contract &mdash; SurfaceTopography 1.23.0 documentation</title>
+  <title>Format description contract &mdash; SurfaceTopography 1.23.0.dev2+g16317e68 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=b8112b1c"></script>
+      <script src="_static/documentation_options.js?v=b329de2d"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -134,21 +134,21 @@ frozen; everything else is intended to be stable.</p>
 <h2>Document structure<a class="headerlink" href="#document-structure" title="Link to this heading"></a></h2>
 <p>A format description is a single JSON document:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;schema_version&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-  <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="p">{</span>
-    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;zon&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Keyence ZON&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;file_extensions&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;zon&quot;</span><span class="p">],</span>
-    <span class="s2">&quot;mime_types&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;application/x-keyence-zon&quot;</span><span class="p">],</span>
-    <span class="s2">&quot;magic&quot;</span><span class="p">:</span> <span class="p">[</span>
-      <span class="p">{</span><span class="s2">&quot;offset&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;bytes&quot;</span><span class="p">:</span> <span class="s2">&quot;S1BLMA==&quot;</span><span class="p">},</span>
-      <span class="p">{</span><span class="s2">&quot;offset&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;bytes&quot;</span><span class="p">:</span> <span class="s2">&quot;S1BLMQ==&quot;</span><span class="p">}</span>
+  <span class="s2">"schema_version"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+  <span class="s2">"format"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">"id"</span><span class="p">:</span> <span class="s2">"zon"</span><span class="p">,</span>
+    <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"Keyence ZON"</span><span class="p">,</span>
+    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"..."</span><span class="p">,</span>
+    <span class="s2">"file_extensions"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"zon"</span><span class="p">],</span>
+    <span class="s2">"mime_types"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"application/x-keyence-zon"</span><span class="p">],</span>
+    <span class="s2">"magic"</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">{</span><span class="s2">"offset"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"bytes"</span><span class="p">:</span> <span class="s2">"S1BLMA=="</span><span class="p">},</span>
+      <span class="p">{</span><span class="s2">"offset"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"bytes"</span><span class="p">:</span> <span class="s2">"S1BLMQ=="</span><span class="p">}</span>
     <span class="p">]</span>
   <span class="p">},</span>
-  <span class="s2">&quot;capabilities&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="s2">&quot;zip&quot;</span><span class="p">,</span> <span class="s2">&quot;zstd&quot;</span><span class="p">,</span> <span class="s2">&quot;xml&quot;</span><span class="p">],</span>
-  <span class="s2">&quot;layout&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span><span class="n">layout</span> <span class="n">node</span><span class="o">...</span> <span class="p">},</span>
-  <span class="s2">&quot;channels&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="o">...</span><span class="n">channel</span> <span class="n">bindings</span><span class="o">...</span> <span class="p">]</span>
+  <span class="s2">"capabilities"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"core"</span><span class="p">,</span> <span class="s2">"zip"</span><span class="p">,</span> <span class="s2">"zstd"</span><span class="p">,</span> <span class="s2">"xml"</span><span class="p">],</span>
+  <span class="s2">"layout"</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span><span class="n">layout</span> <span class="n">node</span><span class="o">...</span> <span class="p">},</span>
+  <span class="s2">"channels"</span><span class="p">:</span> <span class="p">[</span> <span class="o">...</span><span class="n">channel</span> <span class="n">bindings</span><span class="o">...</span> <span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -514,20 +514,20 @@ support reading and forward seeking.</p>
 model. Every field value is either a JSON literal or an expression over
 the metadata context:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>{
-  &quot;index&quot;: 0,
-  &quot;name&quot;: &quot;default&quot;,
-  &quot;dim&quot;: 2,
-  &quot;nb_grid_pts&quot;: &lt;expr → [nx, ny]&gt;,
-  &quot;physical_sizes&quot;: &lt;expr → [sx, sy]&gt;,
-  &quot;unit&quot;: &quot;m&quot;,
-  &quot;height_scale_factor&quot;: &lt;expr | number | null&gt;,
-  &quot;periodic&quot;: false,
-  &quot;uniform&quot;: true,
-  &quot;info&quot;: { &quot;&lt;key&gt;&quot;: &lt;expr | literal&gt;, ... },
-  &quot;data&quot;: &lt;ctx path to an array handle&gt;,
-  &quot;mask&quot;: {
-    &quot;source&quot;: &lt;ctx path to an array handle&gt;,
-    &quot;rule&quot;: &lt;expr, val bound to the source array, → boolean array&gt;
+  "index": 0,
+  "name": "default",
+  "dim": 2,
+  "nb_grid_pts": &lt;expr → [nx, ny]&gt;,
+  "physical_sizes": &lt;expr → [sx, sy]&gt;,
+  "unit": "m",
+  "height_scale_factor": &lt;expr | number | null&gt;,
+  "periodic": false,
+  "uniform": true,
+  "info": { "&lt;key&gt;": &lt;expr | literal&gt;, ... },
+  "data": &lt;ctx path to an array handle&gt;,
+  "mask": {
+    "source": &lt;ctx path to an array handle&gt;,
+    "rule": &lt;expr, val bound to the source array, → boolean array&gt;
   }
 }
 </pre></div>
@@ -579,22 +579,22 @@ this format” and “corrupt file”) using the <code class="docutils literal n
 expected parse result, generated by the reference implementation
 (SurfaceTopography):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;schema_version&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-  <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;zon&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;fixture&quot;</span><span class="p">:</span> <span class="s2">&quot;zon-1.zon&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;channels&quot;</span><span class="p">:</span> <span class="p">[</span>
+  <span class="s2">"schema_version"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+  <span class="s2">"format"</span><span class="p">:</span> <span class="s2">"zon"</span><span class="p">,</span>
+  <span class="s2">"fixture"</span><span class="p">:</span> <span class="s2">"zon-1.zon"</span><span class="p">,</span>
+  <span class="s2">"channels"</span><span class="p">:</span> <span class="p">[</span>
     <span class="p">{</span>
-      <span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-      <span class="s2">&quot;nb_grid_pts&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1779</span><span class="p">,</span> <span class="mi">2588</span><span class="p">],</span>
-      <span class="s2">&quot;physical_sizes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.004378</span><span class="p">,</span> <span class="mf">0.006369</span><span class="p">],</span>
-      <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;nb_undefined&quot;</span><span class="p">:</span> <span class="mi">15620</span><span class="p">,</span>
-      <span class="s2">&quot;probe_pixels&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span><span class="s2">&quot;pos&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">},</span>
-        <span class="p">{</span><span class="s2">&quot;pos&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mf">8.47e-05</span><span class="p">}</span>
+      <span class="s2">"index"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+      <span class="s2">"nb_grid_pts"</span><span class="p">:</span> <span class="p">[</span><span class="mi">1779</span><span class="p">,</span> <span class="mi">2588</span><span class="p">],</span>
+      <span class="s2">"physical_sizes"</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.004378</span><span class="p">,</span> <span class="mf">0.006369</span><span class="p">],</span>
+      <span class="s2">"unit"</span><span class="p">:</span> <span class="s2">"m"</span><span class="p">,</span>
+      <span class="s2">"nb_undefined"</span><span class="p">:</span> <span class="mi">15620</span><span class="p">,</span>
+      <span class="s2">"probe_pixels"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s2">"pos"</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="s2">"value"</span><span class="p">:</span> <span class="n">null</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">"pos"</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mf">8.47e-05</span><span class="p">}</span>
       <span class="p">],</span>
-      <span class="s2">&quot;masked_mean&quot;</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span>
-      <span class="s2">&quot;masked_rms&quot;</span><span class="p">:</span> <span class="o">...</span>
+      <span class="s2">"masked_mean"</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span>
+      <span class="s2">"masked_rms"</span><span class="p">:</span> <span class="o">...</span>
     <span class="p">}</span>
   <span class="p">]</span>
 <span class="p">}</span>

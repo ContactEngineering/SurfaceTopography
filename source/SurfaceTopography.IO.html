@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 1.23.0 documentation</title>
+  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 1.23.0.dev2+g16317e68 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=b8112b1c"></script>
+      <script src="../_static/documentation_options.js?v=b329de2d"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -3484,7 +3484,7 @@ stable channel_id system.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">&quot;scan.ibw&quot;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">"scan.ibw"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Migrate old database entry</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">old_index</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># stored in database</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">new_id</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">height_index_to_channel_id</span><span class="p">(</span><span class="n">old_index</span><span class="p">)</span>
@@ -3516,8 +3516,8 @@ require numeric indices.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">&quot;scan.ibw&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">height_idx</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">channel_id_to_height_index</span><span class="p">(</span><span class="s2">&quot;Height&quot;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">"scan.ibw"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">height_idx</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">channel_id_to_height_index</span><span class="p">(</span><span class="s2">"Height"</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -5273,12 +5273,12 @@ out false positive zlib matches. Default: 1000.</p></li>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">layout</span> <span class="o">=</span> <span class="n">ZlibBlockChain</span><span class="p">(</span><span class="s1">&#39;height_blocks&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">layout</span> <span class="o">=</span> <span class="n">ZlibBlockChain</span><span class="p">(</span><span class="s1">'height_blocks'</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">from_stream</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="p">{})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">blocks</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;height_blocks&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">blocks</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">'height_blocks'</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">:</span>
-<span class="gp">... </span>    <span class="n">elem_offset</span> <span class="o">=</span> <span class="n">block</span><span class="p">[</span><span class="s1">&#39;elem_offset&#39;</span><span class="p">]</span>
-<span class="gp">... </span>    <span class="n">data</span> <span class="o">=</span> <span class="n">block</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>  <span class="c1"># decompressed bytes</span>
+<span class="gp">... </span>    <span class="n">elem_offset</span> <span class="o">=</span> <span class="n">block</span><span class="p">[</span><span class="s1">'elem_offset'</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="n">data</span> <span class="o">=</span> <span class="n">block</span><span class="p">[</span><span class="s1">'data'</span><span class="p">]</span>  <span class="c1"># decompressed bytes</span>
 </pre></div>
 </div>
 <dl class="py attribute">
@@ -5521,7 +5521,7 @@ interpreted as the context, a single non-dict argument as the value.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography.IO.binary</span><span class="w"> </span><span class="kn">import</span> <span class="n">AttrDict</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">shape</span> <span class="o">=</span> <span class="n">Tup</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">nb_grid_pts_y</span><span class="p">,</span> <span class="n">C</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">row_bytes</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">shape</span><span class="p">(</span><span class="n">AttrDict</span><span class="p">({</span><span class="s1">&#39;header&#39;</span><span class="p">:</span> <span class="n">AttrDict</span><span class="p">({</span><span class="s1">&#39;nb_grid_pts_y&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;row_bytes&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">})}))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shape</span><span class="p">(</span><span class="n">AttrDict</span><span class="p">({</span><span class="s1">'header'</span><span class="p">:</span> <span class="n">AttrDict</span><span class="p">({</span><span class="s1">'nb_grid_pts_y'</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">'row_bytes'</span><span class="p">:</span> <span class="mi">16</span><span class="p">})}))</span>
 <span class="go">(3, 4)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">is_valid</span> <span class="o">=</span> <span class="p">(</span><span class="n">V</span> <span class="o">&amp;</span> <span class="mh">0x03</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">is_valid</span><span class="p">(</span><span class="mh">0x80</span><span class="p">,</span> <span class="p">{})</span>
@@ -5855,7 +5855,7 @@ memory.</p>
 </dl>
 <p class="rubric">Examples</p>
 <p>Simplest read workflow:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">&quot;filename&quot;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">"filename"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">top</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -5865,16 +5865,16 @@ the file has multiple channels or not.</p>
 <cite>reader.channels()</cite>. This returns a list of dicts containing attributes <cite>name</cite>,
 <cite>physical_sizes</cite>, <cite>nb_grid_pts</cite>, <a href="#id57"><span class="problematic" id="id58">``</span></a>unit` and <a href="#id59"><span class="problematic" id="id60">`</span></a>height_scale_factor:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span><span class="o">.</span><span class="n">channels</span>
-<span class="go">[{&#39;name&#39;: &#39;ZSensor&#39;,</span>
-<span class="go">  &#39;nb_grid_pts&#39;: (256, 256),</span>
-<span class="go">  &#39;physical_sizes&#39;: (9999.999999999998, 9999.999999999998),</span>
-<span class="go">  &#39;unit&#39;: &#39;nm&#39;,</span>
-<span class="go">  &#39;height_scale_factor&#39;: 0.29638271279074097},</span>
-<span class="go"> {&#39;name&#39;: &#39;AmplitudeError&#39;,</span>
-<span class="go">  &#39;nb_grid_pts&#39;: (256, 256),</span>
-<span class="go">  &#39;physical_sizes&#39;: (10.0, 10.0),</span>
-<span class="go">  &#39;unit&#39;: (&#39;µm&#39;, None),</span>
-<span class="go">  &#39;height_scale_factor&#39;: 0.04577566528320313}]</span>
+<span class="go">[{'name': 'ZSensor',</span>
+<span class="go">  'nb_grid_pts': (256, 256),</span>
+<span class="go">  'physical_sizes': (9999.999999999998, 9999.999999999998),</span>
+<span class="go">  'unit': 'nm',</span>
+<span class="go">  'height_scale_factor': 0.29638271279074097},</span>
+<span class="go"> {'name': 'AmplitudeError',</span>
+<span class="go">  'nb_grid_pts': (256, 256),</span>
+<span class="go">  'physical_sizes': (10.0, 10.0),</span>
+<span class="go">  'unit': ('µm', None),</span>
+<span class="go">  'height_scale_factor': 0.04577566528320313}]</span>
 </pre></div>
 </div>
 <p>Here the channel ‘ZSensor’ offers a topography with sizes of
@@ -5886,7 +5886,7 @@ the file has multiple channels or not.</p>
 </div>
 <p>The returned topography has the physical sizes found in the file.</p>
 <p>You can also prescribe some attributes when reading the topography:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">top</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">),</span> <span class="n">info</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;unit&quot;</span><span class="p">:</span><span class="s2">&quot;µm&quot;</span><span class="p">})</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">top</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">),</span> <span class="n">info</span><span class="o">=</span><span class="p">{</span><span class="s2">"unit"</span><span class="p">:</span><span class="s2">"µm"</span><span class="p">})</span>
 </pre></div>
 </div>
 <p>In order to plot the topography with matplotlib, you can use</p>
