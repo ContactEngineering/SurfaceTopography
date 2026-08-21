@@ -1,6 +1,13 @@
 Change log for SurfaceTopography
 ================================
 
+v1.23.1 (not yet released)
+---------------------------
+
+- BUG: OPDx reader now supports the anonymous matrix data type
+  (`DEKTAK_ANON_MATRIX`) used for 2D height maps in some Dektak OPDx files;
+  these files previously failed to load
+
 v1.23.0 (05Aug26)
 -----------------
 

@@ -62,6 +62,7 @@ DEKTAK_TIME_STAMP = 0x15  # Datetime (string/9-byte binary)
 DEKTAK_UNITS = 0x18  # Units (compound type)
 DEKTAK_DOUBLE_ARRAY = 0x40  # Raw data array, in XML Base64-encoded
 DEKTAK_STRING_LIST = 0x42  # List of Str
+DEKTAK_ANON_MATRIX = 0x45  # Like DEKTAK_MATRIX, but with no type name
 DEKTAK_RAW_DATA = 0x46  # Parent/wrapper tag of raw data
 DEKTAK_RAW_DATA_2D = 0x47  # Parent/wrapper tag of raw data
 # Base64-encoded positions, not sure how it differs from 64
@@ -586,8 +587,23 @@ def _read_matrix(stream):
     return data
 
 
+def _read_anon_matrix(stream):
+    _read_name(stream)  # typename, e.g. 'Matrix<float>'; we discard this information
+    length = _read_varlen(stream)
+    yres = _read_scalar(stream, "<u4")
+    xres = _read_scalar(stream, "<u4")
+    if length < 8:  # 2 * sizeof int32
+        raise ValueError
+    length -= 8  # Remove xres and yres
+    data = (None, None, stream.tell(), length, xres, yres)
+    # Skip over data
+    stream.seek(length, 1)
+    return data
+
+
 _item_readers = {
     DEKTAK_MATRIX: _read_matrix,
+    DEKTAK_ANON_MATRIX: _read_anon_matrix,
     DEKTAK_BOOLEAN: "?",
     DEKTAK_SINT16: "<i2",
     DEKTAK_UINT16: "<u2",
