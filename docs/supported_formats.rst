@@ -61,6 +61,9 @@ File Format Table
    * - KLA Zeta
      - ``.zmg``
      - KLA Zeta ZMG profilometry data files
+   * - Mahr MarWin QEP
+     - ``.qep``
+     - ZIP-packaged contour/profile line scans of Mahr instruments running the MarWin software
    * - MATLAB
      - ``.mat``
      - MATLAB workspace files containing topography data

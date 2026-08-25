@@ -38,6 +38,7 @@ python_sources = [
     'PLU.py',
     'PLUX.py',
     'PS.py',
+    'QEP.py',
     'Reader.py',
     'SDF.py',
     'SUR.py',

@@ -137,6 +137,7 @@ binary_example_file_list = _convert_filelist(
         "plux-1.plux",
         "jpk-1.jpk",
         "jpk-2.jpk",
+        "qep-1.qep",
         "nmm-1.zip",
         # MPI I/O does not support Python streams
     ]

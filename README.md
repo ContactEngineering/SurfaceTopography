@@ -75,6 +75,7 @@ SurfaceTopography supports over 35 file formats from commercial surface profilom
 | `plux` | Sensofar PLUX files |
 | `poir` | Olympus POIR (zip) files |
 | `ps` | Keyence profilometer files |
+| `qep` | Mahr MarWin QEP profile archives |
 | `sdf` | ISO 25178-71 SDF files |
 | `sur` | Digital Surf SUR files |
 | `tmd` | TrueMap TMD files |

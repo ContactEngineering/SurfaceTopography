@@ -72,6 +72,7 @@ from .OS3D import OS3DReader
 from .PLU import PLUReader
 from .PLUX import PLUXReader
 from .PS import PSReader
+from .QEP import QEPReader
 from .Reader import MagicMatch, ReaderBase  # noqa: F401
 from .SDF import SDFReader
 from .SUR import SURReader
@@ -126,6 +127,7 @@ readers = [
     PLUXReader,
     JPKReader,
     MNTReader,
+    QEPReader,
     NMMReader,
     # NMS and HGT readers should come last as there is no file magic
     NMSReader,
