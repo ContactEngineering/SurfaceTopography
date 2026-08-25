@@ -108,6 +108,14 @@ SurfaceTopography.IO.LEXT module
    :show-inheritance:
    :undoc-members:
 
+SurfaceTopography.IO.MDT module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.MDT
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 SurfaceTopography.IO.MI module
 ------------------------------
 

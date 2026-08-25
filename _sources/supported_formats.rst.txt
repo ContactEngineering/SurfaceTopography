@@ -76,6 +76,9 @@ File Format Table
    * - Nanofocus
      - ``.nms``
      - Nanofocus NMS profilometry data files
+   * - NT-MDT
+     - ``.mdt``
+     - NT-MDT (Spectrum Instruments) AFM files, e.g. from the Solver and Ntegra series
    * - NanoSurf easyScan
      - ``.ezd``, ``.nid``
      - NanoSurf easyScan data files
