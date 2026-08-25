@@ -69,6 +69,7 @@ _EXPORTED_READERS = {
     "ps": ["example_ps.tiff"],
     "lext": ["lext-1.lext", "lext-2.lext"],
     "jpk": ["jpk-1.jpk", "jpk-2.jpk"],
+    "mdt": ["mdt-1.mdt"],
 }
 
 
@@ -80,6 +81,7 @@ def exported_reader_classes():
         FRTReader,
         JPKReader,
         LEXTReader,
+        MDTReader,
         MetroProReader,
         MIReader,
         NMSReader,
@@ -120,6 +122,7 @@ def exported_reader_classes():
         PSReader,
         LEXTReader,
         JPKReader,
+        MDTReader,
     ]
     return {cls._format: cls for cls in classes}
 

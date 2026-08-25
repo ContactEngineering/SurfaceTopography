@@ -22,6 +22,7 @@ python_sources = [
     'JPK.py',
     'LEXT.py',
     'Matlab.py',
+    'MDT.py',
     'MI.py',
     'MetroPro.py',
     'Mitutoyo.py',

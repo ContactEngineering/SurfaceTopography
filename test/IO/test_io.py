@@ -120,6 +120,7 @@ binary_example_file_list = _convert_filelist(
         "al3d-1.al3d",
         "nid-1.nid",
         "metropro-1.dat",
+        "mdt-1.mdt",
         "gwy-1.gwy",
         "gwy-2.gwy",
         "plu-1.plu",

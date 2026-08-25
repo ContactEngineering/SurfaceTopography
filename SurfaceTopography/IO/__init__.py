@@ -56,6 +56,7 @@ from .IBW import IBWReader
 from .JPK import JPKReader
 from .LEXT import LEXTReader
 from .Matlab import MatReader
+from .MDT import MDTReader
 from .MetroPro import MetroProReader
 from .MI import MIReader
 from .Mitutoyo import MitutoyoReader
@@ -91,6 +92,7 @@ readers = [
     AscReader,
     DIReader,
     MatReader,
+    MDTReader,
     OPDReader,
     OPDxReader,
     X3PReader,

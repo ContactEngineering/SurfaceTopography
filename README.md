@@ -58,6 +58,7 @@ SurfaceTopography supports over 35 file formats from commercial surface profilom
 | `jpk` | JPK Instruments files |
 | `lext` | Olympus LEXT files |
 | `mat` | MATLAB .mat files |
+| `mdt` | NT-MDT (Solver, Ntegra) AFM files |
 | `metropro` | Zygo MetroPro files |
 | `mi` | Park Systems / Molecular Imaging files |
 | `mitutoyo` | Mitutoyo surface roughness files |
