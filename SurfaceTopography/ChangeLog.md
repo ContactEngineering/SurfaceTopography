@@ -1,9 +1,13 @@
 Change log for SurfaceTopography
 ================================
 
-v1.23.1 (not yet released)
----------------------------
+v1.24.0 (25Aug26)
+-----------------
 
+- ENH: New reader for NT-MDT AFM files (`.mdt`), fully declarative and
+  exported to a format description document
+- ENH: New reader for Mahr MarWin QEP profile archives (`.qep`); line
+  scans with instrument-flagged invalid points reported as undefined data
 - BUG: OPDx reader now supports the anonymous matrix data type
   (`DEKTAK_ANON_MATRIX`) used for 2D height maps in some Dektak OPDx files;
   these files previously failed to load
