@@ -244,6 +244,14 @@ SurfaceTopography.IO.PS module
    :show-inheritance:
    :undoc-members:
 
+SurfaceTopography.IO.QEP module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.QEP
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 SurfaceTopography.IO.Reader module
 ----------------------------------
 
