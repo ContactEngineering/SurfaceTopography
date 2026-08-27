@@ -83,7 +83,8 @@ class OPDxReader(ReaderBase):
 
     _name = "Dektak OPDx"
     _description = """
-File format of the Bruker Dektak XT* series stylus profilometer.
+OPDx files written by the Vision64 software of Bruker Dektak XT series
+stylus profilometers.
 """
 
     # Reads in the positions of all the data and metadata

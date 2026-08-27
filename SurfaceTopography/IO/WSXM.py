@@ -71,10 +71,10 @@ class WSXMReader(DeclarativeReaderBase):
     _mime_types = ["application/x-wsxm-spm"]
     _file_extensions = ["cur", "stp", "tom", "top"]
 
-    _name = "WSxM SPM data"
+    _name = "WSxM"
     _description = """
-This reader imports WSxM data files. WSxM is a standalone software package for
-scanning probe microscopy available at http://www.wsxm.eu/.
+Data files of WSxM, a standalone software package for scanning probe
+microscopy available at http://www.wsxm.eu/.
 """
 
     _magic = [(0, _MAGIC.encode("ascii"))]

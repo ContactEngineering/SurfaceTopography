@@ -62,7 +62,8 @@ class AL3DReader(DeclarativeReaderBase):
 
     _name = 'Alicona Imaging AL3D'
     _description = '''
-AL3D format of Alicona Imaging.
+AL3D files of Alicona Imaging (now Bruker Alicona) focus-variation
+instruments, e.g. the InfiniteFocus microscopes.
 '''
 
     _magic = [(0, _MAGIC)]

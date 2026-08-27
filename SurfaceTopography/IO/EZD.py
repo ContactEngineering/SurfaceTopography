@@ -45,9 +45,11 @@ class EZDReader(ReaderBase):
     _mime_types = ["application/x-nanosurf-spm"]
     _file_extensions = ["ezd", "nid"]
 
-    _name = "NanoSurf easyScan data file"
+    _name = "Nanosurf easyScan"
     _description = """
-NanoSurf easyScan data file with typical file extension .ezd/.nid
+EZD/NID data files of Nanosurf scanning probe microscopes, e.g. the easyScan
+series: an INI-style text header describing the channels, followed by binary
+data blocks.
 """
 
     _MAGIC = "[DataSet]\r\n"

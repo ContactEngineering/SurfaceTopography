@@ -103,11 +103,10 @@ class X3PReader(DeclarativeReaderBase):
 
     _name = "XML 3D surface profile (X3P)"
     _description = """
-X3P is a container format conforming to the ISO 5436-2 (Geometrical Product
-Specifications — Surface texture) standard. The format is defined in ISO
-25178 and is a standardized format for the exchange of surface topography
-data. The full specification of the format can be found
-[here](http://www.opengps.eu/).
+X3P is an XML-based container format for the exchange of surface topography
+data, standardized in ISO 25178-72 (originally ISO 5436-2, Geometrical
+Product Specifications — Surface texture). The full specification of the
+format can be found [here](http://www.opengps.eu/).
 """
 
     # ZIP magic bytes (PK\x03\x04)

@@ -65,7 +65,7 @@ class NCReader(ReaderBase):
 
     _name = "Network Common Data Format (NetCDF)"
     _description = """
-This reader reads topography data contained in a
+Topography data stored in a
 [NetCDF](https://www.unidata.ucar.edu/software/netcdf/) container. The
 reader looks for a variable named `heights` containing a two-dimensional
 array that is interpreted as height information. The respective dimensions are
@@ -101,25 +101,6 @@ variables:
     double heights(x, y) ;
         heights:unit = "um" ;
 }
-```
-The following code snippets reads the file and displays the topography data as
-a two-dimensional color map in Python:
-```python
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.io.netcdf import netcdf_file
-
-nc = netcdf_file('test.nc')
-heights = np.array(nc.variables['heights'][...])
-x = np.array(nc.variables['x'][...])
-y = np.array(nc.variables['y'][...])
-unit = nc.variables['x'].unit
-
-plt.figure()
-plt.subplot(aspect=1)
-plt.pcolormesh(x, y, heights.T)
-
-plt.show()
 ```
 """
 

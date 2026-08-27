@@ -53,9 +53,9 @@ class MIReader(DeclarativeReaderBase):
 
     _name = "Molecular Imaging (MI)"
     _description = """
-Agilent Technologies (Molecular Imaging) AFM saves filed in the MI format.
-This format contains information on the physical size of the topography map as
-well as its units.
+MI files of Agilent Technologies (Molecular Imaging) atomic force
+microscopes. This format contains information on the physical size of the
+topography map as well as its units.
 """
 
     # All MI files start with a `fileType` key line

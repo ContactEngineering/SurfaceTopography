@@ -166,8 +166,8 @@ class GWYReader(ReaderBase):
 
     _name = "Gwyddion"
     _description = """
-This reader imports the native file format of the open-source SPM
-visualization and analysis software Gwyddion.
+Native file format of the open-source SPM visualization and analysis
+software [Gwyddion](http://gwyddion.net/).
 """
 
     _MAGIC = b"GWYP"

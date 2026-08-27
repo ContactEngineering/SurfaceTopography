@@ -350,7 +350,7 @@ class OIRReader(DeclarativeReaderBase):
 
     _name = "Olympus OIR"
     _description = """
-This reader imports Olympus OIR data files.
+OIR data files of Olympus (now Evident) laser scanning microscopes.
 """
 
     _file_layout = CompoundLayout(
@@ -548,8 +548,8 @@ class POIRReader(ReaderBase):
 
     _name = "Olympus packed OIR"
     _description = """
-This reader imports Olympus packed OIR data files. These files are ZIP
-containers that contain a number of OIR files.
+Packed OIR files of Olympus (now Evident) laser scanning microscopes: ZIP
+containers holding a number of OIR files.
 """
 
     def __init__(self, fobj):

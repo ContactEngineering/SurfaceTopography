@@ -45,12 +45,11 @@ class NMMReader(ReaderBase):
     _mime_types = ["application/zip"]
     _file_extensions = ["zip"]
 
-    _name = "Nanomeasuring machine NMM"
+    _name = "Nanomeasuring machine (NMM)"
     _description = """
-Import filter for nanomeasuring machine files. The reader opens ZIP files that contain
-a single DAT and a single DSC file. The data is interpreted as a line scan. The reader
-rejects ZIP files with more that two files or files with extensions other than DAT and
-DSC.
+Line scans of the SIOS nanomeasuring machine (NMM), stored as ZIP files that
+contain a single DAT and a single DSC file. ZIP files with more than two
+members or with other extensions are rejected.
     """  # noqa: E501
 
     _UNITS = {

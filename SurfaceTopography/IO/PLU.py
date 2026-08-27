@@ -135,9 +135,10 @@ class PLUReader(DeclarativeReaderBase):
     _mime_types = ["application/x-sensofar-spm"]
     _file_extensions = ["plu", "apx"]
 
-    _name = "Sensorfar SPM"
+    _name = "Sensofar PLU"
     _description = """
-This reader imports Sensofar's SPM file format.
+PLU (and APX) files of Sensofar 3D optical profilometers (confocal,
+interferometric and focus-variation instruments).
 """
 
     _file_layout = CompoundLayout(

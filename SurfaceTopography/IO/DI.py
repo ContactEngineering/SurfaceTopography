@@ -52,7 +52,7 @@ class DIReader(ReaderBase):
     _mime_types = ["application/x-nanoscope-iii-spm"]
     _file_extensions = ["spm", "001", "002", "003", "004", "005"]
 
-    _name = "Bruker Dimension, Veeco Nanoscope, Digital Instruments Nanoscope"
+    _name = "Bruker/Veeco/DI Nanoscope"
     _description = """
 Digital Instruments Nanoscope (also Veeco Nanoscope and Bruker Dimension)
 files typically have a three-digit number as the file extension (.001, .002, .003, ...).

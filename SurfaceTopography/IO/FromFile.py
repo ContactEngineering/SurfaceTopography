@@ -222,10 +222,11 @@ HGTReader = make_wrapped_reader(
     format="hgt",
     mime_types=["application/octet-stream"],
     file_extensions=["hgt"],
-    name="NASA shuttle radar topography mission",
+    name="NASA SRTM",
     description="""
-Data format of the NASA shuttle radar topography mission that recorded the '
-earths topography. More information can be found
+Data format of the NASA Shuttle Radar Topography Mission (SRTM), which
+recorded the Earth's topography. Physical sizes are not stored in the file
+and must be provided by the user. More information can be found
 [here](https://www.earthdata.nasa.gov/data/instruments/srtm).
 """,
 )

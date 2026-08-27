@@ -48,9 +48,9 @@ class NMSReader(DeclarativeReaderBase):
     _mime_types = ["application/x-nanofocus-nms"]
     _file_extensions = ["nms"]
 
-    _name = "Nanofocus"
+    _name = "NanoFocus NMS"
     _description = """
-This reader imports Nanofocus NMS data files.
+NMS data files of NanoFocus confocal microscopes (e.g. the µsurf series).
 """
 
     # NMS files don't have a clear magic signature; detection needs to

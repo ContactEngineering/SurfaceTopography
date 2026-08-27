@@ -51,9 +51,10 @@ class MetroProReader(DeclarativeReaderBase):
     _mime_types = ["application/x-zygo-spm"]
     _file_extensions = ["dat"]
 
-    _name = "Zygo Metropro DAT"
+    _name = "Zygo MetroPro DAT"
     _description = """
-This reader imports Zygo MetroPro data files.
+Binary DAT files written by the MetroPro software of Zygo optical
+interferometers.
 """
 
     _magic = [(0, _MAGIC1), (0, _MAGIC2), (0, _MAGIC3)]

@@ -46,7 +46,7 @@ class OS3DReader(DeclarativeReaderBase):
 
     _name = "Digital Metrology OmniSurf3D"
     _description = """
-This reader imports Digital Metrology OmniSurf3D data files.
+OS3D data files of Digital Metrology's OmniSurf3D surface analysis software.
 """
 
     _magic = [(0, _MAGIC.encode("ascii"))]

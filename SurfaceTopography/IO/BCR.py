@@ -119,9 +119,11 @@ class BCRReader(DeclarativeReaderBase):
     _mime_types = ["application/x-bcr-spm", "application/x-bcrf-spm"]
     _file_extensions = ["bcr", "bcrf"]
 
-    _name = "BCR-STM file format"
+    _name = "BCR-STM"
     _description = """
-BCR-STM and BCRF file formats
+BCR-STM and BCRF interchange files for scanning probe data: a fixed-size
+text header followed by binary height data. Many SPM analysis packages read
+and write this format.
 """
 
     _magic = [

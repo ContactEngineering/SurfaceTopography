@@ -46,7 +46,9 @@ class DATXReader(ReaderBase):
 
     _name = 'Zygo DATX'
     _description = '''
-Import filter for Zygo DATX, an HDF5-based format.
+HDF5-based DATX files written by the Mx software of Zygo optical
+interferometers. This format contains information on the physical size of
+the topography map, its units and undefined data points.
     '''  # noqa: E501
 
     # HDF5 magic bytes

@@ -233,7 +233,8 @@ class VKReader(DeclarativeReaderBase):
 
     _name = "Keyence VK"
     _description = """
-VK3, VK4, VK6 and VK7 file formats of the Keyence laser confocal microscope.
+VK3, VK4, VK6 and VK7 file formats of Keyence laser scanning confocal
+microscopes (VK series).
 """
 
     # VK3/VK4 have a 4-byte magic, VK6/VK7 a 3-byte magic

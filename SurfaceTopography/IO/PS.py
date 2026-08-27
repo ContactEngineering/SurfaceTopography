@@ -63,7 +63,9 @@ class PSReader(DeclarativeReaderBase):
 
     _name = "Park Systems TIFF"
     _description = """
-TIFF-based file format of Park Systems instruments.
+TIFF-based file format of Park Systems atomic force microscopes: a standard
+TIFF file with the measurement data and metadata stored in vendor-specific
+tags.
 """
 
     # TIFF magic bytes (little- and big-endian)

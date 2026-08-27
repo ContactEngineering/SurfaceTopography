@@ -57,7 +57,7 @@ class NPYReader(ReaderBase):
     _mime_types = ["application/x-npy"]
     _file_extensions = ["npy"]
 
-    _name = "Numpy arrays (NPY)"
+    _name = "NumPy array (NPY)"
     _description = """
 Load topography information stored as a numpy array. The numpy array format is
 specified

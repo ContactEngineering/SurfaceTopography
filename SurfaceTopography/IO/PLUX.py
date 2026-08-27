@@ -46,9 +46,10 @@ class PLUXReader(DeclarativeReaderBase):
     _mime_types = ["application/x-sensofarx-spm"]
     _file_extensions = ["plux"]
 
-    _name = "Sensorfar XML SPM"
+    _name = "Sensofar PLUX"
     _description = """
-This reader imports Sensofar's XML SPM file format.
+PLUX files of Sensofar 3D optical profilometers: ZIP containers holding XML
+metadata and binary data layers.
 """
 
     # PLUX files are ZIP archives without a distinctive magic; detection

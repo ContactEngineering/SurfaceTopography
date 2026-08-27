@@ -156,8 +156,8 @@ class SDFReader(DeclarativeReaderBase):
 
     _name = "ISO 25178-71 SDF"
     _description = """
-This reader imports ISO 25178-71 Surface Data File (SDF) format files.
-Both ASCII and binary variants are supported.
+ISO 25178-71 Surface Data Files (SDF), a standardized exchange format for
+surface topography data. Both the ASCII and binary variants are supported.
 """
 
     _magic = [

@@ -72,7 +72,7 @@ class LEXTReader(DeclarativeReaderBase):
 
     _name = "Olympus LEXT"
     _description = """
-TIFF-based file format of Olympus instruments.
+TIFF-based LEXT files of Olympus LEXT laser scanning confocal microscopes.
 """
 
     # TIFF magic bytes (little- and big-endian)

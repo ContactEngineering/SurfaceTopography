@@ -55,10 +55,11 @@ class MitutoyoReader(ReaderBase):
     _mime_types = ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"]
     _file_extensions = ["xlsx"]
 
-    _name = "Mitutoyo SurfTest Excel spreadsheet (xlsx)"
+    _name = "Mitutoyo SurfTest"
     _description = """
-Load topography information stored as Excel spreadsheet by Mitutoyo SurfTest
-surface roughness testers.
+Excel spreadsheets (xlsx) exported by Mitutoyo SurfTest surface roughness
+testers. The file contains a line scan and standard roughness metrics; the
+latter are reported as metadata.
     """
 
     def __init__(self, fobj):

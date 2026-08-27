@@ -38,9 +38,10 @@ class SURReader(DeclarativeReaderBase):
     _mime_types = ["application/x-surf-spm"]
     _file_extensions = ["sur"]
 
-    _name = "Digital Surf"
+    _name = "Digital Surf SUR"
     _description = """
-This reader imports Digital Surf SUR data files.
+SUR data files of Digital Surf, the native format of the MountainsMap
+software. Instruments of several vendors write this format directly.
 """
 
     _magic = [(0, b"DIGITAL SURF")]

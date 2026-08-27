@@ -37,9 +37,9 @@ class ZMGReader(DeclarativeReaderBase):
     _mime_types = ["application/x-zeta-zmg"]
     _file_extensions = ["zmg"]
 
-    _name = "KLA Zeta"
+    _name = "KLA Zeta ZMG"
     _description = """
-This reader imports KLA Zeta ZMG data files.
+ZMG data files of KLA Zeta (formerly Zeta Instruments) optical profilers.
 """
 
     _magic = [(0, b"Zeta-Instruments")]

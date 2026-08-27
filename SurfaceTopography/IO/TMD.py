@@ -39,9 +39,9 @@ class TMDReader(DeclarativeReaderBase):
     _mime_types = ["application/x-truemap-tmd"]
     _file_extensions = ["tmd"]
 
-    _name = "TrueMap"
+    _name = "TrueMap TMD"
     _description = """
-This reader imports TrueMap TMD data files.
+TMD data files of the TrueGage TrueMap surface metrology software.
 """
 
     _magic = [(0, _MAGIC.encode("ascii"))]

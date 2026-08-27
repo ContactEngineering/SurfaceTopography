@@ -141,7 +141,8 @@ class JPKReader(DeclarativeReaderBase):
 
     _name = "JPK image scan"
     _description = """
-TIFF-based file format of JPK instruments (now Bruker)
+TIFF-based image scans of JPK Instruments (now Bruker) atomic force
+microscopes.
 """
 
     # TIFF magic bytes (little- and big-endian)

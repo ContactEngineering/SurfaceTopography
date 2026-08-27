@@ -678,9 +678,10 @@ class FRTReader(DeclarativeReaderBase):
     _mime_types = ["application/x-microprof"]
     _file_extensions = ["frt"]
 
-    _name = "Microprof FRT"
+    _name = "FRT MicroProf"
     _description = """
-This reader imports MicroProf FRT profilometry data.
+FRT files of MicroProf optical profilometers by FRT (Fries Research &
+Technology, now part of FormFactor).
 """
 
     _magic = [(0, _MAGIC.encode("ascii"))]

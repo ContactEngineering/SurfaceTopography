@@ -145,7 +145,8 @@ class ZONReader(DeclarativeReaderBase):
 
     _name = "Keyence ZON"
     _description = """
-This reader open ZON files that are written by some Keyence instruments.
+ZON containers written by Keyence one-shot 3D measuring macroscopes (VR
+series).
 """
 
     _magic = [(0, _MAGIC0.encode("ascii")), (0, _MAGIC1.encode("ascii"))]
