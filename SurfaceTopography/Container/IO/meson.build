@@ -3,6 +3,7 @@ python_sources = [
     '__init__.py',
     'CE.py',
     'Reader.py',
+    'Schema.py',
     'ZAG.py'
 ]
 

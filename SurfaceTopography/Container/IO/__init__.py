@@ -33,6 +33,15 @@ import requests
 
 from ...Exceptions import CannotDetectFileFormat, UnknownFileFormat
 from .CE import CEReader, write_containers  # noqa: F401
+from .Reader import ContainerMember  # noqa: F401
+from .Schema import (  # noqa: F401
+    CONTAINER_METADATA_FILENAME,
+    LEGACY_METADATA_FILENAME,
+    ContainerMeta,
+    SurfaceMeta,
+    TopographyMeta,
+    load_container_metadata,
+)
 from .ZAG import ZAGReader
 
 readers = [
