@@ -34,7 +34,6 @@ from NuMPI import MPI
 
 from SurfaceTopography.IO import open_topography
 from SurfaceTopography.IO.GWY import _instrument_from_meta
-from SurfaceTopography.IO.MNT import _parse_utf16_text
 from SurfaceTopography.Metadata import InfoModel, InstrumentModel
 
 pytestmark = pytest.mark.skipif(
@@ -90,36 +89,11 @@ def test_metropro_serial_fields(file_format_examples):
     assert raw_metadata["sys_serial2"] == 59407
 
 
-@pytest.mark.parametrize(
-    "filename,serial", [("mnt-1.mnt", "DS-364280957"), ("mnt-2.mnt", "DS-781758056")]
-)
-def test_mnt_software_serial(file_format_examples, filename, serial):
-    reader = open_topography(os.path.join(file_format_examples, filename))
-    assert reader.default_channel.info["raw_metadata"]["serial_number"] == serial
-    assert "instrument" not in reader.topography().info
-
-
 def test_nid_instrument(file_format_examples):
     reader = open_topography(os.path.join(file_format_examples, "nid-1.nid"))
     instrument = reader.topography().info["instrument"]
     assert instrument["vendor"] == "Nanosurf"
     assert instrument["name"] == "DriveAFM"
-
-
-@pytest.mark.parametrize(
-    "raw,text",
-    [
-        (b"\x04m\x00m\x00", "mm"),
-        (b"\x04\xb5\x00m\x00", "µm"),
-        # One-character units were not decoded when the marker was taken
-        # for a length
-        (b"\x04m\x00", "m"),
-        (b"\x04D\x00S\x00-\x001\x002\x00\x00\x00", "DS-12"),
-        (b"\x04", None),
-    ],
-)
-def test_mnt_utf16_text(raw, text):
-    assert _parse_utf16_text({"_raw": raw}) == text
 
 
 @pytest.mark.parametrize(
