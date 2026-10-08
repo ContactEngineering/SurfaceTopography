@@ -124,7 +124,7 @@ interferometers.
                     ("camera_height", ">h"),
                     ("sys_type", ">h"),
                     ("sys_board", ">h"),
-                    ("sys_serial", ">h"),
+                    ("sys_serial", ">H"),
                     ("inst_id", ">h"),
                     ("obj_name", "12s"),
                     ("part_name", "40s"),
@@ -218,7 +218,9 @@ interferometers.
                     ("ref_cal_pts", ">4f"),
                     ("tst_cal_pix_opd", ">f"),
                     ("ref_cal_pix_opd", ">f"),
-                    ("sys_serial2", ">i"),
+                    # Unlike the rest of the header, this field is little endian
+                    # (as in Gwyddion's metropro.c)
+                    ("sys_serial2", "<i"),
                     ("flash_phase_dc_mask", ">f"),
                     ("flash_phase_alias_mask", ">f"),
                     ("flash_phase_filter", ">f"),
@@ -339,11 +341,13 @@ interferometers.
                 "acquisition_time": F.from_timestamp(C.header1.time_stamp),
                 "instrument": {
                     "vendor": "Zygo",
-                    "serial": F.str(C.header1.sys_serial)
-                    + Cond(
+                    # `sys_serial` holds only the lower 16 bits of the
+                    # serial number; newer files store all of it in
+                    # `sys_serial2`
+                    "serial": Cond(
                         C.header1.sys_serial2 != 0,
-                        "/" + F.str(C.header1.sys_serial2),
-                        "",
+                        F.str(C.header1.sys_serial2),
+                        F.str(C.header1.sys_serial),
                     ),
                 },
                 # The optional `header3` section is merged into the header

@@ -159,6 +159,41 @@ _gwy_readers = {
 }
 
 
+def _instrument_from_meta(meta):
+    """
+    Extract instrument information from Gwyddion's per-channel metadata.
+
+    Gwyddion's file modules copy header fields into the metadata. Its
+    MetroPro module stores the 16-bit `sys_serial` (as a signed number) as
+    "Instrument serial number" and the full 32-bit `sys_serial2` as
+    "Instrument serial number 2".
+
+    Parameters
+    ----------
+    meta : dict or None
+        Entry `/<index>/meta` of the Gwyddion container.
+
+    Returns
+    -------
+    instrument : dict or None
+        Instrument information, or None if the metadata carries none.
+    """
+    if not isinstance(meta, dict):
+        return None
+    meta = meta.get("GwyContainer", meta)
+    serial = meta.get("Instrument serial number 2")
+    if serial in (None, "0"):
+        serial = meta.get("Instrument serial number")
+        try:
+            # Undo the sign of the 16-bit field
+            serial = str(int(serial) & 0xFFFF)
+        except (TypeError, ValueError):
+            pass
+    if serial is None:
+        return None
+    return {"serial": serial}
+
+
 class GWYReader(ReaderBase):
     _format = "gwy"
     _mime_types = ["application/x-gwyddion-spm"]
@@ -242,11 +277,14 @@ software [Gwyddion](http://gwyddion.net/).
                                 periodic=False,
                                 uniform=True,
                                 info={
+                                    "instrument": _instrument_from_meta(
+                                        self._metadata.get(f"/{index}/meta")
+                                    ),
                                     "raw_metadata": {
                                         key: value
                                         for key, value in self._metadata.items()
                                         if key.startswith(f"/{index}/")
-                                    }
+                                    },
                                 },
                                 tags={"data": data["data"], "index": index},
                             )

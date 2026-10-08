@@ -28,7 +28,7 @@
 
 from ..Exceptions import CorruptFile, FileFormatMismatch
 from .binary import BinaryArray, TextHeader, TextLine
-from .expr import C, Cond, F, Lit, Tup, V
+from .expr import C, Cond, DictExpr, F, Lit, Tup, V
 from .Reader import Check, CompoundLayout, DeclarativeReaderBase
 
 _MAGIC = "WSxM file copyright"
@@ -55,6 +55,12 @@ _z_amplitude = F.float(
 )
 _z_unit = F.mangle_length_unit(
     F.split(C.header["General Info"]["Z Amplitude"], " ")[-1]
+)
+
+
+# Serial number of the Nanotec Dulcinea controller, if the file has one
+_controller_serial = F.get(
+    F.get(C.header, "Miscellaneous", {}), "Dulcinea serial number", None
 )
 
 
@@ -141,6 +147,11 @@ microscopy available at http://www.wsxm.eu/.
             "info": {
                 "acquisition_time": F.parse_datetime(
                     C.header["General Info"]["Acquisition time"]
+                ),
+                "instrument": Cond(
+                    _controller_serial != None,  # noqa: E711
+                    DictExpr({"serial": _controller_serial}),
+                    None,
                 ),
                 "raw_metadata": C.header,
             },

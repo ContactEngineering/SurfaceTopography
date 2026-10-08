@@ -224,8 +224,12 @@ The reader supports V4.3 and later version of the format.
                     else:
                         info["instrument"] = {"vendor": "Bruker"}
 
+                    # DI files only carry the serial number of the scanner,
+                    # not that of the controller
                     if "serial number" in scanner:
-                        info["instrument"]["serial"] = scanner["serial number"]
+                        info["instrument"]["scanner_serial"] = scanner[
+                            "serial number"
+                        ]
 
                     for n, p in parameters:
                         if n == "file list":

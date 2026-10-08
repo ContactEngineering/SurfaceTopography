@@ -107,6 +107,18 @@ data blocks.
             )
         )
 
+        # Instrument information. The controller and the scan head have
+        # separate serial numbers; the latter is in the calibration section.
+        dataset_info = metadata.get("DataSet-Info", {})
+        scan_head_calibration = metadata.get("DataSet\\Calibration\\Scanhead", {})
+        instrument = {"vendor": "Nanosurf"}
+        if "Head type" in dataset_info:
+            instrument["name"] = dataset_info["Head type"]
+        if "Controller S/N" in dataset_info:
+            instrument["serial"] = dataset_info["Controller S/N"]
+        if "SerialNo" in scan_head_calibration:
+            instrument["scanner_serial"] = scan_head_calibration["SerialNo"]
+
         # Turn metadata in channel information
         self._channels = []
         global_metadata = metadata["DataSet"]
@@ -168,6 +180,7 @@ data blocks.
                             / 2 ** (8 * nb_bytes),
                             info={
                                 "acquisition_time": acquisition_time,
+                                "instrument": dict(instrument),
                                 "raw_metadata": dataset_metadata,
                             },
                             tags={

@@ -77,6 +77,35 @@ from .Reader import ChannelInfo, ReaderBase, Skip
 _ZLIB_SCAN_CHUNK = 1 << 16
 
 
+def _parse_utf16_text(raw_buffer):
+    """
+    Decode a UTF-16 LE text entry as returned by `RawBuffer`.
+
+    Text entries start with a single marker byte (0x04 in all known files),
+    followed by the UTF-16 LE encoded string that fills the rest of the
+    entry. (The marker is not a length: two-character units such as "mm"
+    happen to be four bytes long, but the 12-character software serial
+    number is 24 bytes long with the same marker.)
+
+    Parameters
+    ----------
+    raw_buffer : dict or None
+        Parsed `RawBuffer` entry, with the bytes stored under `_raw`.
+
+    Returns
+    -------
+    text : str or None
+        Decoded string, or None if the buffer is missing or too short.
+    """
+    if raw_buffer and isinstance(raw_buffer, dict):
+        raw_data = raw_buffer.get("_raw")
+        if raw_data and len(raw_data) >= 3:
+            # Drop a trailing odd byte, if any
+            nb_bytes = (len(raw_data) - 1) // 2 * 2
+            return raw_data[1:1 + nb_bytes].decode("utf-16-le").rstrip("\x00")
+    return None
+
+
 def _measure_zlib_stream(buf, start):
     """
     Check whether a valid zlib stream starts at position `start` of the
@@ -351,10 +380,18 @@ and compressed height data.
             if dims:
                 metadata["dimension_params"] = dims
 
-        # Extract serial number
-        serial = main_container.get("serial_number")
-        if serial and isinstance(serial, str):
-            metadata["serial_number"] = serial.strip("\x00")
+        # Extract serial number. This is the serial number of the Mountains
+        # software installation that wrote the file (it matches the
+        # <SerialNumber> next to <ProductName> in the embedded XML), not that
+        # of the instrument, so it must not end up in `info["instrument"]`.
+        try:
+            serial = _parse_utf16_text(
+                main_container.get("serial_number_raw")
+            )
+        except UnicodeDecodeError:
+            serial = None
+        if serial:
+            metadata["serial_number"] = serial
 
         # Extract measurement params
         meas_params = main_container.get("measurement_params", {})
@@ -399,7 +436,7 @@ and compressed height data.
         - 0x00c8: File metadata container (timestamps, software info)
         - 0x00c9: Unknown (small, possibly flags)
         - 0x00ca: Measurement parameters container
-        - 0x00cb: Serial number (UTF-16 encoded string)
+        - 0x00cb: Software serial number (UTF-16 text)
         - 0x012d: Extended metadata container
         - 0x0003: Dimension parameters (nb_blocks, rows_per_block factors)
         - 0x0006: Pixel scale factors (physical sizes, units)
@@ -574,7 +611,7 @@ and compressed height data.
             0x0001: Skip(comment="unknown uint32"),
             0x0002: Skip(comment="unknown double"),
             0x0003: Skip(comment="unknown double"),
-            0x0004: RawBuffer("z_unit_raw", size=None, lazy=False),  # Z unit as length-prefixed UTF-16
+            0x0004: RawBuffer("z_unit_raw", size=None, lazy=False),  # Z unit as UTF-16 text
             0x0005: Skip(comment="unknown uint32"),
         }
 
@@ -584,9 +621,9 @@ and compressed height data.
             0x0010: BinaryStructure([("value", "d")], name="scale_x"),  # X scale factor
             0x0011: BinaryStructure([("value", "d")], name="scale_y"),  # Y scale factor
             0x0012: BinaryStructure([("value", "d")], name="scale_z"),  # Z scale factor
-            0x0013: RawBuffer("x_unit_raw", size=None, lazy=False),  # X unit (length-prefixed UTF-16)
-            0x0014: RawBuffer("y_unit_raw", size=None, lazy=False),  # Y unit (length-prefixed UTF-16)
-            0x0015: RawBuffer("z_unit_raw", size=None, lazy=False),  # Z storage unit (length-prefixed UTF-16)
+            0x0013: RawBuffer("x_unit_raw", size=None, lazy=False),  # X unit (UTF-16 text)
+            0x0014: RawBuffer("y_unit_raw", size=None, lazy=False),  # Y unit (UTF-16 text)
+            0x0015: RawBuffer("z_unit_raw", size=None, lazy=False),  # Z storage unit (UTF-16 text)
         }
 
         extended_metadata_children = {
@@ -618,9 +655,9 @@ and compressed height data.
                 block_params_children, name="block_params", size_format=SIZE_FMT
             ),
             0x00C9: Skip(comment="file flags"),
-            0x00CB: TextBuffer(
-                "serial_number"
-            ),  # [LIKELY] Contains text (serial number?)
+            # [CONFIRMED] Serial number of the Mountains software installation,
+            # UTF-16 text
+            0x00CB: RawBuffer("serial_number_raw", size=None, lazy=False),
             0x00CA: TLVContainer(
                 measurement_params_children,
                 name="measurement_params",
@@ -859,16 +896,6 @@ and compressed height data.
         physical_size_x = image_params["physical_size_x"]
         physical_size_y = image_params["physical_size_y"]
 
-        # Helper to parse length-prefixed UTF-16 LE string
-        def parse_unit_string(raw_buffer):
-            if raw_buffer and isinstance(raw_buffer, dict):
-                raw_data = raw_buffer.get("_raw")
-                if raw_data and len(raw_data) >= 3:
-                    byte_len = raw_data[0]
-                    if len(raw_data) >= 1 + byte_len:
-                        return raw_data[1:1 + byte_len].decode("utf-16-le")
-            return None
-
         # Extract units from extended_metadata
         ext_meta = main.get("extended_metadata", {})
 
@@ -881,8 +908,8 @@ and compressed height data.
             if axis_info and isinstance(axis_info, dict):
                 x_unit_raw = axis_info.get("x_unit_raw") or axis_info.get(0x0013)
                 y_unit_raw = axis_info.get("y_unit_raw") or axis_info.get(0x0014)
-                x_storage_unit = parse_unit_string(x_unit_raw)
-                y_storage_unit = parse_unit_string(y_unit_raw)
+                x_storage_unit = _parse_utf16_text(x_unit_raw)
+                y_storage_unit = _parse_utf16_text(y_unit_raw)
         except (KeyError, TypeError, UnicodeDecodeError):
             pass
 
@@ -893,7 +920,7 @@ and compressed height data.
             unit_info = ext_meta.get("unit_info") or ext_meta.get(0x000A)
             if unit_info and isinstance(unit_info, dict):
                 z_unit_raw = unit_info.get("z_unit_raw") or unit_info.get(0x0004)
-                z_unit = parse_unit_string(z_unit_raw)
+                z_unit = _parse_utf16_text(z_unit_raw)
         except (KeyError, TypeError, UnicodeDecodeError):
             pass
 
