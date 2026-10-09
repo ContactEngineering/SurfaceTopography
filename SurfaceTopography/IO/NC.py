@@ -33,7 +33,7 @@ import numpy as np
 # 1) lightweight, 2) can handle streams
 from scipy.io import netcdf_file
 
-from ..Exceptions import MetadataAlreadyFixedByFile
+from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
 from ..NonuniformLineScan import NonuniformLineScan
 from ..Support.JSON import ExtendedJSONEncoder
@@ -155,6 +155,14 @@ variables:
         self._y_dim = self._nc.dimensions["y"] if "y" in self._nc.dimensions else None
         self._x_var = self._nc.variables["x"] if "x" in self._nc.variables else None
         self._y_var = self._nc.variables["y"] if "y" in self._nc.variables else None
+        if "heights" not in self._nc.variables:
+            # This is a NetCDF file, but not one written according to the
+            # conventions described above (e.g. a GXSM file)
+            self._heights_var = None
+            self.close()
+            raise FileFormatMismatch(
+                "NetCDF file does not contain a variable named 'heights'."
+            )
         self._heights_var = self._nc.variables["heights"]
         self._mask_var = (
             self._nc.variables["mask"] if "mask" in self._nc.variables else None
