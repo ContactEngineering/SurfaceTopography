@@ -47,9 +47,9 @@ class NMMReader(ReaderBase):
 
     _name = "Nanomeasuring machine (NMM)"
     _description = """
-Line scans of the SIOS nanomeasuring machine (NMM), stored as ZIP files that
-contain a single DAT and a single DSC file. ZIP files with more than two
-members or with other extensions are rejected.
+Scans of the SIOS nanomeasuring machine (NMM), stored as ZIP files that
+contain the scan procedure description (DSC) file and one pair of DSC and
+DAT files per scan line. Each scan is reported as a separate channel.
     """  # noqa: E501
 
     _UNITS = {
@@ -188,7 +188,9 @@ members or with other extensions are rejected.
             # The NMM files reports a scan field, number of pixels and grid spacing.
             # The scan field is actually (nb_pixels - 1) * grid_spacing, which makes
             # sense if we interpret the points as node positions as in the nonuniform
-            # line scans. For the topographic maps, we interpret nodes as pixel centers.
+            # line scans. For the topographic maps, we interpret nodes as pixel centers,
+            # hence the physical size is nb_pixels * grid_spacing (this is also how
+            # Gwyddion's `nmmxyz.c` extends the data range by one grid spacing).
             nb_grid_pts_x = int(physical_size_x / grid_spacing_x)
             assert abs(nb_grid_pts_x * grid_spacing_x / physical_size_x - 1) < rtol
             nb_grid_pts_y = self._nb_lines
@@ -196,8 +198,11 @@ members or with other extensions are rejected.
                 abs((nb_grid_pts_y - 1) * grid_spacing_y / physical_size_y - 1) < rtol
             )
 
-            self._physical_sizes = (physical_size_x, physical_size_y)
             self._nb_grid_pts = (nb_grid_pts_x + 1, nb_grid_pts_y)
+            self._physical_sizes = (
+                self._nb_grid_pts[0] * grid_spacing_x,
+                self._nb_grid_pts[1] * grid_spacing_y,
+            )
 
             self._info = {
                 "acquisition_time": dateutil.parser.parse(
