@@ -23,6 +23,7 @@
 #
 
 import os
+import struct
 
 import numpy as np
 import pytest
@@ -73,3 +74,27 @@ def test_zmg_format_detection(file_format_examples):
 
     from SurfaceTopography.IO import detect_format
     assert detect_format(file_path) == 'zmg'
+
+
+def test_zmg_recipe_name(file_format_examples):
+    r = ZMGReader(os.path.join(file_format_examples, 'zmg-1.zmg'))
+    assert r.channels[0].info['raw_metadata']['recipe_name'] == 'Zeta3D.rcp'
+
+
+def test_zmg_unsigned_heights(file_format_examples, tmp_path):
+    """
+    Heights are unsigned 16-bit integers (as in Gwyddion's zmgfile.c); values
+    above 32767 must not wrap around to negative heights.
+    """
+    with open(os.path.join(file_format_examples, 'zmg-1.zmg'), 'rb') as f:
+        header = bytearray(f.read(505))
+    nx, ny = 3, 2
+    struct.pack_into('<II', header, 0x55, nx, ny)
+    step_z, = struct.unpack_from('<f', header, 0x69)
+    data = np.array([[0, 1, 2], [32767, 40000, 65535]], dtype='<u2')  # (ny, nx)
+    file_path = tmp_path / 'synthetic.zmg'
+    file_path.write_bytes(bytes(header) + data.tobytes())
+
+    t = ZMGReader(file_path).topography()
+    assert t.nb_grid_pts == (nx, ny)
+    np.testing.assert_allclose(t.heights(), data.T.astype(float) * step_z, rtol=1e-6)

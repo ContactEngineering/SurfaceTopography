@@ -26,6 +26,7 @@ import os
 
 import numpy as np
 import pytest
+import tifffile
 
 from NuMPI import MPI
 
@@ -73,11 +74,12 @@ def test_lext_metadata(file_format_examples):
     assert t.unit == 'µm'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 1.660665, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 1.382696, rtol=1e-6)
+    # Profiles run along the image rows (TIFF width = x-direction)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 1.418375, rtol=1e-6)
 
     t = t.detrend('curvature')
     np.testing.assert_allclose(t.rms_height_from_area(), 1.136014, rtol=1e-4)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 1.103697, rtol=1e-4)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 1.112238, rtol=1e-4)
 
 
 def test_lext2_metadata(file_format_examples):
@@ -101,8 +103,28 @@ def test_lext2_metadata(file_format_examples):
     assert t.unit == 'µm'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 0.219566, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 0.219541, rtol=1e-5)
+    # Profiles run along the image rows (TIFF width = x-direction); this
+    # sample is tilted along the y-direction, hence the small profile rms
+    np.testing.assert_allclose(t.rms_height_from_profile(), 0.006035, rtol=1e-4)
 
     t = t.detrend('curvature')
     np.testing.assert_allclose(t.rms_height_from_area(), 0.005318, rtol=1e-4)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 0.005223, rtol=1e-4)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 0.004897, rtol=1e-4)
+
+
+@pytest.mark.parametrize('filename', ['lext-1.lext', 'lext-2.lext'])
+def test_lext_orientation(file_format_examples, filename):
+    # TIFF rasters are stored row by row: the first array index of the raw
+    # page is y (ImageLength), the second is x (ImageWidth). Topographies
+    # are indexed (x, y).
+    file_path = os.path.join(file_format_examples, filename)
+    with tifffile.TiffFile(file_path) as tiff:
+        (page,) = [p for p in tiff.pages if p.description == 'HEIGHT']
+        raw = page.asarray()
+        width = page.tags['ImageWidth'].value
+
+    r = LEXTReader(file_path)
+    t = r.topography()
+    assert t.nb_grid_pts[0] == width
+    height_scale_factor = r.channels[0].height_scale_factor
+    np.testing.assert_allclose(t.heights(), height_scale_factor * raw.T)

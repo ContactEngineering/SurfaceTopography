@@ -24,6 +24,7 @@
 
 import os
 
+import h5py
 import numpy as np
 import pytest
 from NuMPI import MPI
@@ -81,3 +82,58 @@ def test_datx2_metadata(file_format_examples):
     np.testing.assert_allclose(t.min(), -116.920823, rtol=1e-6)
 
     np.testing.assert_allclose(t.rms_height_from_area(), 1.9089580434424194, rtol=1e-6)
+
+
+def _write_datx(file_path, data, dx, dy, no_data):
+    """Write a minimal DATX file with a single surface dataset"""
+    str_dtype = h5py.string_dtype()
+    surface_path = '/Data/Surface/{00000000-0000-0000-0000-000000000001}'
+    with h5py.File(file_path, 'w') as h5:
+        metadata = np.array(
+            [('Root', 'Measurement', '{M}'),
+             ('{M}', 'Surface', '{S}'),
+             ('{S}', 'Path', surface_path)],
+            dtype=[('Source', str_dtype), ('Link', str_dtype), ('Destination', str_dtype)])
+        h5.create_dataset('MetaData', data=metadata)
+        dataset = h5.create_dataset(surface_path, data=data)
+        converter_dtype = np.dtype([('Category', str_dtype), ('BaseUnit', str_dtype),
+                                    ('Parameters', h5py.vlen_dtype(np.float64))])
+
+        def converter(category, unit, parameters):
+            c = np.empty(1, dtype=converter_dtype)
+            c[0] = (category, unit, np.array(parameters, dtype=np.float64))
+            return c
+
+        dataset.attrs['X Converter'] = converter('LateralCat', 'Pixels', [0, dx, 0, 0])
+        dataset.attrs['Y Converter'] = converter('LateralCat', 'Pixels', [0, dy, 0, 0])
+        dataset.attrs['Z Converter'] = converter('HeightCat', 'NanoMeters', [0, 6e-7, 0.5, 1])
+        dataset.attrs['Unit'] = np.array(['NanoMeters'], dtype=str_dtype)
+        dataset.attrs['No Data'] = np.array([no_data])
+
+
+def test_datx_orientation(tmp_path):
+    """
+    The surface dataset is stored row-major with rows running along y; the
+    `X Converter` applies to the columns (as in Gwyddion's datxfile.c).
+    """
+    no_data = np.finfo(np.float64).max
+    nb_rows, nb_columns = 3, 4
+    data = np.arange(nb_rows * nb_columns, dtype=float).reshape(nb_rows, nb_columns)
+    data[1, 2] = no_data
+    data[2, 0] = np.nan
+    file_path = tmp_path / 'synthetic.datx'
+    _write_datx(file_path, data, dx=1e-6, dy=2e-6, no_data=no_data)
+
+    t = DATXReader(file_path).topography()
+    assert t.unit == 'nm'
+    assert t.nb_grid_pts == (nb_columns, nb_rows)
+    np.testing.assert_allclose(t.physical_sizes, (nb_columns * 1000, nb_rows * 2000))
+    heights = t.heights()
+    assert heights.shape == (nb_columns, nb_rows)
+    # heights[x, y] == data[y, x]
+    assert heights[3, 0] == data[0, 3]
+    assert heights[1, 2] == data[2, 1]
+    assert t.has_undefined_data
+    mask = np.ma.getmaskarray(heights)
+    assert mask[2, 1] and mask[0, 2]
+    assert mask.sum() == 2

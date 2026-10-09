@@ -41,7 +41,8 @@ def test_read_header(file_format_examples):
 
     loader = ZONReader(file_path)
 
-    # Like in Gwyddion, there should be 4 channels in total
+    # There is a single height channel (the only 32-bit data member; Gwyddion
+    # also reports one height channel for this file)
     assert len(loader.channels) == 1
     assert [ch.name for ch in loader.channels] == ["default"]
 
