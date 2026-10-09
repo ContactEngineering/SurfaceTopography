@@ -46,6 +46,17 @@ from .Reader import (
 # attribute fields
 _BLOCK_HEADER_SIZE = 24
 
+# Block types
+_TYPE_ARRAY = 3
+_TYPE_TEXT = 5
+_TYPE_SHORT = 6
+_TYPE_FLOAT = 7
+_TYPE_DOUBLE = 8
+_TYPE_LONG = 12
+
+# Longest text block that is decoded into the metadata
+_MAX_TEXT_LENGTH = 256
+
 _block_header = [
     ("name", "16s"),
     ("type", "h"),
@@ -78,7 +89,7 @@ _raster = CompoundLayout(
             Tup(C.header.nb_grid_pts_x, C.header.nb_grid_pts_y),
             Cond(
                 C.header.itemsize == 1,
-                F.dtype("c"),
+                F.dtype("u1"),
                 Cond(
                     C.header.itemsize == 2, F.dtype("<i2"), F.dtype("<f4")
                 ),
@@ -91,14 +102,75 @@ _raster = CompoundLayout(
     name="raster",
 )
 
-_wavelengths = F.pluck(C.payloads, "wavelength")
-_mults = F.pluck(C.payloads, "mult")
-_aspects = F.pluck(C.payloads, "aspect")
-_pixel_sizes = F.pluck(C.payloads, "pixel_size")
+# Names of array blocks that contain height data. (Arrays named "Image",
+# "Intensity" or "SecArr_0" hold intensity data and are not read.)
+_HEIGHT_ARRAYS = ["RAW DATA", "RAW_DATA", "OPD", "Raw", "SAMPLE_DATA"]
 
-_mult = Cond(F.len(_mults) > 0, _mults[0], 1.0)
-_aspect = Cond(F.len(_aspects) > 0, _aspects[0], 1.0)
-_pixel_size = Cond(F.len(_pixel_sizes) > 0, _pixel_sizes[0], 1.0)
+_block_length = C.__parent__.item.length
+
+
+def _scalar(fmt):
+    return BinaryStructure([("value", fmt)], byte_order="<")
+
+
+_no_value = Let({"value": None})
+
+
+def _named(layout):
+    """Store the decoded value together with the block name"""
+    return CompoundLayout(
+        [Let({"name": C.__parent__.item.name}), layout], name="meta"
+    )
+
+
+# Scalar and text blocks are decoded into a (name, value) record; blocks
+# of other types (e.g. serialized structures) are skipped. Some files
+# declare inconsistent types for a few blocks (see Gwyddion's
+# opdfile.c); the actual value size is inferred from the block length.
+_metadata_entry = Switch(
+    C.item.type,
+    {
+        _TYPE_TEXT: _named(
+            Switch(
+                _block_length,
+                {n: _scalar(f"{n}s") for n in range(1, _MAX_TEXT_LENGTH + 1)},
+                default=_no_value,
+            )
+        ),
+        _TYPE_SHORT: _named(
+            If(
+                _block_length == 2,
+                _scalar("h"),
+                _block_length == 4,
+                _scalar("i"),
+                _no_value,
+            )
+        ),
+        _TYPE_FLOAT: _named(
+            If(
+                _block_length == 2,
+                _scalar("h"),
+                _block_length >= 4,
+                _scalar("f"),
+                _no_value,
+            )
+        ),
+        _TYPE_DOUBLE: _named(If(_block_length >= 8, _scalar("d"), _no_value)),
+        _TYPE_LONG: _named(If(_block_length >= 4, _scalar("i"), _no_value)),
+    },
+    default=Skip(),
+)
+
+# Mapping from block names to decoded scalar and text values
+_metadata = F.to_map(F.pluck(C.payloads, "meta"), "name", "value")
+
+_wavelength = F.get(_metadata, "Wavelength", None)
+_mult = F.get(_metadata, "Mult", 1)
+_aspect = F.get(_metadata, "Aspect", 1.0)
+_pixel_size = F.get(_metadata, "Pixel_size", None)
+
+_date = F.get(_metadata, "Date", "")
+_time = F.get(_metadata, "Time", "")
 
 # Heuristic for undefined data points: points that are not finite or
 # that exceed a data-type dependent maximum value (32766 for 16-bit
@@ -160,27 +232,14 @@ interferometers.
                     C.item.length > 0,
                     SizedChunk(
                         C.item.length,
-                        Switch(
-                            C.item.name,
-                            {
-                                "RAW DATA": _raster,
-                                "RAW_DATA": _raster,
-                                "OPD": _raster,
-                                "Raw": _raster,
-                                "Wavelength": BinaryStructure(
-                                    [("wavelength", "f")], byte_order="<"
-                                ),
-                                "Mult": BinaryStructure(
-                                    [("mult", "H")], byte_order="<"
-                                ),
-                                "Aspect": BinaryStructure(
-                                    [("aspect", "f")], byte_order="<"
-                                ),
-                                "Pixel_size": BinaryStructure(
-                                    [("pixel_size", "f")], byte_order="<"
-                                ),
-                            },
-                            default=Skip(),
+                        If(
+                            C.item.type == _TYPE_ARRAY,
+                            Switch(
+                                C.item.name,
+                                {name: _raster for name in _HEIGHT_ARRAYS},
+                                default=Skip(),
+                            ),
+                            _metadata_entry,
                         ),
                         mode="skip-missing",
                     ),
@@ -188,7 +247,7 @@ interferometers.
                 name="payloads",
             ),
             Check(
-                F.len(_wavelengths) > 0,
+                F.logical_not(F.isnan(_wavelength)),
                 CorruptFile,
                 "File does not contain a 'Wavelength' block; cannot "
                 "determine the height scale.",
@@ -205,14 +264,28 @@ interferometers.
             "nb_grid_pts": Tup(
                 C.item.header.nb_grid_pts_x, C.item.header.nb_grid_pts_y
             ),
-            "physical_sizes": Tup(
-                C.item.header.nb_grid_pts_x * _pixel_size,
-                C.item.header.nb_grid_pts_y * _pixel_size * _aspect,
+            # Without pixel size, the lateral calibration is unknown
+            "physical_sizes": Cond(
+                F.isnan(_pixel_size),
+                None,
+                Tup(
+                    C.item.header.nb_grid_pts_x * _pixel_size,
+                    C.item.header.nb_grid_pts_y * _pixel_size * _aspect,
+                ),
             ),
             # Heights are in nm, widths in mm
-            "height_scale_factor": _wavelengths[0] / _mult * 1e-6,
+            "height_scale_factor": _wavelength / _mult * 1e-6,
             "uniform": True,
             "unit": "mm",
+            "info": {
+                # Date is month/day/year
+                "acquisition_time": Cond(
+                    (F.len(_date) > 0) & (F.len(_time) > 0),
+                    F.parse_datetime(_date + " " + _time),
+                    None,
+                ),
+                "raw_metadata": _metadata,
+            },
             "data": C.item.data,
             "mask": {"source": C.item.data, "rule": _undefined_mask},
         }
