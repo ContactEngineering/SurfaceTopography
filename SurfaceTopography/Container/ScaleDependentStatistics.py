@@ -87,9 +87,14 @@ def scale_dependent_statistical_property(
         Number of points per decade in length for automatic grid construction.
         (Default: 10)
     distances : float or np.ndarray, optional
-        Characteristic distances at which the derivatives are computed. If
-        this is an array, then the statistical property is computed at each
-        of these distances. (Default: None)
+        Characteristic distances at which the derivatives are computed. This
+        is the overall length of the underlying stencil of lowest truncation
+        order, not the effective grid spacing used by this stencil. (For a
+        topography with grid spacing px, the corresponding scale factor is
+        given by distance / (n * px) where n is the order of the derivative.)
+        If this is an array, then the statistical property is computed at
+        each of these distances. If None, the distances are chosen
+        automatically on a logarithmic grid. (Default: None)
     reliable : bool, optional
         Only incorporate data deemed reliable. (Default: True)
     progress_callback : func, optional
