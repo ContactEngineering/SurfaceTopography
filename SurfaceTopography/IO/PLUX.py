@@ -24,8 +24,8 @@
 
 from ..Exceptions import FileFormatMismatch
 from .binary import BinaryArray, XMLStructure, ZipContainer, ZipMemberLoop
-from .expr import C, F, Tup, V
-from .Reader import DeclarativeReaderBase
+from .expr import C, F, Lit, Tup, V
+from .Reader import Check, DeclarativeReaderBase
 
 # The measurement layers are described by entries `LAYER_0`, `LAYER_1`,
 # ... of the XML index; the name of each layer's height-data member is
@@ -59,7 +59,19 @@ metadata and binary data layers.
     _file_layout = ZipContainer(
         [
             ("index.xml", XMLStructure(name="index")),
-            ("recipe.txt", XMLStructure(name="recipe")),
+            # `index.xml` is a common name for the main document of ZIP
+            # based formats; the image size identifies a PLUX index
+            Check(
+                F.get(F.get(C.index, "GENERAL", Lit({})), "IMAGE_SIZE_X", None)
+                != None,  # noqa: E711
+                FileFormatMismatch,
+                "`index.xml` does not specify an image size, so this is not "
+                "a Sensofar PLUX file.",
+            ),
+            # The measurement recipe is optional; some files store it
+            # under the name `./recipe.txt`
+            ("recipe.txt", XMLStructure(name="recipe"), True),
+            ("./recipe.txt", XMLStructure(name="recipe"), True),
             ZipMemberLoop(
                 _layers,
                 C.item.FILENAME_Z,
@@ -75,7 +87,7 @@ metadata and binary data layers.
                 name="layers",
             ),
         ],
-        # `index.xml` and `recipe.txt` identify the format
+        # A missing `index.xml` means that this is not a PLUX file
         mismatch_error=FileFormatMismatch,
     )
 
@@ -107,7 +119,7 @@ metadata and binary data layers.
                 },
                 "raw_metadata": {
                     "index": C.index,
-                    "recipe": C.recipe,
+                    "recipe": F.get(C, "recipe", None),
                 },
             },
             "data": C.layers[C.item_index].data,
