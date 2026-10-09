@@ -28,7 +28,7 @@
 
 from ..Exceptions import CorruptFile, FileFormatMismatch
 from .binary import TIFFContainer
-from .expr import C, F, Tup
+from .expr import C, F, Tup, V
 from .Reader import Check, CompoundLayout, DeclarativeReaderBase, MagicMatch
 
 # The height data lives in the page marked HEIGHT; the measurement
@@ -51,8 +51,11 @@ _data_desc = F.parse_xml(
 _height_info = _image_desc.HeightInfo
 _calibration = _data_desc.ImageCommonSettingsInfo
 
-_nb_grid_pts_x = _metadata_page.shape[0]
-_nb_grid_pts_y = _metadata_page.shape[1]
+# TIFF rasters are stored row by row, i.e. the page shape is (rows,
+# columns) = (ny, nx). The x-calibration (`HeightDataPerPixelX`,
+# `MakerCalibrationValueX`) refers to the image width, i.e. the columns.
+_nb_grid_pts_x = _metadata_page.shape[1]
+_nb_grid_pts_y = _metadata_page.shape[0]
 
 
 def _physical_size(nb_grid_pts, data_per_pixel, calibration_value):
@@ -93,7 +96,8 @@ TIFF-based LEXT files of Olympus LEXT laser scanning confocal microscopes.
 
     _file_layout = CompoundLayout(
         [
-            TIFFContainer(),
+            # Transpose the (ny, nx) rasters to (nx, ny)
+            TIFFContainer(image_conversion=F.transpose(V)),
             Check(
                 F.len(
                     F.match_records(

@@ -1,6 +1,69 @@
 Change log for SurfaceTopography
 ================================
 
+v1.25.0 (not yet released)
+--------------------------
+
+- API: `InstrumentModel` gained `scanner_serial`; serial numbers are
+  normalized and placeholders such as "not available" become `None`
+- ENH: Declarative readers support line-scan channels (`dim` 1) and
+  non-height channels (`data_kind`, `data_unit`)
+- ENH: `is_length_unit` and `mangle_length_unit_utf8` can treat "A" as
+  ampere instead of ångström (`ascii_angstrom=False`)
+- BUG: Expression conditions of `While` are serialized as expressions
+- BUG: Channel grid sizes are plain integers (JSON-serializable)
+- ENH: New reader for NumPy NPZ archives (`.npz`)
+- ENH: AL3D: comment is reported in the metadata
+- BUG: BCR: void pixels and NaN are masked; defaults for missing header
+  size, units and byte order; `bit2nm` applies to integer data only
+- BUG: DATX: x and y are no longer swapped; non-finite values are masked
+- ENH: DI: files from version 9.2, alternative section names, slow axis
+  size, single-number scan size; scanner serial number in `scanner_serial`
+- BUG: EZD/NID: height offset and lateral units are applied; controller
+  and scan head serial numbers
+- BUG: FRT: rows are no longer flipped; multi-image block and
+  acquisition time
+- BUG: GWY: writer stores SI base units; tolerates missing title and
+  units; MetroPro serial numbers from Gwyddion metadata
+- ENH: H5: non-numeric datasets are no longer listed as channels
+- BUG: HGT: x runs west to east (was north to south)
+- BUG: IBW: per-channel data units (e.g. phase in degrees); 1D and
+  non-square waves as line scans; acquisition time
+- BUG: JPK: height offset is applied; rows are flipped as in Gwyddion
+- BUG: LEXT: x and y are no longer swapped
+- ENH: MAT: MATLAB v7.3 files; non-numeric variables are skipped
+- BUG: MDT: rows are flipped as in Gwyddion; negative lateral steps
+- BUG: MetroPro: correct serial number; little-endian header fields;
+  header size check
+- BUG: MI: rows are always flipped; implicit binary data; acquisition time
+- BUG: MNT: rewritten; correct height scale and offset, mask of
+  non-measured points and physical sizes; software metadata
+- BUG: NC: files without heights raise `FileFormatMismatch`
+- BUG: NMM: physical size is number of points times spacing
+- ENH: NPY: 1D arrays as line scans; 3D and complex arrays are rejected
+- BUG: OIR/POIR: z calibration is applied; 8-bit data; only `.oir`
+  members of POIR archives are read
+- ENH: OPD: `SAMPLE_DATA` arrays, byte arrays, metadata and acquisition
+  time
+- BUG: OPDx: physical sizes were too small by n/(n-1); all height
+  channels; metadata
+- BUG: PLU: files with several layers; objective names; metadata and
+  acquisition time
+- ENH: PLUX: `recipe.txt` is optional
+- BUG: PS: height offset is applied; rows are flipped as in Gwyddion
+- ENH: SDF: data types 0 to 4; compressed files are rejected
+- BUG: SUR: non-measured points are masked; inversion flag; legacy µ
+  encoding of units
+- BUG: Text: x/y pixels of SPIP files were swapped; SPIP, Attocube and
+  Nova headers; per-channel metadata
+- BUG: TMD: unit is mm (was µm)
+- ENH: VK: second and third height images
+- BUG: WSxM: images are rotated as in Gwyddion; float data is not
+  rescaled; Dulcinea serial number
+- BUG: X3P: integer data is signed
+- ENH: XYZ: unit header of Gwyddion exports
+- BUG: ZMG: heights are unsigned; recipe name
+
 v1.24.0 (25Aug26)
 -----------------
 

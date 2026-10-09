@@ -111,3 +111,49 @@ def test_topography():
     # Check the value of one of the metadata
     assert topography.unit == "µm"
     assert "unit" not in topography.info
+
+
+def _write_mi(raw, data_marker, scan_up):
+    """Write a minimal MI image file with a single buffer."""
+    import io
+
+    ny, nx = raw.shape
+    lines = [
+        ("fileType", "Image"),
+        ("dateAcquired", "Tue Feb 18 15:00:51 2014"),
+        ("xPixels", str(nx)),
+        ("yPixels", str(ny)),
+        ("xLength", "2.0e-006"),
+        ("yLength", "1.0e-006"),
+        ("scanUp", scan_up),
+        ("bufferLabel", "Topography"),
+        ("bufferRange", "1.5"),
+        ("bufferUnit", "um"),
+        ("data", data_marker),
+    ]
+    header = "".join(f"{key:<14}{value}\n" for key, value in lines)
+    dtype = "<i4" if data_marker == "BINARY_32" else "<i2"
+    return io.BytesIO(header.encode("ascii") + raw.astype(dtype).tobytes())
+
+
+@pytest.mark.parametrize("data_marker,type_range", [
+    ("BINARY", 32768), ("", 32768), ("BINARY_32", 2147483648)])
+@pytest.mark.parametrize("scan_up", ["TRUE", "FALSE"])
+def test_mi_synthetic(data_marker, type_range, scan_up):
+    """
+    As in Gwyddion's mifile.c: an empty data marker means 16-bit data, and
+    the last line of the buffer is the top of the image independent of the
+    scan direction.
+    """
+    import datetime
+
+    raw = np.arange(6).reshape(2, 3) - 3  # 2 lines with 3 points
+    reader = MIReader(_write_mi(raw, data_marker, scan_up))
+    (channel,) = reader.channels
+    assert channel.nb_grid_pts == (3, 2)
+    assert channel.unit == "µm"
+    np.testing.assert_allclose(channel.physical_sizes, (2.0, 1.0))
+    assert channel.info["acquisition_time"] == datetime.datetime(2014, 2, 18, 15, 0, 51)
+    t = reader.topography()
+    expected = (raw * 1.5 / type_range)[::-1, :].T
+    np.testing.assert_allclose(t.heights(), expected)

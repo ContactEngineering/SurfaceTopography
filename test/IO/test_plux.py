@@ -23,12 +23,14 @@
 #
 
 import os
+import zipfile
 
 import numpy as np
 import pytest
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
+from SurfaceTopography.Exceptions import FileFormatMismatch
 from SurfaceTopography.IO import PLUXReader
 
 pytestmark = pytest.mark.skipif(
@@ -77,3 +79,75 @@ def test_plux_metadata(file_format_examples):
     t = t.detrend('curvature')
     np.testing.assert_allclose(t.rms_height_from_area(), 1.4420593851629364, rtol=1e-4)
     np.testing.assert_allclose(t.rms_height_from_profile(), 1.2085860010079734, rtol=1e-4)
+
+
+_INDEX_XML = """<?xml version="1.0" encoding="utf-8"?>
+<xml>
+\t<GENERAL>
+\t\t<AUTHOR>Someone</AUTHOR>
+\t\t<DATE>2024-01-02 03:04:05</DATE>
+\t\t<FOV_X>0.5</FOV_X>
+\t\t<FOV_Y>0.25</FOV_Y>
+\t\t<IMAGE_SIZE_X>4</IMAGE_SIZE_X>
+\t\t<IMAGE_SIZE_Y>3</IMAGE_SIZE_Y>
+\t</GENERAL>
+\t<INFO>
+\t\t<SIZE>1</SIZE>
+\t\t<ITEM_0>
+\t\t\t<NAME>Device</NAME>
+\t\t\t<VALUE>S lynx</VALUE>
+\t\t</ITEM_0>
+\t</INFO>
+\t<LAYER_0>
+\t\t<FILENAME_Z>LAYER_0.raw</FILENAME_Z>
+\t</LAYER_0>
+</xml>
+"""
+
+_RECIPE_XML = """<?xml version="1.0" encoding="utf-8"?>
+<xml><MEASUREMENT_CONFIG><TYPE>3</TYPE></MEASUREMENT_CONFIG></xml>
+"""
+
+
+def _write_plux(file_path, recipe_name, index_xml=_INDEX_XML):
+    heights = np.arange(12, dtype='<f4').reshape(3, 4)
+    heights[2, 1] = np.nan
+    with zipfile.ZipFile(file_path, 'w') as z:
+        z.writestr('LAYER_0.raw', heights.tobytes())
+        z.writestr('index.xml', index_xml)
+        if recipe_name is not None:
+            z.writestr(recipe_name, _RECIPE_XML)
+    return heights
+
+
+@pytest.mark.parametrize('recipe_name', ['recipe.txt', './recipe.txt', None])
+def test_plux_recipe_location(tmp_path, recipe_name):
+    # The recipe is optional and may be stored as `./recipe.txt`
+    file_path = str(tmp_path / 'synthetic.plux')
+    heights = _write_plux(file_path, recipe_name)
+
+    r = PLUXReader(file_path)
+    assert len(r.channels) == 1
+    c = r.channels[0]
+    assert c.nb_grid_pts == (4, 3)
+    np.testing.assert_allclose(c.physical_sizes, (2.0, 0.75))
+    assert c.info['instrument']['name'] == 'S lynx'
+    if recipe_name is None:
+        assert c.info['raw_metadata']['recipe'] is None
+    else:
+        assert c.info['raw_metadata']['recipe']['MEASUREMENT_CONFIG']['TYPE'] == '3'
+
+    t = r.topography()
+    assert t.has_undefined_data
+    h = t.heights()
+    assert h.mask[1, 2]
+    assert np.ma.count_masked(h) == 1
+    np.testing.assert_allclose(h[~h.mask], heights.T[~h.mask])
+
+
+def test_plux_index_without_image_size(tmp_path):
+    # An `index.xml` without image size is not a PLUX index
+    file_path = str(tmp_path / 'other.zip')
+    _write_plux(file_path, 'recipe.txt', index_xml='<?xml version="1.0"?><xml><Version>1</Version></xml>')
+    with pytest.raises(FileFormatMismatch):
+        PLUXReader(file_path)

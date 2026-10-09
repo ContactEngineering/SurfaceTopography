@@ -41,7 +41,7 @@ from .binary import (
     TextMatrix,
     Validate,
 )
-from .expr import C, Cond, F, Tup, V
+from .expr import C, Cond, DictExpr, F, Tup, V
 from .Reader import Check, CompoundLayout, DeclarativeReaderBase, If
 
 # Magic strings for ASCII and binary variants
@@ -51,23 +51,42 @@ _MAGIC_BINARY = "bISO-1.0"
 # Fixed unit in SDF files is meters; we report in micrometers
 _FIXED_UNIT = "m"
 
-# Data type mapping (from ISO 25178-71): 5 = INT16, 6 = INT32, 7 = DOUBLE
-_DATA_TYPES = (5, 6, 7)
-_dtype = Cond(
-    C.header.DataType == 5,
-    F.dtype("<i2"),
-    Cond(C.header.DataType == 6, F.dtype("<i4"), F.dtype("<f8")),
+# Data type codes (ISO 25178-71): 0 = UINT8, 1 = UINT16, 2 = UINT32,
+# 3 = FLOAT, 4 = INT8, 5 = INT16, 6 = INT32, 7 = DOUBLE. Binary data is
+# little endian.
+_DATA_TYPES = tuple(range(8))
+_DTYPES = DictExpr(
+    {
+        "0": "u1",
+        "1": "<u2",
+        "2": "<u4",
+        "3": "<f4",
+        "4": "i1",
+        "5": "<i2",
+        "6": "<i4",
+        "7": "<f8",
+    }
 )
+_dtype = F.dtype(F.get(_DTYPES, F.str(C.header.DataType), None))
 
-# A pixel is undefined if it is NaN or, for the integer data types,
-# carries the type's invalid marker (the type's minimum value). ASCII
-# files with an integer DataType may also mark invalid points with the
-# same numeric marker as the binary variant.
+# Integer types of 16 and 32 bits mark invalid points with a reserved
+# value (the minimum of signed and the maximum of unsigned types; as in
+# Gwyddion's `sdfile.c`); 8-bit types have no marker. A pixel is also
+# undefined if it is NaN (floating-point types, or the `BAD` marker of
+# ASCII files).
+_INVALID_MARKERS = DictExpr(
+    {
+        "1": 2**16 - 1,
+        "2": 2**32 - 1,
+        "5": -(2**15),
+        "6": -(2**31),
+    }
+)
+_invalid_marker = F.get(_INVALID_MARKERS, F.str(C.header.DataType), None)
 _invalid_mask = Cond(
-    C.header.DataType == 7,
+    _invalid_marker == None,  # noqa: E711
     F.isnan(V),
-    F.isnan(V)
-    | (V == Cond(C.header.DataType == 5, -(2**15), -(2**31))),
+    F.isnan(V) | (V == _invalid_marker),
 )
 
 _binary_layout = CompoundLayout(
@@ -96,6 +115,11 @@ _binary_layout = CompoundLayout(
             ],
             byte_order="<",
             name="header",
+        ),
+        Check(
+            C.header.Compression == 0,
+            UnsupportedFormatFeature,
+            "Compressed SDF files are not supported",
         ),
         BinaryArray(
             "data",
@@ -138,6 +162,11 @@ _ascii_layout = CompoundLayout(
             C.header.DataType.isin(*_DATA_TYPES),
             UnsupportedFormatFeature,
             "Unsupported DataType in SDF file",
+        ),
+        Check(
+            F.get(C.header, "Compression", 0) == 0,
+            UnsupportedFormatFeature,
+            "Compressed SDF files are not supported",
         ),
         TextMatrix(
             "data",

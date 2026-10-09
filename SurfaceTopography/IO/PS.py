@@ -27,7 +27,11 @@
 # https://gitlab.gwdg.de/ikuhlem/jpkfile
 #
 
-from ..Exceptions import CorruptFile, FileFormatMismatch
+from ..Exceptions import (
+    CorruptFile,
+    FileFormatMismatch,
+    UnsupportedFormatFeature,
+)
 from .binary import BinaryArray, BinaryStructure, TIFFContainer
 from .expr import C, Cond, F, Tup, V
 from .Reader import (
@@ -52,8 +56,23 @@ _DATA_TYPE_INT16 = 0
 _DATA_TYPE_INT32 = 1
 _DATA_TYPE_FLOAT = 2
 
+_IMAGE_TYPE_2D_MAPPED = 0
+_IMAGE_TYPE_LINE_PROFILE = 1
+_IMAGE_TYPE_SPECTROSCOPY = 2
+
 # The page record of the (single) TIFF page
 _page = C.pages[0]
+
+# Heights are `data_gain * (data_scale_factor * raw + data_offset)` in
+# units of `data_unit` (Gwyddion's psia.c). A vanishing scale factor
+# means 1, a missing unit micrometers.
+_z_scale = Cond(
+    C.header.data_scale_factor == 0, 1.0, C.header.data_scale_factor
+)
+_page_z_scale = Cond(
+    _page.header.data_scale_factor == 0, 1.0, _page.header.data_scale_factor
+)
+_page_z_unit = Cond(_page.header.data_unit == "", "um", _page.header.data_unit)
 
 
 class PSReader(DeclarativeReaderBase):
@@ -169,7 +188,13 @@ tags.
                                 F.dtype("<f4"),
                             ),
                         ),
-                        conversion_fun=F.transpose(V),  # To (nx, ny) order
+                        # Transpose to (nx, ny) order and flip vertically
+                        # (the first line is the bottom of the image) such
+                        # that the orientation matches Gwyddion's (psia.c)
+                        # when plotted with imshow(t.heights().T). The
+                        # offset is added in units of the scale factor.
+                        conversion_fun=F.flip(F.transpose(V), 1)
+                        + C.header.data_offset / _z_scale,
                     ),
                 },
             ),
@@ -188,6 +213,13 @@ tags.
                 _page.tags.version.isin(_VERSION1, _VERSION2),
                 CorruptFile,
                 "Only version 1 and 2 of Park Systems TIFFs are supported.",
+            ),
+            Check(
+                _page.header.image_type.isin(
+                    _IMAGE_TYPE_2D_MAPPED, _IMAGE_TYPE_SPECTROSCOPY
+                ),
+                UnsupportedFormatFeature,
+                "Park Systems TIFFs with line profiles are not supported.",
             ),
             Check(
                 _page.header.data_type.isin(
@@ -209,9 +241,9 @@ tags.
             "physical_sizes": Tup(
                 _page.header.physical_size_x, _page.header.physical_size_y
             ),
-            "height_scale_factor": _page.header.data_scale_factor
+            "height_scale_factor": _page_z_scale
             * _page.header.data_gain
-            * F.unit_conversion_factor(_page.header.data_unit, "µm"),
+            * F.unit_conversion_factor(_page_z_unit, "µm"),
             "uniform": True,
             "unit": "µm",
             "info": {"raw_metadata": _page.header},

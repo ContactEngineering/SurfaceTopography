@@ -259,14 +259,21 @@ unit_conversion_factor (string, string) → float|null      Length-unit ratio
                                                           unknown. Unit table:
                                                           Gm Mm km m mm µm um
                                                           nm Å A pm fm.
-mangle_length_unit     (string) → string                  Normalize a vendor
+mangle_length_unit     (string[, bool]) → string          Normalize a vendor
                                                           length-unit string
                                                           to the unit table
                                                           (e.g. ``um`` →
-                                                          ``µm``).
-is_length_unit         (string) → bool                    True if the string
+                                                          ``µm``). If the
+                                                          optional flag is
+                                                          false, ``A`` is the
+                                                          ampere and is kept.
+is_length_unit         (string[, bool]) → bool            True if the string
                                                           is in the length
-                                                          unit table.
+                                                          unit table. If the
+                                                          optional flag is
+                                                          false, ``A`` (the
+                                                          ampere) is not a
+                                                          length unit.
 parse_datetime         (string) → datetime                Vendor date string →
                                                           ISO-8601 (see Value
                                                           model).
@@ -529,6 +536,14 @@ the metadata context::
   ``(nx, ny)`` with the first index running along the physical x
   direction. Descriptions are responsible for any crop/transpose needed
   to satisfy this (via conversion expressions).
+* Channels with ``dim`` 1 are line scans: ``nb_grid_pts`` and
+  ``physical_sizes`` have a single entry and the data array has shape
+  ``(nx,)``.
+* Channels that do not contain heights declare ``data_kind`` (one of
+  ``height``, ``voltage``, ``current``, ``phase``, ``amplitude``,
+  ``error``, ``deflection``, ``friction``, ``other``; default ``height``)
+  and may declare ``data_unit``, the unit of the data values (``unit``
+  remains the lateral unit).
 * ``mask`` is optional; where present, true marks an **undefined** pixel.
   Engines map undefined pixels to their native representation (masked
   arrays in numpy, NaN in Eigen fields). Example rules:

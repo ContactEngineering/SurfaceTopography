@@ -106,3 +106,84 @@ def test_jpk2_metadata(file_format_examples):
     t = t.detrend("curvature")
     np.testing.assert_allclose(t.rms_height_from_area(), 3.448658e-07, rtol=1e-4)
     np.testing.assert_allclose(t.rms_height_from_profile(), 3.032367e-07, rtol=1e-4)
+
+
+@pytest.mark.parametrize("filename", ["jpk-1.jpk", "jpk-2.jpk"])
+def test_jpk_heights_like_gwyddion(file_format_examples, filename):
+    """
+    Heights are `ScalingMultiply * raw + ScalingOffset` of the default slot
+    and the first scan line (first row of the TIFF raster) is at the bottom
+    of the image, as in Gwyddion's jpkscan.c.
+    """
+    import tifffile
+
+    file_path = os.path.join(file_format_examples, filename)
+    r = JPKReader(file_path)
+    with tifffile.TiffFile(file_path) as tiff:
+        for channel in r.channels:
+            metadata = channel.info["raw_metadata"]
+            slot = metadata["Slots"][metadata["DefaultSlot"]]
+            assert metadata["GridReflect"] == 0
+            # Find the TIFF page of this channel
+            (page,) = [
+                p
+                for p in tiff.pages
+                if 0x8052 in p.tags
+                and p.tags[0x8052].value == metadata["ChannelFancyName"]
+                and p.tags[0x8051].value == metadata["ChannelRetrace"]
+            ]
+            raw = page.asarray().astype(float)
+            expected = raw * slot["ScalingMultiply"] + slot["ScalingOffset"]
+            # Gwyddion rows are the second index; row 0 is the last line
+            expected = expected[::-1, :].T
+            np.testing.assert_allclose(
+                channel.topography().heights(),
+                expected,
+                rtol=1e-12,
+                atol=1e-12 * np.abs(expected).max(),
+            )
+
+
+def _write_jpk(raw, reflect):
+    """Write a minimal JPK image scan with a single height channel."""
+    import io
+
+    import tifffile
+
+    f = io.BytesIO()
+    global_tags = [
+        (0x8003, "s", 0, "2024-01-02 03:04:05.000 UTC", True),  # StartDate
+        (0x8042, "d", 1, 2e-6, True),  # GridULength
+        (0x8043, "d", 1, 1e-6, True),  # GridVLength
+        (0x8045, "I", 1, 0, True),  # GridReflect
+    ]
+    channel_tags = [
+        (0x8045, "I", 1, int(reflect), True),  # GridReflect
+        (0x8051, "I", 1, 0, True),  # ChannelRetrace
+        (0x8052, "s", 0, "Height", True),  # ChannelFancyName
+        (0x8080, "I", 1, 1, True),  # NrOfSlots
+        (0x8081, "s", 0, "nominal", True),  # DefaultSlot
+        (0x8090, "s", 0, "nominal", True),  # SlotName
+        (0x80A2, "s", 0, "m", True),  # EncoderUnit
+        (0x80A3, "s", 0, "LinearScaling", True),  # ScalingType
+        (0x80A4, "d", 1, 1e-9, True),  # ScalingMultiply
+        (0x80A5, "d", 1, 3e-6, True),  # ScalingOffset
+    ]
+    with tifffile.TiffWriter(f) as tiff:
+        tiff.write(np.zeros((2, 2), dtype=np.uint8), extratags=global_tags)
+        tiff.write(raw, extratags=channel_tags)
+    f.seek(0)
+    return f
+
+
+@pytest.mark.parametrize("reflect", [False, True])
+def test_jpk_grid_reflect(reflect):
+    raw = np.arange(12, dtype=np.int32).reshape(3, 4)  # 3 lines, 4 points
+    r = JPKReader(_write_jpk(raw, reflect))
+    (channel,) = r.channels
+    assert channel.nb_grid_pts == (4, 3)
+    t = channel.topography()
+    expected = (raw * 1e-9 + 3e-6).T
+    if not reflect:
+        expected = expected[:, ::-1]
+    np.testing.assert_allclose(t.heights(), expected, rtol=1e-12)

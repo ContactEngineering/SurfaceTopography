@@ -23,12 +23,36 @@ class InstrumentParametersModel(pydantic.BaseModel):
     tip_radius: Optional[ValueAndUnitModel] = None
 
 
+# Values that file formats write when the serial number is not known
+_SERIAL_PLACEHOLDERS = {"", "0", "not available", "n/a", "na", "none", "unknown"}
+
+
 class InstrumentModel(pydantic.BaseModel):
     name: Optional[str] = None
     vendor: Optional[str] = None
+    # Serial number of the instrument itself: the whole system or, for
+    # modular instruments such as scanning probe microscopes, the controller.
+    # This identifies the measurement station.
     serial: Optional[str] = None
+    # Serial number of the scanner (scan head). Scanners are exchangeable
+    # between controllers and carry their own calibration, so this does not
+    # identify the station.
+    scanner_serial: Optional[str] = None
     software: Optional[str] = None
     parameters: Optional[InstrumentParametersModel] = None
+
+    @pydantic.field_validator("serial", "scanner_serial", mode="before")
+    @classmethod
+    def _normalize_serial(cls, value):
+        """Strip padding and map placeholders for unknown serials to None."""
+        if value is None:
+            return None
+        if isinstance(value, bytes):
+            value = value.decode("utf-8", errors="replace")
+        value = str(value).strip().strip("\x00").strip()
+        if value.lower() in _SERIAL_PLACEHOLDERS:
+            return None
+        return value
 
 
 class InfoModel(pydantic.BaseModel):

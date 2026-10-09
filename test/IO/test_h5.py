@@ -23,6 +23,9 @@
 #
 
 import os
+
+import h5py
+import numpy as np
 import pytest
 
 from NuMPI import MPI
@@ -72,3 +75,21 @@ def test_read_multiple(file_format_examples):
 
     with pytest.raises(IndexError):
         loader.topography(channel_index=2, physical_sizes=(1., 1.))
+
+
+def test_ignore_non_numeric_datasets(tmp_path):
+    fn = str(tmp_path / 'mixed.h5')
+    heights = np.arange(12.).reshape(4, 3)
+    with h5py.File(fn, 'w') as f:
+        f.create_dataset('strings', data=np.array([[b'a', b'b'], [b'c', b'd']]))
+        f.create_dataset('complex', data=np.zeros((3, 3), dtype=complex))
+        f.create_dataset('empty', data=np.zeros((0, 3)))
+        f.create_dataset('volume', data=np.zeros((2, 2, 2)))
+        g = f.create_group('group')
+        g.create_dataset('heights', data=heights)
+        f.create_dataset('counts', data=np.ones((3, 5), dtype=np.uint16))
+
+    loader = H5Reader(fn)
+    assert [c.name for c in loader.channels] == ['counts', 'group/heights']
+    t = loader.topography(channel_index=1, physical_sizes=(1., 1.))
+    np.testing.assert_allclose(t.heights(), heights)

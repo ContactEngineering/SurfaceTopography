@@ -54,6 +54,10 @@ _invalid_mask = F.isnan(V) | Cond(
     F.abs(V - _invalid) < _INVALID_RELTOL * F.abs(_invalid),
 )
 
+# The comment is ISO-8859-1 text; an empty comment is omitted
+_comment_text = F.strip(F.split(C.comment.text, '\x00')[0])
+_comment = Cond(_comment_text == '', None, _comment_text)
+
 
 class AL3DReader(DeclarativeReaderBase):
     _format = 'al3d'
@@ -91,6 +95,11 @@ instruments, e.g. the InfiniteFocus microscopes.
             ('crlf', '2s', Validate('\r\n', CorruptFile)),
         ], byte_order='<', name='tag_count_tag'),
         For(C.tag_count_tag.value, _tag_structure, name='tags'),
+        # Free-text comment of fixed size following the tag list; it is
+        # NUL-padded and terminated by CRLF
+        BinaryStructure([
+            ('text', '256s'),
+        ], byte_order='<', name='comment'),
         # The depth image sits at an absolute offset given in the tag list
         Seek(F.int(_tags.DepthImageOffset), comment='depth image'),
         BinaryArray(
@@ -119,6 +128,7 @@ instruments, e.g. the InfiniteFocus microscopes.
                     "vendor": "Alicona Imaging",
                     "software": F.get(_tags, "CreatingApplication", None),
                 },
+                "comment": _comment,
                 "raw_metadata": F.merge(
                     DictExpr(
                         {

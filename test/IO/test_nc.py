@@ -31,6 +31,7 @@ from muGrid.Wrappers import FFTEngine
 from NuMPI import MPI
 from scipy.io import netcdf_file
 
+from SurfaceTopography.Exceptions import FileFormatMismatch
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.IO import read_topography
 from SurfaceTopography.IO.NC import NCReader
@@ -201,3 +202,20 @@ def test_save_and_load_binary_files(fn):
 
         # Check that the two topographies equal
         assert t == t2
+
+
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest",
+)
+def test_netcdf_without_heights(tmp_path):
+    # NetCDF files following other conventions (here: the layout used by
+    # GXSM) must be rejected cleanly such that format detection can continue
+    fn = str(tmp_path / "gxsm.nc")
+    with netcdf_file(fn, "w") as nc:
+        for name, n in [("time", 1), ("value", 1), ("dimy", 3), ("dimx", 4)]:
+            nc.createDimension(name, n)
+        v = nc.createVariable("H", "h", ("time", "value", "dimy", "dimx"))
+        v[...] = np.arange(12).reshape(1, 1, 3, 4)
+    with pytest.raises(FileFormatMismatch):
+        NCReader(fn)

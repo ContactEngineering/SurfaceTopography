@@ -58,8 +58,20 @@ length_units_to_ascii = {
 }
 
 
-def is_length_unit(s):
-    """Returns true if the unit is a length unit (m, mm, etc)"""
+def is_length_unit(s, ascii_angstrom=True):
+    """
+    Returns true if the unit is a length unit (m, mm, etc)
+
+    Parameters
+    ----------
+    s : str
+        Name of unit
+    ascii_angstrom : bool, optional
+        If True, 'A' is the ASCII form of the ångström. Set to False for
+        file formats that use 'A' for the ampere. (Default: True)
+    """
+    if s == 'A' and not ascii_angstrom:
+        return False
     return s in length_units.keys()
 
 
@@ -106,7 +118,7 @@ def get_unit_conversion_factor(from_unit, to_unit):
     return unit_scales[from_unit] / unit_scales[to_unit]
 
 
-def mangle_length_unit_utf8(unit):
+def mangle_length_unit_utf8(unit, ascii_angstrom=True):
     """
     Convert unit string to normalized UTF-8 unit string, e.g. converts 'um'
     to 'µm' and makes sure 'µ' is MICRO SIGN (00B5) and not GREEK SMALL LETTER
@@ -116,6 +128,9 @@ def mangle_length_unit_utf8(unit):
     ----------
     unit : str
         Name of unit
+    ascii_angstrom : bool, optional
+        If True, 'A' is converted to 'Å'. Set to False for file formats that
+        use 'A' for the ampere. (Default: True)
 
     Returns
     -------
@@ -128,6 +143,8 @@ def mangle_length_unit_utf8(unit):
         unit = unit.decode('utf-8').strip()
     if unit == '':
         return None
+    elif unit == 'A' and not ascii_angstrom:
+        return unit
     elif unit in length_units_to_utf8:
         return length_units_to_utf8[unit]
     else:

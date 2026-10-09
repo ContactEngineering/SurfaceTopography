@@ -26,7 +26,7 @@
 #
 
 # Reference information and implementations:
-# https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/lextfile.c
+# https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/dektakvca.c
 
 from collections import namedtuple
 
@@ -104,13 +104,19 @@ stylus profilometers.
 
         # Populate channel information
         self._channels = []
-        data_kind = self.manifest["/MetaData/DataKind"]
+        data_kind = self.manifest.get("/MetaData/DataKind")
         if data_kind == "Surface Profile":
             # This file contains a line scan
             self.read_linescan_channel_infos(0)
         elif data_kind == "Surface Height":
             # This file contains a topography scan
             self.read_topography_channel_infos(0)
+        elif any(key.startswith("/2D_Data/") for key in self.manifest):
+            # Unknown data kind; decide on the presence of data, which is
+            # what Gwyddion's dektakvca.c does
+            self.read_topography_channel_infos(0)
+        elif any(key.startswith("/1D_Data/") for key in self.manifest):
+            self.read_linescan_channel_infos(0)
         else:
             raise UnsupportedFormatFeature(
                 f"Don't know how to read data of kind '{data_kind}'."
@@ -201,7 +207,7 @@ stylus profilometers.
         return self._channels
 
     def info_from_manifest(self, prefix):
-        info = {"raw_metadata": {"opdx_prefix": prefix}}
+        info = {"raw_metadata": {"opdx_prefix": prefix, **self._metadata_from_manifest()}}
 
         try:
             acquisition_time = dateutil.parser.parse(
@@ -237,7 +243,9 @@ stylus profilometers.
             prefix = f"/1D_Data/{channel_name}"
 
             nb_grid_pts = self.manifest[f"{prefix}/NumPoints"]
-            physical_size = self.manifest[f"{prefix}/Extent"].value
+            physical_size = _physical_size_from_extent(
+                self.manifest[f"{prefix}/Extent"].value, nb_grid_pts
+            )
             unit = self.manifest[f"{prefix}/Extent"].symbol
 
             height_scale_factor = self.manifest[f"{prefix}/DataScale"].value
@@ -266,45 +274,100 @@ stylus profilometers.
         """
         Read topography (2D map) information
         """
-        channel_name = self.manifest["/MetaData/PrimaryData2D"]
-        prefix = f"/2D_Data/{channel_name}"
+        # All height channels; the primary channel comes first so that it
+        # becomes the default channel
+        channel_names = list(self.manifest.get("/MetaData/2D_Channels/Height", []))
+        primary_channel_name = self.manifest.get("/MetaData/PrimaryData2D")
+        if primary_channel_name is not None:
+            if primary_channel_name in channel_names:
+                channel_names.remove(primary_channel_name)
+            channel_names = [primary_channel_name] + channel_names
 
-        nb_grid_pts_y = self.manifest[f"{prefix}/Dimension1Points"]
-        nb_grid_pts_x = self.manifest[f"{prefix}/Dimension2Points"]
+        for channel_name in channel_names:
+            prefix = f"/2D_Data/{channel_name}"
+            if f"{prefix}/Matrix" not in self.manifest:
+                continue
 
-        physical_size_y = self.manifest[f"{prefix}/Dimension1Extent"].value
-        unit_y = self.manifest[f"{prefix}/Dimension1Extent"].symbol
+            nb_grid_pts_y = self.manifest[f"{prefix}/Dimension1Points"]
+            nb_grid_pts_x = self.manifest[f"{prefix}/Dimension2Points"]
 
-        physical_size_x = self.manifest[f"{prefix}/Dimension2Extent"].value
-        unit_x = self.manifest[f"{prefix}/Dimension2Extent"].symbol
-
-        physical_size_y *= get_unit_conversion_factor(unit_y, unit_x)
-
-        height_scale_factor = self.manifest[f"{prefix}/DataScale"].value
-        height_unit = self.manifest[f"{prefix}/DataScale"].symbol
-
-        height_scale_factor *= get_unit_conversion_factor(height_unit, unit_x)
-
-        self._channels += [
-            ChannelInfo(
-                self,
-                channel_index,
-                name=self.manifest[f"{prefix}/DataKind"],
-                dim=2,
-                nb_grid_pts=(nb_grid_pts_x, nb_grid_pts_y),
-                physical_sizes=(physical_size_x, physical_size_y),
-                uniform=True,
-                unit=unit_x,
-                height_scale_factor=height_scale_factor,
-                info=self.info_from_manifest(prefix),
+            physical_size_y = _physical_size_from_extent(
+                self.manifest[f"{prefix}/Dimension1Extent"].value, nb_grid_pts_y
             )
-        ]
+            unit_y = self.manifest[f"{prefix}/Dimension1Extent"].symbol
+
+            physical_size_x = _physical_size_from_extent(
+                self.manifest[f"{prefix}/Dimension2Extent"].value, nb_grid_pts_x
+            )
+            unit_x = self.manifest[f"{prefix}/Dimension2Extent"].symbol
+
+            physical_size_y *= get_unit_conversion_factor(unit_y, unit_x)
+
+            height_scale_factor = self.manifest[f"{prefix}/DataScale"].value
+            height_unit = self.manifest[f"{prefix}/DataScale"].symbol
+
+            height_scale_factor *= get_unit_conversion_factor(height_unit, unit_x)
+
+            self._channels += [
+                ChannelInfo(
+                    self,
+                    channel_index,
+                    name=self.manifest[f"{prefix}/DataKind"],
+                    dim=2,
+                    nb_grid_pts=(nb_grid_pts_x, nb_grid_pts_y),
+                    physical_sizes=(physical_size_x, physical_size_y),
+                    uniform=True,
+                    unit=unit_x,
+                    height_scale_factor=height_scale_factor,
+                    info=self.info_from_manifest(prefix),
+                )
+            ]
+
+            channel_index += 1
+
+        if len(self._channels) == 0:
+            raise UnsupportedFormatFeature("File does not contain 2D height data.")
+
+    def _metadata_from_manifest(self):
+        """
+        Scalar, string and quantity entries below `/MetaData`, keyed by
+        their path relative to `/MetaData`.
+        """
+        metadata = {}
+        for key, value in self.manifest.items():
+            if not key.startswith("/MetaData/"):
+                continue
+            if isinstance(value, DektakUnit):
+                value = {"value": float(value.value), "unit": value.symbol}
+            elif isinstance(value, np.generic):
+                value = value.item()
+            elif isinstance(value, list):
+                value = [str(v) for v in value]
+            elif not isinstance(value, str):
+                # Timestamps, type ids and data references
+                continue
+            metadata[key[len("/MetaData/"):]] = value
+        return metadata
 
     channels.__doc__ = ReaderBase.channels.__doc__
     topography.__doc__ = ReaderBase.topography.__doc__
 
 
 DektakUnit = namedtuple("DektakUnit", ["name", "symbol", "value", "extra"])
+
+
+def _physical_size_from_extent(extent, nb_grid_pts):
+    """
+    The extent stored in OPDx files is the distance between the first and
+    the last data point, i.e. (nb_grid_pts - 1) times the pixel size. (This
+    is verified by the explicit positions stored in the `PositionArray` of
+    line scans and by the `PixelSize` metadata entry of topographies.) The
+    physical size is nb_grid_pts times the pixel size.
+    """
+    nb_grid_pts = int(nb_grid_pts)
+    if nb_grid_pts > 1:
+        return extent * nb_grid_pts / (nb_grid_pts - 1)
+    return extent
 
 
 def _read_item(stream, manifest, prefix="", offset=0):

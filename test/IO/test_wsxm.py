@@ -68,7 +68,11 @@ def test_stp_metadata(file_format_examples):
 
     assert t.unit == 'nm'
 
-    np.testing.assert_allclose(t.rms_height_from_area(), 1.654156, rtol=1e-6)
+    # Double data is stored in the unit of the z amplitude and is not
+    # rescaled (as in Gwyddion's wsxmfile.c); the reader previously
+    # rescaled with the z amplitude divided by the (rounded) data range from
+    # the header, which yielded 1.654156.
+    np.testing.assert_allclose(t.rms_height_from_area(), 1.6541594, rtol=1e-6)
 
 
 def test_top_metadata(file_format_examples):
@@ -88,3 +92,66 @@ def test_top_metadata(file_format_examples):
     assert t.unit == 'nm'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 3.153099, rtol=1e-6)
+
+
+def _write_wsxm(raw, data_type, y_amplitude=True):
+    """Write a minimal WSxM image file."""
+    import io
+
+    ny, nx = raw.shape
+    dtype = {"double": "<f8", "float": "<f4", "short": "<i2"}[data_type]
+    lines = [
+        "[Control]",
+        "",
+        "    X Amplitude: 2 µm",
+    ]
+    if y_amplitude:
+        lines += ["    Y Amplitude: 1 µm"]
+    lines += [
+        "",
+        "[General Info]",
+        "",
+        f"    Image Data Type: {data_type}",
+        f"    Number of columns: {nx}",
+        f"    Number of rows: {ny}",
+        "    Z Amplitude: 10 nm",
+        "",
+        "[Miscellaneous]",
+        "",
+        f"    Maximum: {raw.max()}",
+        f"    Minimum: {raw.min()}",
+        "",
+        "[Header end]",
+        "",
+    ]
+    header = "\r\n".join(lines)
+    header = (
+        "WSxM file copyright UAM\r\nSxM Image file\r\n"
+        f"Image header size: {len(header)}\r\n" + header
+    )
+    return io.BytesIO(header.encode("latin-1") + raw.astype(dtype).tobytes())
+
+
+@pytest.mark.parametrize("data_type", ["double", "float", "short"])
+def test_wsxm_synthetic(data_type):
+    """
+    Compare with the interpretation of Gwyddion's wsxmfile.c: Floating-point
+    data is in the unit of the z amplitude, integer data is normalized to
+    the z amplitude; the image is stored rotated by 180 degrees.
+    """
+    raw = np.array([[1, 2, 3], [4, 5, 7]])
+    t = WSXMReader(_write_wsxm(raw, data_type)).topography()
+    assert t.unit == "nm"
+    assert t.nb_grid_pts == (3, 2)
+    np.testing.assert_allclose(t.physical_sizes, (2000, 1000))
+    if data_type == "short":
+        expected = raw * 10 / (raw.max() - raw.min())
+    else:
+        expected = raw
+    np.testing.assert_allclose(t.heights(), expected[::-1, ::-1].T, rtol=1e-6)
+
+
+def test_wsxm_missing_y_amplitude():
+    raw = np.array([[1.0, 2.0], [3.0, 4.0]])
+    t = WSXMReader(_write_wsxm(raw, "double", y_amplitude=False)).topography()
+    np.testing.assert_allclose(t.physical_sizes, (2000, 2000))

@@ -1,5 +1,5 @@
 #
-# Copyright 2023-2025 Lars Pastewka
+# Copyright 2023-2026 Lars Pastewka
 #
 # ### MIT license
 #
@@ -25,109 +25,440 @@
 """
 Reader for Digital Surf Mountains MNT files.
 
-The MNT format is a Microsoft Compound Document File (OLE) containing:
-- ImagePreview: JPEG preview image
-- ScopedContents: Binary data with TLV-encoded metadata and zlib-compressed
-  height data
-- ScopedResults: Parameter data
-- XmlHeader: UTF-16 encoded XML metadata
+An MNT file is a Microsoft Compound Document (OLE) file with the streams
 
-The ScopedContents stream uses a hierarchical TLV (Tag-Length-Value) structure:
-- First 8 bytes: uint64 LE size field (= stream size - 8)
-- Remaining bytes: TLV entries with tag (uint16 LE) + size (uint64 LE) + data
+- ScopedContents: the document, a tree of TLV entries (see below)
+- XmlHeader: XML with the version of the Mountains software that wrote the
+  file, its serial number and the operators used in the document, stored as
+  an MFC `CArchive` string (UTF-16)
+- ScopedResults: results of the studies (e.g. parameter tables)
+- ImagePreview: JPEG preview of the document
 
-Height data container (tag 0x02BD) structure:
-- compressed_blocks contains multiple sections separated by uint64 size fields:
-  - Section 1: Compressed height data blocks (zlib-compressed)
-  - Section 2: Additional metadata
-  - Section 3: Image parameters (nested ~6 levels deep in tag 0x0002 containers)
+ScopedContents starts with the size of the remaining stream (uint64 LE),
+followed by a tree of TLV entries: tag (uint16 LE), size (uint64 LE) and
+either data or nested entries. Text is stored as a marker byte (0x04)
+followed by UTF-16 LE characters. Entries of the list of document objects
+are preceded by an additional size field (uint64 LE).
 
-Image parameters (in Section 3, innermost tag 0x0002 container):
-- 0x0007: Width in pixels (uint32)
-- 0x0008: Height in pixels (uint32)
-- 0x0009: Physical size X in mm (double)
-- 0x000a: Physical size Y in mm (double)
+A Mountains document is a list of objects, each identified by a class
+number. Only the original measurement (class 9012) stores height data;
+derived layers (levelled, form removed, ...) store the operators and a
+reference to their parent and are recomputed by Mountains when the document
+is opened. Studies (views, parameter tables, ...) are objects as well.
 
-Height data format:
-- Stored as int32 values
-- Data type tag (tag 0x0001 inside height_data container) indicates masking:
-  - Tag 12: zeros indicate undefined/masked pixels (common at image corners)
-  - Tag 39: pure int32 data, all values including zeros are valid heights
-- Height scale factor stored in pixel_scales container (typically 10 nm/count)
+The measured surface contains
 
-Note: 0xFFFF tags are used as section markers/delimiters and must be skipped
-when parsing nested containers.
+- one axis record per lateral direction with the grid spacing (and its
+  unit), the origin (in the display unit) and the number of grid points,
+- an axis record for the heights with the height step per count (and its
+  unit), the origin (in the display unit) and the minimum and maximum count,
+- the heights as int32 counts, stored row by row (x fastest) in
+  zlib-compressed blocks, each prefixed with its element offset, number of
+  elements and compressed size,
+- optionally a mask image of (nx + 2) x (ny + 2) bytes (with a border of
+  one pixel), in which 9 marks measured and 22 non-measured points.
+
+The height at a grid point is `count * step + origin`.
+
+Entries of the main container that describe the report page (page size in
+pixels, margins in mm, zoom, DPI) are not needed to read the measurement and
+are skipped.
 """
 
 import struct
 import zlib
 from io import BytesIO
 
+import defusedxml.ElementTree as ElementTree
 import numpy as np
 import olefile
 
-from ..Exceptions import CorruptFile, FileFormatMismatch
-from ..Support.UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
+from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
+from ..Support.UnitConversion import (
+    get_unit_conversion_factor,
+    is_length_unit,
+    mangle_length_unit_utf8,
+)
 from ..UniformLineScanAndTopography import Topography
-from .binary import BinaryStructure, RawBuffer, TextBuffer, TLVContainer
+from .binary import RawBuffer, TLVContainer
 from .common import OpenFromAny
 from .Reader import ChannelInfo, ReaderBase, Skip
 
-# Chunk size for incremental decompression during the block scan
-_ZLIB_SCAN_CHUNK = 1 << 16
+# Class numbers of document objects
+_CLASS_SURFACE = 9012  # Original (measured) surface
+_CLASS_SURFACE_DATA = 9062  # Measurement inside a surface object
+_CLASS_MASK = 9056  # Mask of non-measured points
+_CLASS_ARRAY = 9048  # Data array of the mask
+_CLASS_HEIGHTS = 9049  # Height counts
+
+# Values of the mask image. Only these two values have been observed; any
+# value other than `_MASK_MEASURED` is treated as a non-measured point.
+_MASK_MEASURED = 9
+_MASK_NOT_MEASURED = 22
+
+# Text entries start with this marker byte
+_TEXT_MARKER = 0x04
+
+_SIZE_FORMAT = "<Q"
 
 
-def _measure_zlib_stream(buf, start):
+class _Value:
     """
-    Check whether a valid zlib stream starts at position `start` of the
-    buffer and measure it without keeping the decompressed data.
+    Fixed-format value of a TLV entry.
+
+    Reads the whole entry, so a value of unexpected size cannot shift the
+    position of subsequent entries; such a value is stored as None.
+    """
+
+    def __init__(self, name, fmt):
+        self._name = name
+        self._fmt = fmt
+
+    def name(self, context):
+        return self._name
+
+    def from_stream(self, stream_obj, context):
+        data = stream_obj.read(context.get("_block_size", 0))
+        if len(data) != struct.calcsize(self._fmt):
+            return {self._name: None}
+        return {self._name: struct.unpack(self._fmt, data)[0]}
+
+
+class _Text:
+    """Text of a TLV entry: a marker byte followed by UTF-16 LE characters."""
+
+    def __init__(self, name):
+        self._name = name
+
+    def name(self, context):
+        return self._name
+
+    def from_stream(self, stream_obj, context):
+        return {self._name: _decode_text(stream_obj.read(context.get("_block_size", 0)))}
+
+
+def _decode_text(data):
+    """
+    Decode a text entry.
 
     Parameters
     ----------
-    buf : memoryview
-        Buffer to scan (a memoryview, so that chunking does not copy).
-    start : int
-        Candidate start position of the stream.
+    data : bytes
+        Raw data of the entry.
 
     Returns
     -------
-    decompressed_size : int
-        Size of the decompressed stream, 0 if there is no valid stream.
-    consumed : int
-        Number of compressed bytes belonging to the stream, 0 if there is
-        no valid stream.
+    text : str or None
+        Decoded text, or None if the entry is not a text entry.
     """
-    decompressor = zlib.decompressobj()
-    decompressed_size = 0
-    pos = start
-    nb_bytes = len(buf)
+    if len(data) < 1 or data[0] != _TEXT_MARKER or (len(data) - 1) % 2 != 0:
+        return None
     try:
-        while pos < nb_bytes:
-            chunk = buf[pos:pos + _ZLIB_SCAN_CHUNK]
-            decompressed_size += len(decompressor.decompress(chunk))
-            pos += len(chunk)
-            if decompressor.eof:
-                return decompressed_size, pos - start - len(decompressor.unused_data)
-    except zlib.error:
-        pass
-    # Ran out of data before the stream ended, or not a valid stream
-    return 0, 0
+        return data[1:].decode("utf-16-le").rstrip("\x00")
+    except UnicodeDecodeError:
+        return None
 
 
-def _decompress_zlib_stream(buf, start):
-    """Decompress the single zlib stream starting at `start`, ignoring any
-    data following it. (Chunked, so that the data trailing the stream is
-    not copied into the decompressor's `unused_data`.)"""
-    decompressor = zlib.decompressobj()
-    out = []
-    pos = start
-    nb_bytes = len(buf)
-    view = memoryview(buf)
-    while pos < nb_bytes and not decompressor.eof:
-        chunk = view[pos:pos + _ZLIB_SCAN_CHUNK]
-        out.append(decompressor.decompress(chunk))
-        pos += len(chunk)
-    return b"".join(out)
+def _decode_cstring(data):
+    """
+    Decode a Unicode string serialized by MFC's `CArchive`.
+
+    The string starts with 0xFF 0xFE 0xFF (marker for a Unicode string)
+    followed by the number of characters as uint8; the values 0xFF and
+    0xFFFF indicate that the number follows as uint16 or uint32.
+
+    Parameters
+    ----------
+    data : bytes
+        Serialized string.
+
+    Returns
+    -------
+    text : str or None
+        Decoded string, or None if the data is not a Unicode string.
+    """
+    if data[:3] != b"\xff\xfe\xff":
+        return None
+    pos = 3
+    length = data[pos]
+    pos += 1
+    if length == 0xFF:
+        (length,) = struct.unpack_from("<H", data, pos)
+        pos += 2
+        if length == 0xFFFF:
+            (length,) = struct.unpack_from("<I", data, pos)
+            pos += 4
+    return data[pos:pos + 2 * length].decode("utf-16-le", errors="replace")
+
+
+def _decode_block_array(data, count):
+    """
+    Decode an array stored in zlib-compressed blocks.
+
+    The array data starts with its total size in bytes (uint64 LE). Each
+    block consists of its offset into the array and its length (both in
+    elements, uint64 LE and uint32 LE), its compressed size in bytes
+    (uint32 LE) and the zlib stream. Blocks are not necessarily in order.
+
+    Parameters
+    ----------
+    data : bytes
+        Raw data of the array.
+    count : int
+        Number of elements.
+
+    Returns
+    -------
+    buffer : bytearray
+        Decompressed array data.
+    element_size : int
+        Size of an element in bytes.
+    """
+    if len(data) < 8:
+        raise CorruptFile("Truncated MNT data array.")
+    (nb_bytes,) = struct.unpack_from("<Q", data, 0)
+    if count == 0 or nb_bytes % count != 0:
+        raise CorruptFile(
+            f"Size of MNT data array ({nb_bytes} bytes) does not match "
+            f"its number of elements ({count})."
+        )
+    element_size = nb_bytes // count
+    buffer = bytearray(nb_bytes)
+    nb_decompressed = 0
+    pos = 8
+    while pos < len(data):
+        if pos + 16 > len(data):
+            raise CorruptFile("Truncated block header in MNT data array.")
+        offset, nb_elements, compressed_size = struct.unpack_from("<QII", data, pos)
+        pos += 16
+        block = zlib.decompress(data[pos:pos + compressed_size])
+        pos += compressed_size
+        start = offset * element_size
+        if len(block) != nb_elements * element_size or start + len(block) > nb_bytes:
+            raise CorruptFile("Inconsistent block in MNT data array.")
+        buffer[start:start + len(block)] = block
+        nb_decompressed += len(block)
+    if nb_decompressed != nb_bytes:
+        raise CorruptFile(
+            f"MNT data array has {nb_decompressed} bytes, expected {nb_bytes}."
+        )
+    return buffer, element_size
+
+
+def _container(children, name=None, **kwargs):
+    """TLV container that skips entries not listed in `children`."""
+    return TLVContainer(
+        children, name=name, size_format=_SIZE_FORMAT, default=Skip(), **kwargs
+    )
+
+
+def _class_number(entries):
+    """Class number of a document object, or None."""
+    return (entries.get("class") or {}).get("number")
+
+
+def _guid(entries):
+    """Format a GUID entry as string, or return None."""
+    if not entries or entries.get("data4") is None:
+        return None
+    return "{{{:08X}-{:04X}-{:04X}-{}-{}}}".format(
+        entries["data1"],
+        entries["data2"],
+        entries["data3"],
+        entries["data4"][:2].hex().upper(),
+        entries["data4"][2:].hex().upper(),
+    )
+
+
+#
+# Layout of the ScopedContents stream
+#
+
+# Class of an object
+_class = _container({0x0001: _Value("number", "<I")}, "class")
+
+# GUID of an object
+_guid_layout = _container(
+    {
+        0x0001: _Value("data1", "<I"),
+        0x0002: _Value("data2", "<H"),
+        0x0003: _Value("data3", "<H"),
+        0x0004: _Value("data4", "8s"),
+    },
+    "guid",
+)
+
+# Generic object: class, body (parsed depending on the class) and GUID
+_object = _container(
+    {
+        0x0001: _class,
+        0x0002: RawBuffer("body", lazy=False),
+        0x0003: _guid_layout,
+    }
+)
+
+# Scale of an axis
+_axis_scale = _container(
+    {
+        0xFFFF: _container({0x0001: _Value("index", "<I"), 0x0002: _Text("name")}, "label"),
+        0x0001: _Value("step", "<d"),  # Grid spacing or height per count
+        0x0002: _Text("unit"),  # Unit of the step
+        0x0003: _Text("display_unit"),  # Unit used for display and origin
+        0x0004: _Value("unit_ratio", "<d"),  # Display unit in units of `unit`
+        0x0005: _Value("origin", "<d"),  # In display unit
+    },
+    "scale",
+)
+
+# Lateral axis: scale and number of grid points
+_lateral_axis = _container(
+    {
+        0xFFFF: _container(
+            {
+                0xFFFF: _axis_scale,
+                0x0001: _Value("nb_grid_pts", "<I"),
+                0x0002: _Value("first", "<I"),
+                0x0003: _Value("last", "<I"),
+            },
+            "axis",
+        )
+    }
+)
+
+# Height axis: scale and range of counts
+_height_axis = _container(
+    {
+        0xFFFF: _axis_scale,
+        0x0001: _Value("min", "<i"),
+        0x0002: _Value("max", "<i"),
+    }
+)
+
+# Data array: number of elements and compressed blocks
+_array = _container(
+    {
+        0x0001: _class,
+        0x0002: _container(
+            {0x0001: _Value("count", "<I"), 0x0002: RawBuffer("data", lazy=False)},
+            "array",
+        ),
+    }
+)
+
+# Mask of non-measured points
+_mask = _container(
+    {
+        0x0001: _class,
+        0x0002: _container(
+            {
+                0x0001: _Value("width", "<I"),  # Without border
+                0x0002: _Value("height", "<I"),  # Without border
+                0x0005: _array,
+            },
+            "mask",
+        ),
+    }
+)
+
+# Measurement inside a surface object (class 9062)
+_surface_data = _container(
+    {
+        0xFFFF: _container(
+            {
+                0xFFFF: _container(
+                    {
+                        0xFFFF: _container(
+                            {0xFFFF: _container({0x0001: _Text("name")}, "description")},
+                            "header",
+                        ),
+                        0x0001: _lateral_axis,
+                        0x0002: _lateral_axis,
+                        0x0003: _mask,
+                    },
+                    "grid",
+                ),
+                0x0001: _array,
+                0x0002: _height_axis,
+            },
+            "measurement",
+        )
+    }
+)
+
+# Body of a surface object (class 9012)
+_surface = _container(
+    {
+        0xFFFF: _container(
+            {
+                # GUID referenced as `StudiableGUID` in the XML header
+                0xFFFF: _container({0x0001: _guid_layout}, "identity"),
+                0x0004: _Text("title"),
+            },
+            "header",
+        ),
+        0x0001: _object,
+    }
+)
+
+# Top level of the ScopedContents stream
+_scoped_contents = _container(
+    {
+        0x0001: _container(
+            {
+                # Version of the Mountains software that wrote the file
+                0x00C8: _container(
+                    {
+                        0x0001: _Value("major", "<I"),
+                        0x0002: _Value("minor", "<I"),
+                        0x0003: _Value("patch", "<I"),
+                        0x0004: _Value("build", "<I"),
+                    },
+                    "software_version",
+                ),
+                # Serial number of the Mountains software installation (not of
+                # the instrument)
+                0x00CB: _Text("software_serial_number"),
+                0x02BD: _container(
+                    {
+                        0x0001: _Value("nb_objects", "B"),
+                        0x0002: _container(
+                            {
+                                0x0001: TLVContainer(
+                                    {0x0001: RawBuffer("object", lazy=False)},
+                                    name="objects",
+                                    size_format=_SIZE_FORMAT,
+                                    entry_prefix_format=_SIZE_FORMAT,
+                                    default=Skip(),
+                                )
+                            },
+                            "document",
+                        ),
+                    },
+                    "contents",
+                ),
+            },
+            "main",
+        )
+    }
+)
+
+
+def _parse(layout, data):
+    """Parse raw data with a TLV layout."""
+    return layout.from_stream(BytesIO(data), {"_block_size": len(data)})
+
+
+def _parse_object(data):
+    """Parse a document object into its class number and body."""
+    entries = _parse(_object, data)
+    return _class_number(entries), entries.get("body", {}).get("_raw")
+
+
+def _as_list(value):
+    """Repeated TLV entries are stored as a list, single ones not."""
+    if value is None:
+        return []
+    return value if isinstance(value, list) else [value]
 
 
 class MNTReader(ReaderBase):
@@ -138,560 +469,11 @@ class MNTReader(ReaderBase):
     _name = "Digital Surf Mountains"
     _description = """
 File format of the Digital Surf Mountains software. This format is a
-Microsoft Compound Document (OLE) file containing TLV-encoded metadata
-and compressed height data.
+Microsoft Compound Document (OLE) file containing a TLV-encoded document with
+zlib-compressed height data. The reader returns the original measurements
+stored in the document; derived layers are not stored in the file but
+recomputed by Mountains.
 """
-
-    # Block structures and TLV parser are initialized lazily to avoid circular imports
-    _block_structures = None
-    _tlv_parser = None
-    _section3_parser = None
-
-    # TLV format constants
-    _TLV_TAG_FORMAT = "<H"
-    _TLV_SIZE_FORMAT = "<Q"
-
-    # TLV tags for image parameters (found in Section 3 of compressed_blocks)
-    _TAG_PHYSICAL_SIZE_X = 0x0009
-    _TAG_PHYSICAL_SIZE_Y = 0x000A
-
-    # Parser for sections inside compressed_blocks - initialized lazily
-    _compressed_blocks_sections_parser = None
-
-    @classmethod
-    def _find_image_params_container(cls, section_data):
-        """
-        Navigate through nested TLV containers to find the image parameters.
-
-        Uses the declarative _section3_parser to parse the nested structure:
-        Section 3 root -> 0x0002 -> level2 -> 0x0001 -> level3 -> 0x0002 ->
-        level4 -> 0x0002 -> level5 -> 0x0002 -> level6 (contains dimension info)
-
-        Parameters
-        ----------
-        section_data:bytes
-            Section 3 data.
-
-        Returns
-        -------
-        params:dict or None
-            Dictionary with parsed level6 data, or None if not found.
-        """
-        # Initialize parser if needed
-        if cls._section3_parser is None:
-            cls._init_block_structures()
-
-        try:
-            # Parse section 3 using declarative structure
-            stream = BytesIO(section_data)
-            parsed = cls._section3_parser.from_stream(stream, {})
-
-            # Navigate to level6 which contains the dimension info
-            # Structure: section3 -> 0x0002 -> level2 -> 0x0001 -> level3 ->
-            #            0x0002 -> level4 -> 0x0002 -> level5 -> 0x0002 -> level6
-            section3 = parsed.get("section3", parsed)
-            level1 = section3.get(0x0002) or section3.get("level2")
-            if level1 is None:
-                return None
-
-            level2 = level1.get("level2", level1)
-            level2_inner = level2.get(0x0001) or level2.get("level3")
-            if level2_inner is None:
-                return None
-
-            level3 = level2_inner.get("level3", level2_inner)
-            level3_inner = level3.get(0x0002) or level3.get("level4")
-            if level3_inner is None:
-                return None
-
-            level4 = level3_inner.get("level4", level3_inner)
-            level4_inner = level4.get(0x0002) or level4.get("level5")
-            if level4_inner is None:
-                return None
-
-            level5 = level4_inner.get("level5", level4_inner)
-            level5_inner = level5.get(0x0002) or level5.get("level6")
-            if level5_inner is None:
-                return None
-
-            level6 = level5_inner.get("level6", level5_inner)
-            return level6
-
-        except Exception:
-            return None
-
-    @classmethod
-    def _extract_image_params(cls, data):
-        """
-        Extract image parameters from compressed_blocks data.
-
-        Navigates the hierarchical TLV structure to find:
-        - Width (tag 0x0007, uint32)
-        - Height (tag 0x0008, uint32)
-        - Physical size X (tag 0x0009, double, in mm)
-        - Physical size Y (tag 0x000a, double, in mm)
-
-        Parameters
-        ----------
-        data:bytes
-            Raw compressed_blocks data.
-
-        Returns
-        -------
-        params:dict
-            Dictionary with keys: 'width', 'height', 'physical_size_x',
-            'physical_size_y'. Values are None if not found.
-        """
-        result = {
-            "width": None,
-            "height": None,
-            "physical_size_x": None,
-            "physical_size_y": None,
-        }
-
-        # Initialize parsers if needed
-        if cls._compressed_blocks_sections_parser is None:
-            cls._init_block_structures()
-
-        # compressed_blocks structure:
-        # [outer_tag 0x0001][outer_size] = 10 bytes header
-        # [prefix][tag][size][data]...   = children with 8-byte prefixes
-        if len(data) < 28:
-            return result
-
-        # Skip outer container header (10 bytes), parse children with prefixes
-        stream = BytesIO(data[10:])
-
-        # Parse sections using declarative parser with entry_prefix_format
-        parsed = cls._compressed_blocks_sections_parser.from_stream(stream, {})
-        sections_data = parsed.get("sections", parsed)
-
-        # All sections have tag 0x0001, so they're stored as a list
-        sections = sections_data.get(0x0001, [])
-        if not isinstance(sections, list):
-            sections = [sections]
-
-        # Section 3 contains image parameters (index 2, 0-based)
-        if len(sections) < 3:
-            return result
-
-        # Get the raw data of section 2
-        section3_entry = sections[2]
-        section3_raw = section3_entry.get("_raw") if isinstance(section3_entry, dict) else None
-        if section3_raw is None:
-            return result
-
-        # Find the innermost container with image parameters
-        params = cls._find_image_params_container(section3_raw)
-        if params is None:
-            return result
-
-        # Extract values using declarative names or tag IDs
-        result["width"] = params["width"]["value"]
-        result["height"] = params["height"]["value"]
-        result["physical_size_x"] = params["physical_size_x"]["value"]
-        result["physical_size_y"] = params["physical_size_y"]["value"]
-
-        return result
-
-    @classmethod
-    def _extract_metadata(cls, main_container):
-        """
-        Extract human-readable metadata from the parsed main container.
-
-        Parameters
-        ----------
-        main_container : dict
-            Parsed main container from TLV structure.
-
-        Returns
-        -------
-        metadata : dict
-            Dictionary containing extracted metadata fields.
-        """
-        metadata = {}
-
-        # Extract pixel scales
-        pixel_scales = main_container.get("pixel_scales", {})
-        if pixel_scales:
-            scales = {}
-            for key, name in [
-                ("scale_x", "x"),
-                ("scale_y", "y"),
-                ("scale_z", "z"),
-                ("scale_4", "unknown"),
-            ]:
-                val = pixel_scales.get(key) or pixel_scales.get(
-                    {"scale_x": 1, "scale_y": 2, "scale_z": 3, "scale_4": 4}.get(key)
-                )
-                if isinstance(val, dict) and "value" in val:
-                    scales[name] = val["value"]
-            if scales:
-                metadata["pixel_scales_nm"] = scales
-
-        # Extract block params
-        block_params = main_container.get("block_params", {})
-        if block_params:
-            params = {}
-            for key in ["factor_a", "factor_b", "param_3", "param_4", "param_5"]:
-                val = block_params.get(key)
-                if isinstance(val, dict) and "value" in val:
-                    params[key] = val["value"]
-            if params:
-                metadata["block_params"] = params
-
-        # Extract dimension params
-        dim_params = main_container.get("dimension_params", {})
-        if dim_params:
-            dims = {}
-            for key in ["nx", "ny"]:
-                val = dim_params.get(key)
-                if isinstance(val, dict) and "value" in val:
-                    dims[key] = val["value"]
-            if dims:
-                metadata["dimension_params"] = dims
-
-        # Extract serial number
-        serial = main_container.get("serial_number")
-        if serial and isinstance(serial, str):
-            metadata["serial_number"] = serial.strip("\x00")
-
-        # Extract measurement params
-        meas_params = main_container.get("measurement_params", {})
-        if meas_params:
-            params = {}
-            for key in ["instrument_name", "objective"]:
-                val = meas_params.get(key)
-                if val and isinstance(val, str):
-                    params[key] = val.strip("\x00")
-            if params:
-                metadata["measurement_params"] = params
-
-        # Extract extended metadata
-        ext_meta = main_container.get("extended_metadata", {})
-        if ext_meta:
-            ext = {}
-            desc = ext_meta.get("extended_description")
-            if desc and isinstance(desc, str):
-                ext["description"] = desc.strip("\x00")
-            if ext:
-                metadata["extended_metadata"] = ext
-
-        return metadata
-
-    @classmethod
-    def _init_block_structures(cls):
-        """Initialize TLV block structure definitions.
-
-        MNT File Structure Overview
-        ===========================
-        The ScopedContents stream contains a hierarchical TLV structure:
-
-        [8 bytes: uint64 stream size]
-        [TLV entries...]
-
-        Top-level tags:
-        - 0x0001: Main data container (contains all measurement data)
-        - 0x0002: Format flags (uint32)
-        - 0x0003: Format version (uint32)
-
-        Main container (0x0001) children:
-        - 0x00c8: File metadata container (timestamps, software info)
-        - 0x00c9: Unknown (small, possibly flags)
-        - 0x00ca: Measurement parameters container
-        - 0x00cb: Serial number (UTF-16 encoded string)
-        - 0x012d: Extended metadata container
-        - 0x0003: Dimension parameters (nb_blocks, rows_per_block factors)
-        - 0x0006: Pixel scale factors (physical sizes, units)
-        - 0x02bd: Height data container (zlib-compressed blocks)
-        - 0x0258: Color palette/visualization settings
-        - 0xffff: Section delimiter/marker
-
-        Compressed Data Block Prefix (16 bytes before zlib stream):
-        - Bytes 0-7:  uint64 LE - Element offset (for block ordering)
-        - Bytes 8-11: uint32 LE - Elements per block (nx * rows_per_block)
-        - Bytes 12-15: uint32 LE - Compressed size
-
-        Height Data Format:
-        - Stored as int32 values
-        - Data type tag indicates masking behavior:
-          - Tag 12: zeros indicate undefined/masked pixels
-          - Tag 39: pure int32, all values including zeros are valid
-        """
-
-        # Helper to create BinaryStructure with single uint32 field
-        def uint32(name):
-            return BinaryStructure([("value", "I")], name=name)
-
-        # =====================================================================
-        # Nested container definitions (deepest first)
-        #
-        # Legend:
-        #   [CONFIRMED] - Verified through hex analysis of multiple files
-        #   [LIKELY]    - Strong evidence but not fully confirmed
-        #   [GUESS]     - Speculative based on tag position or similar formats
-        #   [UNKNOWN]   - Purpose unknown, included for completeness
-        # =====================================================================
-
-        SIZE_FMT = "<Q"  # MNT uses uint64 LE size fields
-
-        # Container 0x00c8 children - [CONFIRMED] block dimension parameters
-        # Evidence: Tags 0x0001 and 0x0002 contain factor_a and factor_b
-        # which multiply to give rows_per_block
-        block_params_children = {
-            0x0001: uint32("factor_a"),  # [CONFIRMED] uint32
-            0x0002: uint32("factor_b"),  # [CONFIRMED] uint32
-            0x0003: uint32("param_3"),  # [UNKNOWN] uint32
-            0x0004: uint32("param_4"),  # [UNKNOWN] uint32
-            0x0005: uint32("param_5"),  # [UNKNOWN] uint32
-            0x0006: uint32("param_6"),  # [UNKNOWN] uint32
-            0x0007: uint32("param_7"),  # [UNKNOWN] uint32
-            0x0008: Skip(comment="variable size"),
-            0x0009: Skip(comment="variable size"),
-            0x000A: Skip(comment="variable size"),
-        }
-
-        # Container 0x0003 children (inside main) - dimension parameters
-        dimension_params_children = {
-            0x0001: uint32("nx"),  # [LIKELY] X dimension as uint32
-            0x0002: uint32("ny"),  # [LIKELY] Y dimension as uint32
-        }
-
-        # Container 0x0006 children - [CONFIRMED] pixel scale factors
-        # Evidence: Tags 0x0001-0x0004 contain double values (all 10.0 in test file)
-        # These are likely scale factors in nm/count for X, Y, Z axes
-        pixel_scale_children = {
-            0x0001: BinaryStructure([("value", "d")], name="scale_x"),  # [CONFIRMED] X scale (nm/count)
-            0x0002: BinaryStructure([("value", "d")], name="scale_y"),  # [CONFIRMED] Y scale (nm/count)
-            0x0003: BinaryStructure([("value", "d")], name="scale_z"),  # [CONFIRMED] Z scale (nm/count)
-            0x0004: BinaryStructure([("value", "d")], name="scale_4"),  # [CONFIRMED] Unknown scale
-            0x0005: TextBuffer("x_unit"),  # [LIKELY] Contains ASCII text (unit?)
-            0x0006: TextBuffer("y_unit"),  # [LIKELY] Contains ASCII text (unit?)
-            0x0007: TextBuffer("z_unit"),  # [LIKELY] Contains ASCII text (unit?)
-        }
-
-        # Container 0x00ca children - [GUESS] possibly measurement parameters
-        measurement_params_children = {
-            0x0001: Skip(comment="1 byte, measurement type"),
-            0x0002: Skip(comment="scan params"),
-            0x0003: Skip(
-                comment="container with unknown structure, instrument settings"
-            ),
-            0x0004: TextBuffer("instrument_name"),  # [LIKELY] Contains ASCII text
-            0x0005: TextBuffer("objective"),  # [LIKELY] Contains ASCII text
-        }
-
-        # =====================================================================
-        # Nested structure for image parameters in Section 3 of compressed_blocks
-        #
-        # Section 3 structure (from outermost to innermost):
-        # Section 3 root (tags: 0x0001, 0x0002, 0x0003)
-        # └── 0x0002 (level 1)
-        #     ├── [0xFFFF markers]
-        #     └── 0x0001 (level 2, tags: 0x0001, 0x0002, 0x0003)
-        #         └── 0x0002 (level 3)
-        #             ├── [0xFFFF markers]
-        #             └── 0x0002 (level 4, tags: 0x0001, 0x0002, 0x0003)
-        #                 └── 0x0002 (level 5)
-        #                     ├── [0xFFFF markers]
-        #                     └── 0x0002 (level 6 - innermost)
-        #                         ├── 0x0007 (width, uint32)
-        #                         ├── 0x0008 (height, uint32)
-        #                         ├── 0x0009 (physical_size_x, double in mm)
-        #                         └── 0x000a (physical_size_y, double in mm)
-        # =====================================================================
-
-        # Level 6 (innermost): Contains actual dimension info
-        level6_children = {
-            0xFFFF: Skip(comment="section delimiter/marker"),
-            0x0007: uint32("width"),  # [CONFIRMED] Image width in pixels
-            0x0008: uint32("height"),  # [CONFIRMED] Image height in pixels
-            0x0009: BinaryStructure([("value", "d")], name="physical_size_x"),
-            0x000A: BinaryStructure([("value", "d")], name="physical_size_y"),
-        }
-
-        # Level 5: Container wrapping level 6
-        level5_children = {
-            0xFFFF: Skip(comment="section delimiter/marker"),
-            0x0002: TLVContainer(level6_children, name="level6", size_format=SIZE_FMT),
-        }
-
-        # Level 4: Container wrapping level 5
-        level4_children = {
-            0xFFFF: Skip(comment="section delimiter/marker"),
-            0x0002: TLVContainer(level5_children, name="level5", size_format=SIZE_FMT),
-        }
-
-        # Level 3: Container wrapping level 4
-        level3_children = {
-            0x0002: TLVContainer(level4_children, name="level4", size_format=SIZE_FMT),
-        }
-
-        # Level 2: Container wrapping level 3
-        level2_children = {
-            0xFFFF: Skip(comment="section delimiter/marker"),
-            0x0001: TLVContainer(level3_children, name="level3", size_format=SIZE_FMT),
-        }
-
-        # Level 1 (Section 3 root): Container wrapping level 2
-        section3_children = {
-            0x0002: TLVContainer(level2_children, name="level2", size_format=SIZE_FMT),
-        }
-
-        # Store the section 3 parser for use in dimension extraction
-        cls._section3_parser = TLVContainer(
-            section3_children, name="section3", size_format=SIZE_FMT
-        )
-
-        # Parser for sections inside compressed_blocks
-        # Structure: outer container header (10 bytes) + children with 8-byte prefixes
-        # Each section has tag 0x0001, so they'll be stored as a list
-        # We store sections as raw data since we only need section 2 for dimensions
-        compressed_blocks_sections_children = {
-            0x0001: RawBuffer("section", size=None, lazy=False),
-        }
-        cls._compressed_blocks_sections_parser = TLVContainer(
-            compressed_blocks_sections_children,
-            name="sections",
-            size_format=SIZE_FMT,
-            entry_prefix_format=SIZE_FMT,  # 8-byte look-ahead size before each entry
-        )
-
-        # Container 0x02bd children - [CONFIRMED] height data
-        # Evidence: Contains TLV metadata followed by zlib-compressed blocks
-        # Note: compressed_blocks is stored as raw because it contains both
-        # TLV metadata (with dimensions) and binary zlib-compressed data
-        height_data_children = {
-            # [CONFIRMED] Data type tag: 12 = zeros are undefined, 39 = pure int32
-            0x0001: BinaryStructure([("value", "B")], name="data_type"),
-            0x0002: RawBuffer("compressed_blocks", size=None, lazy=False),
-        }
-
-        # Container 0x012d children - [UNKNOWN]
-        # Unit info container (0x000A inside extended_metadata)
-        # Contains Z display unit
-        unit_info_children = {
-            0x0001: Skip(comment="unknown uint32"),
-            0x0002: Skip(comment="unknown double"),
-            0x0003: Skip(comment="unknown double"),
-            0x0004: RawBuffer("z_unit_raw", size=None, lazy=False),  # Z unit as length-prefixed UTF-16
-            0x0005: Skip(comment="unknown uint32"),
-        }
-
-        # Axis info container (0x0009 inside extended_metadata)
-        # Contains X, Y, Z storage units and scale factors
-        axis_info_children = {
-            0x0010: BinaryStructure([("value", "d")], name="scale_x"),  # X scale factor
-            0x0011: BinaryStructure([("value", "d")], name="scale_y"),  # Y scale factor
-            0x0012: BinaryStructure([("value", "d")], name="scale_z"),  # Z scale factor
-            0x0013: RawBuffer("x_unit_raw", size=None, lazy=False),  # X unit (length-prefixed UTF-16)
-            0x0014: RawBuffer("y_unit_raw", size=None, lazy=False),  # Y unit (length-prefixed UTF-16)
-            0x0015: RawBuffer("z_unit_raw", size=None, lazy=False),  # Z storage unit (length-prefixed UTF-16)
-        }
-
-        extended_metadata_children = {
-            0x0001: TextBuffer("extended_description"),  # [LIKELY] Contains ASCII text
-            0x0002: Skip(comment="container with unknown structure, extended params"),
-            0x0003: Skip(comment="extended flags"),
-            0x0009: TLVContainer(
-                axis_info_children, name="axis_info", size_format=SIZE_FMT
-            ),  # [CONFIRMED] Contains X, Y, Z storage units
-            0x000A: TLVContainer(
-                unit_info_children, name="unit_info", size_format=SIZE_FMT
-            ),  # [CONFIRMED] Contains Z display unit
-        }
-
-        # Container 0x0258 children - [GUESS] possibly visualization/palette
-        # Evidence: Only present in some files, similar tag range to other formats
-        color_palette_children = {
-            0x0001: Skip(comment="palette info"),
-            0x0002: Skip(comment="palette data"),
-        }
-
-        # =====================================================================
-        # Main container children (tag 0x0001)
-        # [CONFIRMED] Tag 0x0001 is the main container
-        # =====================================================================
-        main_container_children = {
-            # [CONFIRMED] These tags exist and are containers or leaf nodes as marked
-            0x00C8: TLVContainer(
-                block_params_children, name="block_params", size_format=SIZE_FMT
-            ),
-            0x00C9: Skip(comment="file flags"),
-            0x00CB: TextBuffer(
-                "serial_number"
-            ),  # [LIKELY] Contains text (serial number?)
-            0x00CA: TLVContainer(
-                measurement_params_children,
-                name="measurement_params",
-                size_format=SIZE_FMT,
-            ),
-            0x012D: TLVContainer(
-                extended_metadata_children,
-                name="extended_metadata",
-                size_format=SIZE_FMT,
-            ),
-            0x0190: Skip(comment="acquisition mode"),
-            # Grid structure - [CONFIRMED] tag 0x0003 contains dimension info
-            0x0001: Skip(comment="data type"),
-            0x0002: Skip(comment="format flags"),
-            0x0003: TLVContainer(
-                dimension_params_children, name="dimension_params", size_format=SIZE_FMT
-            ),
-            0x0004: Skip(comment="grid type"),
-            0x0005: Skip(comment="data encoding"),
-            # [GUESS] Tags 0x0006-0x000d might be physical dimensions
-            0x0006: TLVContainer(
-                pixel_scale_children, name="pixel_scales", size_format=SIZE_FMT
-            ),
-            0x0007: Skip(comment="origin X"),
-            0x0008: Skip(comment="origin Y"),
-            0x0009: Skip(comment="origin Z"),
-            0x000A: Skip(comment="container with unknown structure, coordinate system"),
-            0x000B: Skip(comment="aspect ratio"),
-            0x000C: Skip(comment="rotation"),
-            0x000D: Skip(comment="tilt"),
-            # [GUESS] Tags 0x0064-0x0066 grouped together, maybe statistics
-            0x0064: Skip(comment="height stats"),
-            0x0065: Skip(comment="RMS stats"),
-            0x0066: Skip(comment="higher moments"),
-            0x0258: TLVContainer(
-                color_palette_children, name="color_palette", size_format=SIZE_FMT
-            ),
-            # [CONFIRMED] Height data container
-            0x02BD: TLVContainer(
-                height_data_children, name="height_data", size_format=SIZE_FMT
-            ),
-            # [GUESS] Tags 0x0014-0x001b might be processing/ROI related
-            0x0014: Skip(comment="container with unknown structure, filter history"),
-            0x0015: Skip(comment="container with unknown structure, leveling history"),
-            0x0016: Skip(comment="container with unknown structure, form removal"),
-            0x0017: Skip(comment="processing flags"),
-            0x0018: Skip(comment="quality score"),
-            0x0019: Skip(comment="container with unknown structure, ROI definitions"),
-            0x001A: Skip(comment="container with unknown structure, mask regions"),
-            0x001B: Skip(comment="container with unknown structure, annotations"),
-            0xFFFF: Skip(comment="section delimiter/marker"),
-        }
-
-        # =====================================================================
-        # Top-level block structures (after 8-byte size header)
-        # [CONFIRMED] TLV structure: uint16 tag + uint64 size + data
-        # =====================================================================
-        cls._block_structures = {
-            0x0001: TLVContainer(
-                main_container_children, name="main", size_format=SIZE_FMT
-            ),
-            0x0002: Skip(comment="format flags"),
-            0x0003: Skip(comment="format version"),
-            0x0004: Skip(comment="file type"),
-            0x0005: BinaryStructure(
-                [("value", "Q")], name="num_blocks"
-            ),  # [CONFIRMED] uint64
-        }
-
-        # Create top-level TLV parser
-        cls._tlv_parser = TLVContainer(cls._block_structures, size_format=SIZE_FMT)
 
     def __init__(self, fobj):
         """
@@ -699,266 +481,226 @@ and compressed height data.
 
         Arguments
         ---------
-        fobj:filename or file object
+        fobj : filename or file object
             File or data stream to open.
         """
-        # Initialize block structures if not already done
-        if self._block_structures is None:
-            self._init_block_structures()
-
         self._fobj = fobj
-        self._channels = []
 
         with OpenFromAny(fobj, "rb") as f:
-            # Read enough bytes for OLE detection and initial parsing
-            header = f.read(8)
+            # Check the signature before reading the whole file, since format
+            # detection tries this reader on arbitrary (possibly large) files
+            if f.read(8) != b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1":
+                raise FileFormatMismatch("Not an OLE compound document.")
             f.seek(0)
-
-            # Check for OLE signature
-            if header[:8] != b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1":
-                raise FileFormatMismatch("Not an OLE compound document")
-
-            # Read entire file for OLE parsing
             file_data = f.read()
 
-        # Parse as OLE file
         try:
             ole = olefile.OleFileIO(file_data)
         except Exception as e:
             raise FileFormatMismatch(f"Failed to parse OLE file: {e}")
 
-        # Verify this is an MNT file by checking for expected streams
-        if not ole.exists("ScopedContents"):
-            ole.close()
-            raise FileFormatMismatch("Missing ScopedContents stream")
-
-        # Read ScopedContents
-        scoped_contents = ole.openstream("ScopedContents").read()
-
-        # Verify minimum header length for dimension extraction
-        if len(scoped_contents) < 0x72:
-            ole.close()
-            raise CorruptFile("ScopedContents header too short")
-
-        # Parse TLV structure for metadata storage
-        # First 8 bytes are stream size (skip), then TLV entries start
-        stream = BytesIO(scoped_contents[8:])
-        self._metadata = self._tlv_parser.from_stream(stream, {})
-
-        # Extract compressed height data from parsed metadata
         try:
-            main = self._metadata["main"]
-            height_data = main["height_data"]
-            compressed_blocks_raw = height_data["compressed_blocks"]["_raw"]
-        except (KeyError, TypeError):
+            if not ole.exists("ScopedContents"):
+                raise FileFormatMismatch("Missing ScopedContents stream.")
+            scoped_contents = ole.openstream("ScopedContents").read()
+            xml_header = (
+                ole.openstream("XmlHeader").read() if ole.exists("XmlHeader") else None
+            )
+        finally:
             ole.close()
-            raise CorruptFile("Missing compressed height data in metadata")
 
-        # Extract data type tag from height_data container
-        # Tag 0x0001 inside 0x02BD contains a type indicator:
-        #   - 12: int32 data with zero as undefined marker
-        #   - 39: pure int32 data (zeros are valid heights)
-        self._data_type_tag = None
-        try:
-            data_type = height_data.get("data_type")
-            if data_type is not None and isinstance(data_type, dict):
-                self._data_type_tag = data_type.get("value")
-        except (KeyError, TypeError):
-            pass
+        if len(scoped_contents) < 8:
+            raise CorruptFile("ScopedContents stream is too short.")
+        main = _parse(_scoped_contents, scoped_contents[8:]).get("main")
+        if main is None:
+            raise CorruptFile("Missing main container in ScopedContents stream.")
 
-        # Find all zlib-compressed blocks within the compressed data
-        # Each block has a 16-byte prefix:
-        #   Bytes 0-7:  uint64 LE - Element offset (for ordering)
-        #   Bytes 8-11: uint32 LE - Elements per block
-        #   Bytes 12-15: uint32 LE - Compressed size
-        # Note: MNT files may have multiple sections of zlib blocks separated
-        # by TLV structure, so we scan all blocks rather than chaining.
-        # The scan feeds candidate streams chunk-wise through a decompress
-        # object over a memoryview: slicing the raw buffer at every
-        # candidate position (`compressed_blocks_raw[i:]`) would copy the
-        # remaining buffer for each attempt, and a full `zlib.decompress`
-        # would hold the decompressed data, which is only needed in
-        # `topography()`. Only the block positions and sizes are recorded
-        # here; nothing is decompressed twice on the happy path because the
-        # scan skips past each accepted stream.
-        zlib_blocks = []
-        raw_view = memoryview(compressed_blocks_raw)
-        i = 0
-        while i < len(compressed_blocks_raw) - 2:
-            # Check for zlib header bytes
-            if compressed_blocks_raw[i] == 0x78 and compressed_blocks_raw[i + 1] in [
-                0x01,
-                0x5E,
-                0x9C,
-                0xDA,
-            ]:
-                decompressed_size, consumed = _measure_zlib_stream(raw_view, i)
-                if decompressed_size >= 1000:  # Only substantial blocks
-                    # Extract block prefix information
-                    element_offset = 0
-                    elements_per_block = 0
-                    if i >= 16:
-                        prefix = compressed_blocks_raw[i - 16:i]
-                        element_offset = struct.unpack("<Q", prefix[0:8])[0]
-                        elements_per_block = struct.unpack("<I", prefix[8:12])[0]
-                    # Filter out false positives (invalid prefix values)
-                    if elements_per_block < 1000000:
-                        zlib_blocks.append(
-                            {
-                                "pos": i,
-                                "size": decompressed_size,
-                                "element_offset": element_offset,
-                                "elements_per_block": elements_per_block,
-                            }
-                        )
-                        # Continue scanning after this stream; scanning
-                        # byte-by-byte through the compressed payload would
-                        # attempt decompression at every spurious two-byte
-                        # magic within it
-                        i += consumed
-                        continue
-            i += 1
+        software = self._software_metadata(main, xml_header)
 
-        if not zlib_blocks:
-            ole.close()
-            raise CorruptFile("No zlib-compressed data found in height data")
+        self._channels = []
+        self._arrays = []
+        objects = _as_list(
+            main.get("contents", {}).get("document", {}).get("objects", {}).get("object")
+        )
+        for object_data in objects:
+            class_number, body = _parse_object(object_data["_raw"])
+            if class_number != _CLASS_SURFACE or body is None:
+                continue
+            channel = self._surface_channel(body, software)
+            if channel is not None:
+                self._channels.append(channel)
 
-        # Group blocks by decompressed size to identify height data blocks
-        # (MNT files may contain multiple data layers with different block sizes)
-        from collections import Counter
+        if len(self._channels) == 0:
+            raise CorruptFile("MNT file does not contain a measured surface.")
 
-        size_counts = Counter(b["size"] for b in zlib_blocks)
-        most_common_size = size_counts.most_common(1)[0][0]
+    @staticmethod
+    def _software_metadata(main, xml_header):
+        """Metadata on the Mountains software that wrote the file."""
+        software = {}
+        version = main.get("software_version")
+        if version is not None and None not in (
+            version.get("major"),
+            version.get("minor"),
+            version.get("patch"),
+            version.get("build"),
+        ):
+            software["version"] = (
+                f"{version['major']}.{version['minor']}.{version['patch']}."
+                f"{version['build']}"
+            )
+        serial_number = main.get("software_serial_number")
+        if serial_number:
+            software["serial_number"] = serial_number
 
-        # Filter to only blocks with the most common size (height data)
-        height_blocks = [b for b in zlib_blocks if b["size"] == most_common_size]
+        if xml_header is not None:
+            text = _decode_cstring(xml_header)
+            if text is not None:
+                try:
+                    root = ElementTree.fromstring(text)
+                except ElementTree.ParseError:
+                    root = None
+                if root is not None:
+                    product_name = root.findtext("ProductName")
+                    if product_name:
+                        software["name"] = product_name
+                    build_date = root.findtext("BuildDate")
+                    if build_date:
+                        software["build_date"] = build_date
+                    operators = [
+                        e.text for e in root.iterfind("OperatorsInUse/Operator") if e.text
+                    ]
+                    if operators:
+                        software["operators"] = operators
+        return software
 
-        # Sort blocks by element_offset to get correct ordering
-        height_blocks.sort(key=lambda b: b["element_offset"])
+    def _surface_channel(self, body, software):
+        """
+        Create channel information for a surface object.
 
-        # Extract image parameters from TLV structure
-        # This includes width, height, and physical sizes
-        image_params = self._extract_image_params(compressed_blocks_raw)
-        nx = image_params["width"]
-        ny = image_params["height"]
+        Returns None if the object does not contain a height map.
+        """
+        surface = _parse(_surface, body)
+        guid = _guid(surface.get("header", {}).get("identity", {}).get("guid"))
+        measurement = surface.get(0x0001)
+        if (
+            not isinstance(measurement, dict)
+            or _class_number(measurement) != _CLASS_SURFACE_DATA
+        ):
+            return None
+        surface_data = _parse(_surface_data, measurement["body"]["_raw"]).get(
+            "measurement", {}
+        )
 
-        if nx is None or ny is None:
-            ole.close()
-            raise CorruptFile("Could not extract image dimensions from MNT file")
+        grid = surface_data.get("grid", {})
+        x_axis = grid.get(0x0001, {}).get("axis")
+        y_axis = grid.get(0x0002, {}).get("axis")
+        heights = surface_data.get(0x0001)
+        height_axis = surface_data.get(0x0002)
+        if (
+            x_axis is None
+            or y_axis is None
+            or heights is None
+            or _class_number(heights) != _CLASS_HEIGHTS
+            or height_axis is None
+        ):
+            return None
+        x_scale = x_axis.get("scale", {})
+        y_scale = y_axis.get("scale", {})
+        z_scale = height_axis.get("scale", {})
+        for scale in (x_scale, y_scale, z_scale):
+            if scale.get("step") is None or not scale.get("unit"):
+                raise CorruptFile("Incomplete axis definition in MNT file.")
 
-        # Store metadata for later use. Only the block positions are kept;
-        # the blocks are decompressed on demand in `topography()`. (The raw
-        # compressed buffer is a reference into `self._metadata`, which the
-        # reader holds anyway.)
-        self._compressed_blocks_raw = compressed_blocks_raw
-        self._zlib_block_positions = [b["pos"] for b in height_blocks]
-        self._nx = nx
-        self._ny = ny
-
-        # Extract physical sizes from image parameters
-        physical_size_x = image_params["physical_size_x"]
-        physical_size_y = image_params["physical_size_y"]
-
-        # Helper to parse length-prefixed UTF-16 LE string
-        def parse_unit_string(raw_buffer):
-            if raw_buffer and isinstance(raw_buffer, dict):
-                raw_data = raw_buffer.get("_raw")
-                if raw_data and len(raw_data) >= 3:
-                    byte_len = raw_data[0]
-                    if len(raw_data) >= 1 + byte_len:
-                        return raw_data[1:1 + byte_len].decode("utf-16-le")
+        # Heights are reported in the display unit of the height axis
+        unit = mangle_length_unit_utf8(z_scale.get("display_unit") or z_scale["unit"])
+        if not is_length_unit(unit):
+            # Not a height map (e.g. intensity)
             return None
 
-        # Extract units from extended_metadata
-        ext_meta = main.get("extended_metadata", {})
-
-        # Extract X and Y storage units from axis_info container (0x0009)
-        # Tags 0x0013 and 0x0014 contain X and Y units
-        x_storage_unit = None
-        y_storage_unit = None
-        try:
-            axis_info = ext_meta.get("axis_info") or ext_meta.get(0x0009)
-            if axis_info and isinstance(axis_info, dict):
-                x_unit_raw = axis_info.get("x_unit_raw") or axis_info.get(0x0013)
-                y_unit_raw = axis_info.get("y_unit_raw") or axis_info.get(0x0014)
-                x_storage_unit = parse_unit_string(x_unit_raw)
-                y_storage_unit = parse_unit_string(y_unit_raw)
-        except (KeyError, TypeError, UnicodeDecodeError):
-            pass
-
-        # Extract Z display unit from unit_info container (0x000A)
-        # Tag 0x0004 contains the Z unit for display
-        z_unit = None
-        try:
-            unit_info = ext_meta.get("unit_info") or ext_meta.get(0x000A)
-            if unit_info and isinstance(unit_info, dict):
-                z_unit_raw = unit_info.get("z_unit_raw") or unit_info.get(0x0004)
-                z_unit = parse_unit_string(z_unit_raw)
-        except (KeyError, TypeError, UnicodeDecodeError):
-            pass
-
-        # Normalize unit strings (e.g., ensure µ is MICRO SIGN not GREEK MU)
-        x_storage_unit = mangle_length_unit_utf8(x_storage_unit) if x_storage_unit else "mm"
-        y_storage_unit = mangle_length_unit_utf8(y_storage_unit) if y_storage_unit else "mm"
-        unit = mangle_length_unit_utf8(z_unit) if z_unit else "µm"
-
-        # Convert physical sizes from storage units to the target Z unit
-        if physical_size_x is not None and physical_size_y is not None:
-            x_to_unit = get_unit_conversion_factor(x_storage_unit, unit)
-            y_to_unit = get_unit_conversion_factor(y_storage_unit, unit)
-            physical_size_x = physical_size_x * x_to_unit
-            physical_size_y = physical_size_y * y_to_unit
-        else:
-            # Fallback: use pixel count as physical size
-            physical_size_x = float(nx)
-            physical_size_y = float(ny)
-
-        # Extract height scale factor from pixel_scales container
-        # The scale values are in nm/count
-        height_scale_factor_nm = None
-        try:
-            pixel_scales = main.get("pixel_scales", {})
-            # Tag 0x0003 contains Z scale, or try scale_z by name
-            scale_z = pixel_scales.get("scale_z") or pixel_scales.get(0x0003)
-            if scale_z is not None and isinstance(scale_z, dict):
-                height_scale_factor_nm = scale_z.get("value")
-        except (KeyError, TypeError):
-            pass
-
-        # Convert height scale factor from nm/count to unit/count
-        if height_scale_factor_nm is not None:
-            nm_to_unit = get_unit_conversion_factor("nm", unit)
-            self._height_scale_factor = height_scale_factor_nm * nm_to_unit
-        else:
-            self._height_scale_factor = None
-
-        # Build metadata dictionary from parsed TLV structure
-        parsed_metadata = self._extract_metadata(main)
-        parsed_metadata["image_params"] = {
-            "nx": nx,
-            "ny": ny,
-            "physical_size_x_mm": image_params["physical_size_x"],
-            "physical_size_y_mm": image_params["physical_size_y"],
-        }
-        if height_scale_factor_nm is not None:
-            parsed_metadata["height_scale_factor_nm"] = height_scale_factor_nm
-
-        # Create channel info
-        self._channels = [
-            ChannelInfo(
-                self,
-                0,
-                name="Default",
-                dim=2,
-                nb_grid_pts=(nx, ny),
-                physical_sizes=(physical_size_x, physical_size_y),
-                uniform=True,
-                unit=unit,
-                info={"raw_metadata": parsed_metadata},
+        def length(value, from_unit):
+            return value * get_unit_conversion_factor(
+                mangle_length_unit_utf8(from_unit), unit
             )
-        ]
 
-        ole.close()
+        nb_grid_pts = (x_axis["nb_grid_pts"], y_axis["nb_grid_pts"])
+        physical_sizes = (
+            nb_grid_pts[0] * length(x_scale["step"], x_scale["unit"]),
+            nb_grid_pts[1] * length(y_scale["step"], y_scale["unit"]),
+        )
+        height_scale_factor = length(z_scale["step"], z_scale["unit"])
+        height_offset = (
+            0.0 if z_scale.get("origin") is None else z_scale["origin"]
+        ) * get_unit_conversion_factor(
+            mangle_length_unit_utf8(z_scale.get("display_unit") or z_scale["unit"]),
+            unit,
+        )
+
+        array = heights.get("array", {})
+        if array.get("count") != nb_grid_pts[0] * nb_grid_pts[1]:
+            raise CorruptFile(
+                f"Number of heights ({array.get('count')}) does not match the "
+                f"grid ({nb_grid_pts[0]} x {nb_grid_pts[1]})."
+            )
+
+        # Mask of non-measured points, if present
+        mask = grid.get(0x0003, {})
+        mask_array = None
+        if _class_number(mask) == _CLASS_MASK:
+            mask_array = mask.get("mask", {}).get(0x0005)
+            if (
+                mask_array is None
+                or _class_number(mask_array) != _CLASS_ARRAY
+                or (mask["mask"].get("width"), mask["mask"].get("height"))
+                != nb_grid_pts
+            ):
+                raise CorruptFile("Inconsistent mask in MNT file.")
+            mask_array = mask_array.get("array", {})
+
+        def axis_metadata(scale):
+            return {
+                key: scale[key]
+                for key in ("step", "unit", "origin", "display_unit")
+                if scale.get(key) is not None
+            }
+
+        name = grid.get("header", {}).get("description", {}).get("name")
+        title = surface.get("header", {}).get("title")
+        raw_metadata = {
+            "name": name,
+            "title": title,
+            "guid": guid,
+            "axes": {
+                "x": axis_metadata(x_scale),
+                "y": axis_metadata(y_scale),
+                "z": {
+                    **axis_metadata(z_scale),
+                    "min_count": height_axis.get("min"),
+                    "max_count": height_axis.get("max"),
+                },
+            },
+            "software": software,
+        }
+        raw_metadata = {k: v for k, v in raw_metadata.items() if v not in (None, {})}
+
+        self._arrays.append(
+            {
+                "heights": array,
+                "mask": mask_array,
+                "height_offset": height_offset,
+            }
+        )
+        return ChannelInfo(
+            self,
+            len(self._channels),
+            name=name or title or "Default",
+            dim=2,
+            nb_grid_pts=nb_grid_pts,
+            physical_sizes=physical_sizes,
+            height_scale_factor=height_scale_factor,
+            uniform=True,
+            unit=unit,
+            info={"raw_metadata": raw_metadata},
+        )
 
     @property
     def channels(self):
@@ -970,7 +712,7 @@ and compressed height data.
         physical_sizes=None,
         height_scale_factor=None,
         unit=None,
-        info=None,
+        info={},
         periodic=False,
         subdomain_locations=None,
         nb_subdomain_grid_pts=None,
@@ -982,61 +724,51 @@ and compressed height data.
             raise RuntimeError("This reader does not support MPI parallelization.")
 
         channel = self._channels[channel_index]
-        nx, ny = channel.nb_grid_pts
-
-        # Decompress and combine all blocks (positions are already sorted by
-        # element_offset); the reader itself only stores the block positions
-        combined_data = b"".join(
-            _decompress_zlib_stream(self._compressed_blocks_raw, pos)
-            for pos in self._zlib_block_positions
+        if unit is not None:
+            raise MetadataAlreadyFixedByFile("unit")
+        if height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile("height_scale_factor")
+        physical_sizes = self._check_physical_sizes(
+            physical_sizes, channel.physical_sizes
         )
 
-        # Height data is stored as int32 values
-        arr_i32 = np.frombuffer(combined_data, dtype="<i4")
-        heights = arr_i32[: nx * ny].astype(float).reshape(ny, nx, order="C")
+        nx, ny = channel.nb_grid_pts
+        arrays = self._arrays[channel_index]
 
-        # Transpose to get (nx, ny) shape expected by SurfaceTopography
-        heights = heights.T
+        # Heights are stored row by row (x fastest)
+        buffer, element_size = _decode_block_array(
+            arrays["heights"]["data"]["_raw"], arrays["heights"]["count"]
+        )
+        if element_size not in (2, 4):
+            raise CorruptFile(
+                f"Unsupported size of height values ({element_size} bytes)."
+            )
+        counts = np.frombuffer(buffer, dtype=f"<i{element_size}").reshape(ny, nx).T
+        heights = counts * channel.height_scale_factor + arrays["height_offset"]
 
-        # Determine if masking is needed based on data_type_tag
-        # Tag 12: zeros indicate undefined/masked pixels
-        # Tag 39: pure int32, all values including zeros are valid
-        if self._data_type_tag == 12:
-            invalid_mask = heights == 0
-        else:
-            invalid_mask = None
+        if arrays["mask"] is not None:
+            mask_buffer, _ = _decode_block_array(
+                arrays["mask"]["data"]["_raw"], arrays["mask"]["count"]
+            )
+            # The mask image has a border of one pixel
+            mask = np.frombuffer(mask_buffer, dtype=np.uint8)
+            if mask.size != (nx + 2) * (ny + 2):
+                raise CorruptFile("Size of mask does not match the grid.")
+            mask = mask.reshape(ny + 2, nx + 2)[1:-1, 1:-1].T
+            undefined = mask != _MASK_MEASURED
+            if undefined.any():
+                heights = np.ma.masked_array(heights, mask=undefined)
 
-        # Apply height scale factor
-        # If user provides explicit height_scale_factor, use that
-        # Otherwise, use the internal scale factor from pixel_scales if available
-        if height_scale_factor is not None:
-            heights = heights * height_scale_factor
-        elif self._height_scale_factor is not None:
-            # Apply internal scale factor (converts counts to µm)
-            heights = heights * self._height_scale_factor
-
-        # Check physical sizes
-        sx, sy = channel.physical_sizes
-        if physical_sizes is not None:
-            sx, sy = physical_sizes
-
-        # Build info dict
         _info = channel.info.copy()
-        if info is not None:
-            _info.update(info)
+        _info.update(info)
 
-        if invalid_mask is not None and invalid_mask.any():
-            heights = np.ma.masked_array(heights, mask=invalid_mask)
-
-        topography = Topography(
+        return Topography(
             heights,
-            physical_sizes=(sx, sy),
-            unit=unit if unit is not None else channel.unit,
+            physical_sizes=physical_sizes,
+            unit=channel.unit,
             info=_info,
             periodic=periodic,
         )
-
-        return topography
 
     channels.__doc__ = ReaderBase.channels.__doc__
     topography.__doc__ = ReaderBase.topography.__doc__

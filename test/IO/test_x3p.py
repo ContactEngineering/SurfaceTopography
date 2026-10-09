@@ -22,8 +22,10 @@
 # SOFTWARE.
 #
 
+import io
 import os
 import tempfile
+from zipfile import ZipFile
 
 import numpy as np
 import pytest
@@ -218,3 +220,63 @@ def test_write_x3p_1d_raises():
     finally:
         if os.path.exists(fname):
             os.unlink(fname)
+
+
+@pytest.mark.parametrize('dtype', ['I', 'L'])
+def test_write_x3p_integer_dtypes(dtype):
+    """Integer data is written as signed integers with increment and offset"""
+    np.random.seed(42)
+    heights = np.random.randn(20, 25)
+    heights[3, 4] = np.nan
+    t = Topography(np.ma.masked_invalid(heights), (1e-3, 1.25e-3), unit='m')
+
+    buffer = io.BytesIO()
+    t.to_x3p(buffer, dtype=dtype)
+    buffer.seek(0)
+    t2 = X3PReader(buffer).topography()
+    assert t2.nb_grid_pts == t.nb_grid_pts
+    np.testing.assert_array_equal(t2.heights().mask, np.isnan(heights))
+    # Resolution of the integer representation
+    tol = np.ptp(heights[~np.isnan(heights)]) / (2**16 if dtype == 'I' else 2**32)
+    np.testing.assert_allclose(t2.heights()[~np.isnan(heights)], heights[~np.isnan(heights)], atol=tol)
+
+    # Raw data uses the full signed range
+    buffer.seek(0)
+    with ZipFile(buffer) as z:
+        raw = np.frombuffer(z.read('bindata/data.bin'), dtype='<i2' if dtype == 'I' else '<i4')
+    assert raw.min() < 0
+
+
+def _make_x3p(raw, dtype, increment=None, offset=None):
+    """Minimal X3P with integer data; `raw` is in (ny, nx) order"""
+    ny, nx = raw.shape
+    z = f'<AxisType>A</AxisType><DataType>{dtype}</DataType>'
+    if increment is not None:
+        z += f'<Increment>{increment}</Increment>'
+    if offset is not None:
+        z += f'<Offset>{offset}</Offset>'
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<p:ISO5436_2 xmlns:p="http://www.opengps.eu/2008/ISO5436_2">
+<Record1><Revision>ISO5436 - 2000</Revision><FeatureType>SUR</FeatureType><Axes>
+<CX><AxisType>I</AxisType><DataType>D</DataType><Increment>1e-6</Increment><Offset>0</Offset></CX>
+<CY><AxisType>I</AxisType><DataType>D</DataType><Increment>2e-6</Increment><Offset>0</Offset></CY>
+<CZ>{z}</CZ></Axes></Record1>
+<Record3><MatrixDimension><SizeX>{nx}</SizeX><SizeY>{ny}</SizeY><SizeZ>1</SizeZ></MatrixDimension>
+<DataLink><PointDataLink>bindata/data.bin</PointDataLink></DataLink></Record3>
+</p:ISO5436_2>"""
+    buffer = io.BytesIO()
+    with ZipFile(buffer, 'w') as z:
+        z.writestr('main.xml', xml)
+        z.writestr('bindata/data.bin', raw.tobytes())
+    buffer.seek(0)
+    return buffer
+
+
+@pytest.mark.parametrize('dtype, np_dtype', [('I', '<i2'), ('L', '<i4')])
+def test_read_x3p_signed_integers(dtype, np_dtype):
+    """ISO 5436-2 integer data types are signed"""
+    raw = np.array([[-3, -1, 0], [1, 2, -32768]], dtype=np_dtype)
+    t = X3PReader(_make_x3p(raw, dtype, increment=1e-9, offset=1e-6)).topography()
+    assert t.nb_grid_pts == (3, 2)
+    np.testing.assert_allclose(t.physical_sizes, (3e-6, 4e-6))
+    np.testing.assert_allclose(t.heights(), raw.T * 1e-9 + 1e-6)
