@@ -41,8 +41,14 @@ _DTYPES = {
     "double": "<f8",
 }
 
-# The height scale is defined in terms of the z amplitude. For this we
-# need to know the actual data range. The data range is stored in the
+# Floating-point data is stored in the unit of the z amplitude (as in
+# Gwyddion's wsxmfile.c); integer data is normalized.
+_is_float_data = C.header["General Info"]["Image Data Type"].isin(
+    "float", "double"
+)
+
+# The height scale of integer data is defined in terms of the z amplitude.
+# For this we need to know the actual data range. The data range is stored in the
 # metadata, but only up to fixed precision. This may lead to imprecise
 # data conversion, but we should not open and scan through the whole file
 # here. A perfectly flat scan has zero data range; any scale factor
@@ -57,6 +63,8 @@ _z_unit = F.mangle_length_unit(
     F.split(C.header["General Info"]["Z Amplitude"], " ")[-1]
 )
 
+
+_acquisition_time = F.get(C.header["General Info"], "Acquisition time", None)
 
 # Serial number of the Nanotec Dulcinea controller, if the file has one
 _controller_serial = F.get(
@@ -122,7 +130,11 @@ microscopy available at http://www.wsxm.eu/.
                     F.int(C.header["General Info"]["Number of columns"]),
                 ),
                 F.dtype(Lit(_DTYPES)[C.header["General Info"]["Image Data Type"]]),
-                conversion_fun=F.transpose(V),  # Transpose to (nx, ny) order
+                # Transpose to (nx, ny) order. The image is stored rotated
+                # by 180 degrees; rotate such that the orientation matches
+                # Gwyddion's (wsxmfile.c) when plotted with
+                # imshow(t.heights().T)
+                conversion_fun=F.flip(F.flip(F.transpose(V), 0), 1),
             ),
         ]
     )
@@ -137,16 +149,28 @@ microscopy available at http://www.wsxm.eu/.
             ),
             "physical_sizes": Tup(
                 _lateral_size(C.header.Control["X Amplitude"]),
-                _lateral_size(C.header.Control["Y Amplitude"]),
+                # A missing y amplitude means a square scan
+                _lateral_size(
+                    F.get(
+                        C.header.Control,
+                        "Y Amplitude",
+                        C.header.Control["X Amplitude"],
+                    )
+                ),
             ),
             "height_scale_factor": Cond(
-                _data_range > 0, _z_amplitude / _data_range, 1
+                _is_float_data,
+                1,
+                Cond(_data_range > 0, _z_amplitude / _data_range, 1),
             ),
             "uniform": True,
             "unit": _z_unit,
             "info": {
-                "acquisition_time": F.parse_datetime(
-                    C.header["General Info"]["Acquisition time"]
+                # The acquisition time is optional
+                "acquisition_time": Cond(
+                    _acquisition_time != None,  # noqa: E711
+                    F.parse_datetime(_acquisition_time),
+                    None,
                 ),
                 "instrument": Cond(
                     _controller_serial != None,  # noqa: E711
