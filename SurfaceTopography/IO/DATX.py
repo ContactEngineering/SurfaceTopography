@@ -99,11 +99,15 @@ the topography map, its units and undefined data points.
                 # Get the path for the actual measurement with the HDF5 file
                 self._surface_path = self._metadata['Measurement']['Surface']['Path']
 
-                # Grid points
-                self._nb_grid_pts = h5[self._surface_path].shape
+                # Grid points. The dataset is stored row-major with rows
+                # running along y (as in Gwyddion's datxfile.c); the
+                # `X Converter` applies to the columns.
+                nb_rows, nb_columns = h5[self._surface_path].shape
+                self._nb_grid_pts = (nb_columns, nb_rows)
 
-                # Value for missing data points
-                self._no_data, = h5[self._surface_path].attrs['No Data']
+                # Value for missing data points (optional)
+                no_data = h5[self._surface_path].attrs.get('No Data')
+                self._no_data = None if no_data is None else np.ravel(no_data)[0]
 
                 # Unit
                 self._unit, = h5[self._surface_path].attrs['Unit']
@@ -242,8 +246,13 @@ the topography map, its units and undefined data points.
         if callable(fobj):
             fobj = fobj()
         with h5py.File(fobj, 'r') as h5:
-            raw_data = np.array(h5[self._surface_path])
-            mask = raw_data == self._no_data
+            # Convert from (rows, columns) = (y, x) to (x, y) storage order
+            raw_data = np.array(h5[self._surface_path]).T
+            # Undefined data is marked by the `No Data` value; non-finite
+            # values are undefined as well
+            mask = np.logical_not(np.isfinite(raw_data))
+            if self._no_data is not None:
+                mask |= raw_data == self._no_data
             if mask.sum() > 0:
                 # We need to mask this array
                 raw_data = np.ma.masked_array(raw_data, mask=mask)
