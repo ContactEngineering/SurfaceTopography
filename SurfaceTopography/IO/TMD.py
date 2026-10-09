@@ -46,6 +46,12 @@ TMD data files of the TrueGage TrueMap surface metrology software.
 
     _magic = [(0, _MAGIC.encode("ascii"))]
 
+    # The 32-byte magic (including CR, LF and a terminating NUL) is followed
+    # by a NUL-terminated comment (ISO-8859-1), the binary header and the
+    # data. Lengths, offsets and heights are stored in millimeters (see also
+    # Gwyddion's `rmitmd.c`). Gwyddion treats the comment as being of
+    # variable length; all files we have seen have a 24-byte comment
+    # ("Created by TrueMap v6\r\n\0"), which is what we assume here.
     _file_layout = CompoundLayout(
         [
             BinaryStructure(
@@ -56,6 +62,11 @@ TMD data files of the TrueGage TrueMap surface metrology software.
                         Validate(V[: len(_MAGIC)] == _MAGIC, FileFormatMismatch),
                     ),
                     ("comment", "24s"),
+                ],
+                name="preamble",
+            ),
+            BinaryStructure(
+                [
                     ("nb_grid_pts_x", "<I", Validate(V > 0, CorruptFile)),
                     ("nb_grid_pts_y", "<I", Validate(V > 0, CorruptFile)),
                     ("length_x", "<f", Validate(V > 0, CorruptFile)),
@@ -82,10 +93,10 @@ TMD data files of the TrueGage TrueMap surface metrology software.
             "physical_sizes": Tup(C.header.length_x, C.header.length_y),
             "height_scale_factor": 1.0,
             "uniform": True,
-            "unit": "µm",
+            "unit": "mm",
             "info": {
                 "instrument": {"vendor": "TrueMap"},
-                "comment": F.strip(C.header.comment),
+                "comment": F.strip(C.preamble.comment),
                 "raw_metadata": C.header,
             },
             "data": C.data,
