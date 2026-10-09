@@ -29,12 +29,15 @@
 # http://www.physics.arizona.edu/~smanne/DI/software/fileformats.html
 #
 
-import re
 
 import dateutil.parser
 import numpy as np
 
-from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
+from ..Exceptions import (
+    CorruptFile,
+    MetadataAlreadyFixedByFile,
+    UnsupportedFormatFeature,
+)
 from ..Support.UnitConversion import (
     get_unit_conversion_factor,
     is_length_unit,
@@ -45,6 +48,107 @@ from .common import OpenFromAny
 from .Reader import ChannelInfo, ReaderBase
 
 ###
+
+# Section names. Besides the common "Ciao" names written by the
+# Nanoscope software, older software versions (and the "Nanoscope E"
+# software) use different names for the same sections; see also the
+# `nanoscope.c` module of Gwyddion.
+_FILE_LIST_SECTIONS = ("file list", "ec file list")
+_SCANNER_SECTIONS = ("scanner list", "microscope list")
+_SCAN_SECTIONS = ("ciao scan list", "afm list", "stm list", "nc afm list")
+_IMAGE_SECTIONS = (
+    "ciao image list",
+    "afm image list",
+    "stm image list",
+    "ncafm image list",
+    "image list",
+)
+
+# Starting with version 9.2 of the Nanoscope software, the raw data is
+# always stored as 32-bit integers. The "Bytes/pixel" entry then only
+# determines the scaling of the integers.
+_VERSION_32BIT = 0x09200000
+
+
+def _parse_value(value):
+    """
+    Parse a "@"-type header value, e.g.
+    `V [Sens. Zsens] (0.006713867 V/LSB) 2.910461 V`.
+
+    Returns
+    -------
+    value_type : str
+        Type of the value: 'V' (value), 'C' (scale) or 'S' (select)
+    soft_scale : str or None
+        Name of the soft scale (the entry in square brackets)
+    hard_scale : str or None
+        Content of the parentheses (the per-LSB scale)
+    hard_value : str
+        The remaining (hard) value, including its unit
+    """
+    value = value.strip()
+    if not value:
+        raise CorruptFile("Empty value in Nanoscope header.")
+    value_type, rest = value[0], value[1:].strip()
+    soft_scale = None
+    if rest.startswith("["):
+        end = rest.find("]")
+        if end < 0:
+            raise CorruptFile(f"Cannot parse soft scale of Nanoscope header value '{value}'.")
+        soft_scale = rest[1:end].strip() or None
+        rest = rest[end + 1:].strip()
+    hard_scale = None
+    if rest.startswith("("):
+        # Units can themselves contain parentheses, e.g. log(Arb)
+        level = 0
+        for i, c in enumerate(rest):
+            if c == "(":
+                level += 1
+            elif c == ")":
+                level -= 1
+                if level == 0:
+                    break
+        if level != 0:
+            raise CorruptFile(f"Cannot parse hard scale of Nanoscope header value '{value}'.")
+        hard_scale = rest[1:i].strip()
+        rest = rest[i + 1:].strip()
+    return value_type, soft_scale, hard_scale, rest
+
+
+def _split_number_and_unit(value):
+    """Split e.g. '2.910461 V' into (2.910461, 'V')."""
+    s = value.split(None, 1)
+    number = float(s[0])
+    unit = s[1].strip() if len(s) > 1 else ""
+    return number, unit
+
+
+def _parse_size(value):
+    """Parse a size with unit, e.g. '1000 nm' or '10 ~m'."""
+    number, unit = _split_number_and_unit(value)
+    return number, mangle_length_unit_utf8(unit)
+
+
+def _has_nonsquare_aspect(section):
+    aspect = section.get("aspect ratio")
+    if aspect is None or aspect.strip() == "1:1":
+        return False
+    try:
+        ratio = float(aspect.split(":")[0])
+    except ValueError:
+        return False
+    return ratio > 0 and ratio != 1
+
+
+def _image_data_name(section):
+    """Name of the channel stored in an image section."""
+    for key in ("@2:image data", "@3:image data", "@4:image data"):
+        if key in section:
+            _, soft_scale, _, hard_value = _parse_value(section[key])
+            if soft_scale is not None:
+                return soft_scale
+            return hard_value.strip('"')
+    return section.get("image data")
 
 
 class DIReader(ReaderBase):
@@ -83,13 +187,17 @@ The reader supports V4.3 and later version of the format.
             section_dict = {}
 
             L = fobj.readline().decode("latin-1").strip()
+            if L.startswith("?*"):
+                raise UnsupportedFormatFeature(
+                    "This is a Nanoscope file with data stored as text. Only files with binary data are supported."
+                )
             while L and L.lower() != r"\*file list end":
                 if L.startswith("\\*"):
                     if section_name is not None:
                         parameters += [(section_name, section_dict)]
                     new_section_name = L[2:].lower()
                     if section_name is None:
-                        if new_section_name != "file list":
+                        if new_section_name not in _FILE_LIST_SECTIONS:
                             raise IOError(
                                 "Header must start with the " "'File list' section."
                             )
@@ -115,149 +223,222 @@ The reader supports V4.3 and later version of the format.
             self._channels = []
             self._offsets = []
 
-            scanner = {}
+            # Collect the global sections first; they are needed to
+            # interpret the image sections
+            file_list = {}
+            scanner_list = {}
+            scan_list = {}
             equipment = {}
-            info = {}
+            operating_mode = None
             for n, p in parameters:
-                if n == "file list":
-                    if "date" in p:
-                        info["acquisition_time"] = dateutil.parser.parse(p["date"])
-                elif n == "scanner list" or n == "ciao scan list":
-                    scanner.update(p)
+                if n in _FILE_LIST_SECTIONS:
+                    file_list.update(p)
+                elif n in _SCANNER_SECTIONS:
+                    scanner_list.update(p)
+                elif n in _SCAN_SECTIONS:
+                    scan_list.update(p)
                 elif n == "equipment list":
                     equipment.update(p)
-                elif n == "ciao image list":
-                    image_data_key = re.match(
-                        r"^S \[(.*?)\] ", p["@2:image data"]
-                    ).group(1)
+                if "operating mode" in p:
+                    operating_mode = p["operating mode"].strip()
 
-                    info["raw_metadata"] = p
+            try:
+                version = int(file_list.get("version", "0"), 16)
+            except ValueError:
+                version = 0
+            start_context = file_list.get("start context", "").strip()
 
-                    nx = int(p["samps/line"])
-                    ny = int(p["number of lines"])
+            # Files with single force curves or (Deep Trench) sets of
+            # unevenly spaced profiles have image sections, but these do
+            # not contain topography maps
+            if operating_mode == "Force" or start_context == "FOL":
+                raise UnsupportedFormatFeature(
+                    "This Nanoscope file contains force curves, which are not supported."
+                )
+            if start_context.endswith("VAR") and operating_mode != "Force Volume":
+                raise UnsupportedFormatFeature(
+                    "This Nanoscope file contains a set of unevenly spaced profiles, which is not supported."
+                )
 
-                    s = p["scan size"].split(" ", 2)
-                    sx = float(s[0])
+            # Global resolution, which is used when the resolution of the
+            # image sections does not match the size of the data block
+            try:
+                global_nx = int(scan_list["samps/line"])
+                global_ny = int(scan_list["lines"])
+            except (KeyError, ValueError):
+                global_nx = global_ny = None
+
+            # Newer files store the (correct) slow-axis size separately;
+            # the second number in "Scan size" can then be wrong
+            slow_axis_sizes = None
+            if "slow axis size" in scan_list and "scan size" in scan_list:
+                fast_size, fast_unit = _parse_size(scan_list["scan size"])
+                slow_size, slow_unit = _parse_size(scan_list["slow axis size"])
+                fac = get_unit_conversion_factor(slow_unit, fast_unit)
+                if fac is not None:
+                    slow_axis_sizes = (fast_size, slow_size * fac, fast_unit)
+
+            instrument = {"vendor": "Bruker"}
+            if "microscope" in equipment:
+                instrument["name"] = equipment["microscope"]
+            elif "description" in equipment:
+                instrument["name"] = equipment["description"]
+            # DI files only carry the serial number of the scanner,
+            # not that of the controller
+            if "serial number" in scanner_list or "serial number" in scan_list:
+                instrument["scanner_serial"] = scanner_list.get(
+                    "serial number", scan_list.get("serial number")
+                )
+            if "version" in file_list:
+                instrument["software"] = file_list["version"]
+
+            for n, p in parameters:
+                if n not in _IMAGE_SECTIONS:
+                    continue
+
+                info = {}
+                if "date" in file_list:
+                    info["acquisition_time"] = dateutil.parser.parse(file_list["date"])
+                info["instrument"] = instrument.copy()
+                info["raw_metadata"] = p
+
+                image_data_key = _image_data_name(p)
+
+                nx = int(p["samps/line"])
+                ny = int(p["number of lines"])
+
+                # Scan size; old files report a single number for square
+                # scans
+                s = p["scan size"].split()
+                sx = float(s[0])
+                try:
                     sy = float(s[1])
+                    xy_unit = " ".join(s[2:])
+                except (IndexError, ValueError):
+                    sy = sx
+                    xy_unit = " ".join(s[1:])
+                xy_unit = mangle_length_unit_utf8(xy_unit)
+                if slow_axis_sizes is not None:
+                    fast_size, slow_size, fast_unit = slow_axis_sizes
+                    fac = get_unit_conversion_factor(fast_unit, xy_unit)
+                    if fac is None:
+                        fac = 1
+                        xy_unit = fast_unit
+                    sx, sy = fast_size * fac, slow_size * fac
 
-                    xy_unit = mangle_length_unit_utf8(s[2])
-                    offset = int(p["data offset"])
-                    self._offsets.append(offset)
+                offset = int(p["data offset"])
+                self._offsets.append(offset)
 
-                    length = int(p["data length"])
-                    elsize = int(p["bytes/pixel"])
-                    binary_scale = 1
-                    if elsize == 4:
-                        binary_scale = (
-                            1 / 65536
-                        )  # Rescale 32-bit integer to a 16-bit range
-                    elif elsize != 2:
-                        raise IOError(
-                            f"Don't know how to handle {elsize} bytes per pixel data."
-                        )
-                    if nx * ny * elsize > length:
-                        raise IOError(
-                            f"File reports a data block of length {length}, but computing the size of the "
-                            f"data block from {nx} x {ny} grid points and the per-pixel storage of {elsize} "
-                            f"bytes yields a larger value of {nx * ny * elsize}."
-                        )
-
-                    scale_re = re.match(
-                        r"^V (?:\[(.*?)\]|)\s*\(([0-9\.]+) (.*)\/LSB\) (.*) (.*)",
-                        p["@2:z scale"],
+                length = int(p["data length"])
+                # Bytes/pixel determines the scaling of the integers,
+                # starting with version 9.2 the raw data is 32-bit
+                # irrespective of this value
+                bytes_per_pixel = int(p.get("bytes/pixel", "2"))
+                if bytes_per_pixel not in (2, 4):
+                    raise IOError(
+                        f"Don't know how to handle {bytes_per_pixel} bytes per pixel data."
                     )
-                    quantity = scale_re.group(1)
-                    if quantity is not None:
-                        quantity = quantity.lower()
-                    hard_scale = float(scale_re.group(4)) / 65536
-                    hard_unit = scale_re.group(5)
+                elsize = bytes_per_pixel
+                if version >= _VERSION_32BIT and length >= 4 * nx * ny:
+                    elsize = 4
 
-                    if quantity is None:
-                        s = []
-                        soft_scale = 1.0
-                    else:
-                        s = scanner["@" + quantity].split()
-                        if s[0] != "V" or len(s) < 2:
-                            raise IOError("Malformed Nanoscope DI file.")
-                        soft_scale = float(s[1])
+                # Some files report wrong resolutions in the image
+                # sections; the global resolution is then correct
+                use_global = False
+                if global_nx is not None and length != nx * ny * elsize:
+                    if length == global_nx * global_ny * elsize:
+                        use_global = True
+                    elif nx * ny * elsize > length >= global_nx * global_ny * elsize:
+                        use_global = True
+                if use_global:
+                    if slow_axis_sizes is None:
+                        sx *= global_nx / nx
+                        sy *= global_ny / ny
+                    nx, ny = global_nx, global_ny
+                elif (
+                    slow_axis_sizes is not None
+                    and _has_nonsquare_aspect(p)
+                    and global_ny is not None
+                    and ny < global_ny
+                ):
+                    # Scan was stopped early ("Capture Now"), the slow
+                    # axis size refers to the full scan
+                    sy *= ny / global_ny
 
-                    height_unit = None
-                    hard_to_soft = 1.0
-                    if len(s) > 2:
-                        # Check units
-                        height_unit, soft_unit = s[2].split("/")
-                        hard_to_soft = get_unit_conversion_factor(hard_unit, soft_unit)
-                        if hard_to_soft is None:
-                            raise RuntimeError(
-                                "Units for hard (={}) and soft (={}) "
-                                "scale differ for '{}'. Don't know how "
-                                "to handle this.".format(
-                                    hard_unit, soft_unit, image_data_key
+                if nx * ny * elsize > length:
+                    raise IOError(
+                        f"File reports a data block of length {length}, but computing the size of the "
+                        f"data block from {nx} x {ny} grid points and the per-pixel storage of {elsize} "
+                        f"bytes yields a larger value of {nx * ny * elsize}."
+                    )
+
+                height_unit = None
+                height_scale_factor = None
+                z_scale = p.get("@4:z scale", p.get("@2:z scale"))
+                if z_scale is None:
+                    raise UnsupportedFormatFeature(
+                        "Nanoscope files without '@2:Z scale' entries (version 4.2 and earlier) are not supported."
+                    )
+                _, quantity, _, hard_value = _parse_value(z_scale)
+                hard_value, hard_unit = _split_number_and_unit(hard_value)
+                hard_scale = hard_value / 256**bytes_per_pixel
+
+                if quantity is not None:
+                    key = "@" + quantity.lower()
+                    soft = scanner_list.get(key, scan_list.get(key))
+                    if soft is not None:
+                        soft_type, _, _, soft_value = _parse_value(soft)
+                        if soft_type != "V":
+                            raise CorruptFile("Malformed Nanoscope DI file.")
+                        soft_scale, soft_unit = _split_number_and_unit(soft_value)
+                        if "/" in soft_unit:
+                            # Check units
+                            height_unit, soft_unit = soft_unit.split("/", 1)
+                            hard_to_soft = get_unit_conversion_factor(hard_unit, soft_unit)
+                            if hard_to_soft is None:
+                                raise RuntimeError(
+                                    "Units for hard (={}) and soft (={}) "
+                                    "scale differ for '{}'. Don't know how "
+                                    "to handle this.".format(
+                                        hard_unit, soft_unit, image_data_key
+                                    )
                                 )
-                            )
-                    # We only report channels with height information
-                    height_scale_factor = None
-                    if is_length_unit(height_unit):
-                        height_unit = mangle_length_unit_utf8(height_unit)
-                        if xy_unit != height_unit:
-                            fac = get_unit_conversion_factor(xy_unit, height_unit)
-                            sx *= fac
-                            sy *= fac
-                        unit = height_unit
+                            if is_length_unit(height_unit):
+                                height_scale_factor = hard_scale * hard_to_soft * soft_scale
 
-                        height_scale_factor = (
-                            hard_scale * hard_to_soft * soft_scale * binary_scale
-                        )
-                    else:
-                        unit = (xy_unit, height_unit)
+                # We only report channels with height information
+                if height_scale_factor is not None:
+                    height_unit = mangle_length_unit_utf8(height_unit)
+                    if xy_unit != height_unit:
+                        fac = get_unit_conversion_factor(xy_unit, height_unit)
+                        sx *= fac
+                        sy *= fac
+                    unit = height_unit
+                else:
+                    unit = (xy_unit, height_unit)
 
-                    if "microscope" in equipment:
-                        info["instrument"] = {
-                            "name": equipment["microscope"],
-                            "vendor": "Bruker",
-                        }
-                    elif "description" in equipment:
-                        info["instrument"] = {
-                            "name": equipment["description"],
-                            "vendor": "Bruker",
-                        }
-                    else:
-                        info["instrument"] = {"vendor": "Bruker"}
+                self._channels += [
+                    ChannelInfo(
+                        self,
+                        len(self._channels),
+                        name=image_data_key,
+                        dim=2,
+                        nb_grid_pts=(nx, ny),
+                        physical_sizes=(sx, sy),
+                        height_scale_factor=height_scale_factor,
+                        periodic=False,
+                        uniform=True,
+                        unit=unit,
+                        info=info,
+                        tags={"elsize": elsize},
+                    )
+                ]
 
-                    # DI files only carry the serial number of the scanner,
-                    # not that of the controller
-                    if "serial number" in scanner:
-                        info["instrument"]["scanner_serial"] = scanner[
-                            "serial number"
-                        ]
-
-                    for n, p in parameters:
-                        if n == "file list":
-                            if "version" in p:
-                                info["instrument"]["software"] = p["version"]
-
-                    self._channels += [
-                        ChannelInfo(
-                            self,
-                            len(self._channels),
-                            name=image_data_key,
-                            dim=2,
-                            nb_grid_pts=(nx, ny),
-                            physical_sizes=(sx, sy),
-                            height_scale_factor=height_scale_factor,
-                            periodic=False,
-                            uniform=True,
-                            unit=unit,
-                            info=info,
-                            tags={"elsize": elsize},
-                        )
-                    ]
-
-                    # We seek to the end of the data buffer, this should not raise an exception
-                    if offset + nx * ny * elsize > file_size:
-                        raise CorruptFile(
-                            "File is not large enough to contain all data buffers."
-                        )
+                # We seek to the end of the data buffer, this should not raise an exception
+                if offset + nx * ny * elsize > file_size:
+                    raise CorruptFile(
+                        "File is not large enough to contain all data buffers."
+                    )
 
     @property
     def channels(self):
