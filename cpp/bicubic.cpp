@@ -44,11 +44,14 @@ Bicubic::Bicubic(const Eigen::Ref<const RowMajorXXd>& values,
   : n1_{static_cast<int>(values.rows())},
     n2_{static_cast<int>(values.cols())},
     interp_{!derivativex_opt && !derivativey_opt},
-    values_(n1_ * n2_),
+    // The number of grid points is computed as Eigen::Index (64-bit);
+    // the product n1_ * n2_ of two ints overflows for maps of 46341 x 46341
+    // points and larger
+    values_(values.size()),
     has_derivativex_{derivativex_opt.has_value()},
     has_derivativey_{derivativey_opt.has_value()},
-    derivativex_(has_derivativex_ ? n1_ * n2_ : 0),
-    derivativey_(has_derivativey_ ? n1_ * n2_ : 0),
+    derivativex_(has_derivativex_ ? values.size() : 0),
+    derivativey_(has_derivativey_ ? values.size() : 0),
     cached_cell_{-1}
 {
   // Copy values to internal storage (row-major to linear)
