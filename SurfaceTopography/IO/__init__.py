@@ -64,7 +64,7 @@ from .MNT import MNTReader
 from .NC import NCReader
 from .NMM import NMMReader
 from .NMS import NMSReader
-from .NPY import NPYReader
+from .NPY import NPYReader, NPZReader
 from .OIR import OIRReader, POIRReader
 from .OPD import OPDReader
 from .OPDx import OPDxReader
@@ -129,6 +129,9 @@ readers = [
     MNTReader,
     QEPReader,
     NMMReader,
+    # NPZReader must come after the readers of other ZIP-based formats,
+    # because it may accept any ZIP archive
+    NPZReader,
     # NMS and HGT readers should come last as there is no file magic
     NMSReader,
     HGTReader,

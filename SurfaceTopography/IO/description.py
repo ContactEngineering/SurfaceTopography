@@ -493,7 +493,9 @@ def _decode_let(d):
 def _encode_while(layout):
     body = []
     for arg in layout._args:
-        if hasattr(arg, "from_stream"):
+        # Check for expressions first: `hasattr` is true for any attribute
+        # of an expression, since `Expr.__getattr__` builds item access
+        if not isinstance(arg, expr.Expr) and hasattr(arg, "from_stream"):
             body.append(layout_to_dict(arg))
         else:
             body.append({"condition": encode_value(arg)})

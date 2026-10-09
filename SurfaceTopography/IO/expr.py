@@ -114,16 +114,16 @@ def _unit_conversion_factor(from_unit, to_unit):
     return get_unit_conversion_factor(from_unit, to_unit)
 
 
-def _mangle_length_unit(unit):
+def _mangle_length_unit(unit, ascii_angstrom=True):
     from ..Support.UnitConversion import mangle_length_unit_utf8
 
-    return mangle_length_unit_utf8(unit)
+    return mangle_length_unit_utf8(unit, ascii_angstrom=ascii_angstrom)
 
 
-def _is_length_unit(unit):
+def _is_length_unit(unit, ascii_angstrom=True):
     from ..Support.UnitConversion import is_length_unit
 
-    return is_length_unit(unit)
+    return is_length_unit(unit, ascii_angstrom=ascii_angstrom)
 
 
 def _parse_xml(text):
