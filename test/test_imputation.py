@@ -148,3 +148,53 @@ def test_laplace_2d():
     h2 = t2.heights()
 
     np.testing.assert_allclose(h, h2, atol=1e-9)
+
+
+def _laplace_residual(h, mask, periodic):
+    """Discrete Laplacian at the undefined points; stencil legs that cross
+    a nonperiodic boundary are dropped (natural boundary condition)."""
+    residual = np.zeros_like(h)
+    for axis in range(h.ndim):
+        for shift in [1, -1]:
+            leg = np.roll(h, shift, axis) - h
+            if not periodic:
+                edge = [slice(None)] * h.ndim
+                edge[axis] = 0 if shift == 1 else -1
+                leg[tuple(edge)] = 0
+            residual += leg
+    return residual[mask]
+
+
+def _scattered_mask(shape, rng):
+    """Many disconnected patches, including some touching every boundary."""
+    mask = rng.random(shape) < 0.05
+    if len(shape) == 1:
+        mask[:3] = True
+        mask[-2:] = True
+    else:
+        mask[:2, 10:20] = True
+        mask[-3:, 30:35] = True
+        mask[40:50, :2] = True
+        mask[60:65, -1:] = True
+        mask[:4, :4] = True
+    return mask
+
+
+@pytest.mark.parametrize('periodic', [False, True])
+@pytest.mark.parametrize('shape', [(301,), (97, 83)])
+def test_many_patches_solve_laplace(shape, periodic):
+    rng = np.random.default_rng(42)
+    h = rng.normal(size=shape)
+    mask = _scattered_mask(shape, rng)
+    if len(shape) == 1:
+        t = UniformLineScan(np.ma.array(h, mask=mask), (1.,), periodic=periodic)
+    else:
+        t = Topography(np.ma.array(h, mask=mask), (1., 1.), periodic=periodic)
+    t2 = t.interpolate_undefined_data()
+    h2 = t2.heights()
+
+    assert not np.ma.is_masked(h2)
+    # Defined points are left untouched
+    np.testing.assert_array_equal(np.asarray(h2)[~mask], h[~mask])
+    # Undefined points are harmonic
+    np.testing.assert_allclose(_laplace_residual(np.asarray(h2), mask, periodic), 0, atol=1e-10)
