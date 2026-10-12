@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.24.0.dev11+g56ed15c8 documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.24.0.dev13+g37d7cf13 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=ee34ff05"></script>
+      <script src="../_static/documentation_options.js?v=31c97507"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
@@ -246,6 +246,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Integration.integrate_psd"><code class="docutils literal notranslate"><span class="pre">integrate_psd()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Integration.integrate_psd_from_profile"><code class="docutils literal notranslate"><span class="pre">integrate_psd_from_profile()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Integration.moment_power_spectrum"><code class="docutils literal notranslate"><span class="pre">moment_power_spectrum()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Integration.variance_half_derivative"><code class="docutils literal notranslate"><span class="pre">variance_half_derivative()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Integration.elastic_energy"><code class="docutils literal notranslate"><span class="pre">elastic_energy()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Interpolation">SurfaceTopography.Uniform.Interpolation module</a><ul>
@@ -1474,6 +1476,59 @@ typically occurs in optical measurements.</p>
 </dl>
 </div></blockquote>
 </section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Integration.variance_half_derivative">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Integration.</span></span><span class="sig-name descname"><span class="pre">variance_half_derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Integration.variance_half_derivative" title="Link to this definition"></a></dt>
+<dd><p>Variance of the half derivative of the heights,</p>
+<div class="math notranslate nohighlight">
+\[\langle |\nabla^{1/2} h|^2 \rangle
+= \frac{1}{(2 \pi)^2} \int d^2q\, |q|\, C^{2D}(q),\]</div>
+<p>computed from the full power spectral density (of a periodic
+topography). For line scans, the surface is assumed to be invariant
+perpendicular to the scan.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>window</strong> (<em>str</em><em>, </em><em>optional</em>) – Window for eliminating edge effects of nonperiodic data. See
+scipy.signal.get_window. (Default: None)</p></li>
+<li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only include data deemed reliable. (Default: True)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>variance</strong> – Variance of the half derivative.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Integration.elastic_energy">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Integration.</span></span><span class="sig-name descname"><span class="pre">elastic_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contact_modulus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Integration.elastic_energy" title="Link to this definition"></a></dt>
+<dd><p>Elastic energy per unit area stored in an elastic half-space that is
+pressed into full contact with the topography,</p>
+<div class="math notranslate nohighlight">
+\[\frac{U}{A} = \frac{E^*}{4} \langle |\nabla^{1/2} h|^2 \rangle,\]</div>
+<p>where <span class="math notranslate nohighlight">\(E^*\)</span> is the contact modulus. See <cite>variance_half_derivative</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>contact_modulus</strong> (<em>float</em>) – Contact modulus <span class="math notranslate nohighlight">\(E^*\)</span>.</p></li>
+<li><p><strong>window</strong> (<em>str</em><em>, </em><em>optional</em>) – Window for eliminating edge effects of nonperiodic data. See
+scipy.signal.get_window. (Default: None)</p></li>
+<li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only include data deemed reliable. (Default: True)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>energy</strong> – Elastic energy per unit area.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
