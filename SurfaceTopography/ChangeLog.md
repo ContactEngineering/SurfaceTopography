@@ -1,6 +1,28 @@
 Change log for SurfaceTopography
 ================================
 
+Unreleased
+----------
+
+- ENH: Container metadata schema (`ContainerMeta`, `SurfaceMeta`,
+  `TopographyMeta`, `load_container_metadata`) moved into
+  `SurfaceTopography.Container.IO.Schema`; `DatafileMeta.original` is optional
+- ENH: The CE container reader reads `index.json` (strictly validated against
+  the schema) with `meta.yml` as a lenient fallback for archives written by
+  older versions; metadata is parsed eagerly and datafiles are opened lazily,
+  so opening and format detection are cheap and a corrupt member surfaces on
+  access instead of misrouting detection
+- ENH: `write_containers` emits a schema-valid `index.json` alongside an
+  equivalent `meta.yml` and preserves `is_periodic`
+- BUG: Containers exported by `write_containers` could not be read back
+- ENH: New `ContainerMember` dataclass and `members()` enumeration on the
+  container readers (name, visibility flag and a verbatim-bytes opener)
+- ENH: The ZAG reader excludes hidden measurements (`Visible == false`) from
+  the container and constructs ZON readers lazily; eager construction re-read
+  the archive's central directory once per member (127 s -> 0.9 s to open a
+  9.6 GB archive)
+- DOC: Updated file format descriptions
+
 v1.24.0 (25Aug26)
 -----------------
 

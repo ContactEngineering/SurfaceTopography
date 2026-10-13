@@ -23,6 +23,7 @@
 # SOFTWARE.
 #
 
+import json
 import os
 import tempfile
 import zipfile
@@ -164,8 +165,6 @@ def test_read_files_from_container(filenames):
             }
             z.writestr("meta.yml", yaml.dump(metadata))
 
-        os.system(f"cp {containerfn} /Users/pastewka/Downloads/")
-
         r = CEReader(containerfn)
         c = r.container()
         for t in c:
@@ -210,3 +209,237 @@ def test_read_multiple_surfaces(file_format_examples):
     assert len(s1) == 1
     assert len(s2) == 1
     assert not np.allclose(s1[0].heights(), s2[0].heights())
+
+
+#
+# `index.json` metadata and member enumeration
+#
+
+
+def _make_index_json_container(fn, file_format_examples, with_legacy_yaml=False):
+    """Build a container with `index.json` metadata (the canonical layout
+    written by TopoBank) around two example data files. Returns the paths of
+    the bundled data files."""
+    datafiles = ["di-1.di", "opd-1.opd"]
+    topographies = []
+    for i, datafile in enumerate(datafiles):
+        t_ref = read_topography(os.path.join(file_format_examples, datafile))
+        # TopoBank exports always carry an explicit detrend mode; sizes and
+        # unit mirror the data file, as on a real export.
+        topographies.append(
+            {
+                "name": f"Measurement {i}",
+                "datafile": {"original": datafile},
+                "size": [float(s) for s in t_ref.physical_sizes],
+                "unit": t_ref.unit,
+                "detrend_mode": "center",
+            }
+        )
+    index = {
+        "versions": {},
+        "surfaces": [{"name": "My surface", "topographies": topographies}],
+    }
+    with zipfile.ZipFile(fn, "w") as z:
+        for datafile in datafiles:
+            z.write(os.path.join(file_format_examples, datafile), datafile)
+        z.writestr("index.json", json.dumps(index))
+        if with_legacy_yaml:
+            # Conflicting legacy metadata; `index.json` must win
+            z.writestr(
+                "meta.yml",
+                yaml.dump({"surfaces": [{"name": "WRONG", "topographies": []}]}),
+            )
+    return datafiles
+
+
+def test_read_index_json_container(file_format_examples, tmp_path):
+    """CEReader must read containers with `index.json` metadata -- the only
+    kind of metadata that current TopoBank exports carry."""
+    fn = str(tmp_path / "container.zip")
+    _make_index_json_container(fn, file_format_examples)
+
+    r = CEReader(fn)
+    assert r.nb_containers == 1
+    c = r.container()
+    assert len(c) == 2
+
+    # The pipeline (here: center detrending) is reconstructed from the
+    # metadata, exactly as for legacy `meta.yml` containers
+    t1_ref = read_topography(f"{file_format_examples}/di-1.di").detrend("center")
+    t2_ref = read_topography(f"{file_format_examples}/opd-1.opd").detrend("center")
+    assert_allclose(c[0].heights(), t1_ref.heights())
+    assert_allclose(c[1].heights(), t2_ref.heights())
+    assert c[0].unit == t1_ref.unit
+    assert c[1].unit == t2_ref.unit
+
+
+def test_detect_format_index_json_container(file_format_examples, tmp_path):
+    from SurfaceTopography.Container.IO import detect_format
+
+    fn = str(tmp_path / "container.zip")
+    _make_index_json_container(fn, file_format_examples)
+    assert detect_format(fn) == "ce"
+
+
+def test_index_json_takes_precedence_over_legacy_yaml(
+    file_format_examples, tmp_path
+):
+    fn = str(tmp_path / "container.zip")
+    _make_index_json_container(fn, file_format_examples, with_legacy_yaml=True)
+
+    r = CEReader(fn)
+    assert len(r.container()) == 2
+    assert r.container().info["name"] == "My surface"
+
+
+def test_invalid_index_json_raises(file_format_examples, tmp_path):
+    from SurfaceTopography.Exceptions import CorruptFile
+
+    fn = str(tmp_path / "container.zip")
+    with zipfile.ZipFile(fn, "w") as z:
+        z.write(os.path.join(file_format_examples, "di-1.di"), "di-1.di")
+        # `surfaces` must be a list
+        z.writestr("index.json", json.dumps({"surfaces": {"oops": 1}}))
+    with pytest.raises(CorruptFile):
+        CEReader(fn)
+
+
+def test_missing_metadata_raises_format_mismatch(file_format_examples, tmp_path):
+    from SurfaceTopography.Container.IO import detect_format
+    from SurfaceTopography.Exceptions import (
+        CannotDetectFileFormat,
+        FileFormatMismatch,
+    )
+
+    fn = str(tmp_path / "batch.zip")
+    with zipfile.ZipFile(fn, "w") as z:
+        z.write(os.path.join(file_format_examples, "di-1.di"), "di-1.di")
+    with pytest.raises(FileFormatMismatch):
+        CEReader(fn)
+    # A bare batch of data files is not a container of any known format
+    with pytest.raises(CannotDetectFileFormat):
+        detect_format(fn)
+
+
+def test_corrupt_datafile_surfaces_on_access_not_on_open(
+    file_format_examples, tmp_path
+):
+    """Opening a container parses only the metadata; a corrupt data file must
+    not prevent opening (or format detection), only reading the affected
+    topography."""
+    fn = str(tmp_path / "container.zip")
+    index = {
+        "surfaces": [
+            {
+                "name": "My surface",
+                "topographies": [
+                    {
+                        "name": "Broken measurement",
+                        "datafile": {"original": "broken.dat"},
+                        "size": [1.0, 1.0],
+                        "unit": "µm",
+                    }
+                ],
+            }
+        ]
+    }
+    with zipfile.ZipFile(fn, "w") as z:
+        z.writestr("broken.dat", b"\x00\x01\x02 this is not a topography")
+        z.writestr("index.json", json.dumps(index))
+
+    r = CEReader(fn)  # Must not raise
+    c = r.container()
+    assert len(c) == 1
+    with pytest.raises(Exception):
+        c[0]
+
+
+def test_ce_members_index_json(file_format_examples, tmp_path):
+    from SurfaceTopography.Container.IO.Schema import TopographyMeta
+
+    fn = str(tmp_path / "container.zip")
+    datafiles = _make_index_json_container(fn, file_format_examples)
+
+    r = CEReader(fn)
+    members = r.members()
+    assert [m.name for m in members] == ["Measurement 0", "Measurement 1"]
+    assert all(m.visible for m in members)
+
+    # Members of an `index.json` container carry validated metadata
+    for member in members:
+        assert isinstance(member.metadata, TopographyMeta)
+    assert members[0].metadata.datafile.original == "di-1.di"
+    assert members[0].metadata.unit is not None
+
+    # The member streams must return the verbatim bytes of the bundled files
+    for member, datafile in zip(members, datafiles):
+        with open(os.path.join(file_format_examples, datafile), "rb") as f:
+            reference_bytes = f.read()
+        with member.open() as f:
+            assert f.read() == reference_bytes
+
+
+def test_ce_members_legacy_yaml_without_names(file_format_examples, tmp_path):
+    """Legacy containers may lack measurement names entirely; members fall
+    back to the data file name and carry no validated metadata."""
+    fn = str(tmp_path / "container.zip")
+    with zipfile.ZipFile(fn, "w") as z:
+        z.write(os.path.join(file_format_examples, "di-1.di"), "data/di-1.di")
+        z.writestr(
+            "meta.yml",
+            yaml.dump(
+                {
+                    "surfaces": [
+                        {
+                            "topographies": [
+                                {"datafile": {"original": "data/di-1.di"}}
+                            ]
+                        }
+                    ]
+                }
+            ),
+        )
+
+    r = CEReader(fn)
+    (member,) = r.members()
+    assert member.name == "di-1.di"
+    assert member.metadata is None
+    with open(os.path.join(file_format_examples, "di-1.di"), "rb") as f:
+        with member.open() as g:
+            assert g.read() == f.read()
+
+
+def test_write_creates_valid_index_json(file_format_examples):
+    """Containers written by `write_containers` must carry schema-valid
+    `index.json` metadata alongside the legacy `meta.yml`."""
+    from SurfaceTopography.Container.IO.Schema import ContainerMeta
+
+    t1 = read_topography(f"{file_format_examples}/di-1.di")
+    t2 = read_topography(f"{file_format_examples}/opd-1.opd")
+    c = InMemorySurfaceContainer([t1, t2])
+
+    with tempfile.TemporaryFile() as fobj:
+        c.to_zip(fobj)
+
+        fobj.seek(0)
+        with zipfile.ZipFile(fobj) as z:
+            names = set(z.namelist())
+            assert "index.json" in names
+            assert "meta.yml" in names
+            meta = ContainerMeta.model_validate_json(z.read("index.json"))
+            meta_yaml = ContainerMeta.model_validate(
+                yaml.safe_load(z.read("meta.yml"))
+            )
+        # Both metadata files carry identical content
+        assert meta == meta_yaml
+        assert len(meta.surfaces) == 1
+        assert len(meta.surfaces[0].topographies) == 2
+        assert meta.surfaces[0].topographies[0].datafile.squeezed_netcdf is not None
+
+        # ... and the container reads back, through the `index.json` path
+        (c2,) = read_container(fobj)
+        assert len(c2) == 2
+        assert_allclose(c2[0].heights(), t1.heights())
+        assert_allclose(c2[1].heights(), t2.heights())
+        assert c2[0].unit == t1.unit
+        assert c2[1].unit == t2.unit

@@ -23,6 +23,43 @@
 #
 
 import abc
+import dataclasses
+from typing import Callable, Optional
+
+from .Schema import TopographyMeta
+
+
+@dataclasses.dataclass
+class ContainerMember:
+    """
+    A single raw data file (measurement) stored inside a container.
+
+    This is the *ingestion* view of a container: unlike
+    :meth:`ContainerReaderBase.container`, which decodes measurements into
+    topographies for analysis, a member gives access to the verbatim bytes of
+    the underlying data file plus the little metadata the container format
+    carries about it. Web applications use this to store the raw file and
+    defer decoding.
+    """
+
+    #: Human-readable name of the measurement (typically the name of the file
+    #: that was originally imported into the container).
+    name: str
+
+    #: Callable that returns a fresh binary stream with the verbatim bytes of
+    #: the raw data file. Each call returns a new stream; the caller is
+    #: responsible for closing it.
+    open: Callable
+
+    #: Whether the measurement is visible. Some container formats (e.g.
+    #: Keyence ZAG) can mark measurements as hidden without deleting them;
+    #: hidden measurements are excluded from `container()` but reported here
+    #: so that callers can account for them.
+    visible: bool = True
+
+    #: Validated per-measurement metadata, if the container format provides
+    #: it (contact.engineering containers do, ZAG does not).
+    metadata: Optional[TopographyMeta] = None
 
 
 class ContainerReaderBase(metaclass=abc.ABCMeta):
@@ -108,6 +145,33 @@ class ContainerReaderBase(metaclass=abc.ABCMeta):
     def nb_containers(self):
         """Number of surfaces stored in this container file"""
         return 1
+
+    def members(self, index=0):
+        """
+        Enumerate the raw data files (measurements) stored in this container,
+        without decoding them into topographies.
+
+        This is the ingestion companion to :meth:`container`: it exposes the
+        verbatim bytes of each measurement's data file plus the metadata the
+        container carries about it, so that callers (e.g. web applications)
+        can store the raw files and defer decoding. Hidden measurements are
+        included, flagged with ``visible=False``; :meth:`container` excludes
+        them.
+
+        Arguments
+        ---------
+        index : int
+            Index of the container to enumerate.
+            (Default: 0, which enumerates the first container)
+
+        Returns
+        -------
+        members : list of :obj:`ContainerMember`
+            All measurements stored in this container.
+        """
+        raise NotImplementedError(
+            f"The {self.name()} reader does not support member enumeration."
+        )
 
     @abc.abstractmethod
     def container(self, index=0):
