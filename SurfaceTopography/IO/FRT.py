@@ -28,7 +28,7 @@
 
 from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature
 from .binary import BinaryArray, BinaryStructure, TLVContainer, Validate
-from .expr import C, Cond, F, Tup, V
+from .expr import C, Cond, DictExpr, F, Tup, V
 from .Reader import CompoundLayout, DeclarativeReaderBase, For, If, SizedChunk, Skip
 
 _MAGIC = "FRTM_GLIDERV"
@@ -38,6 +38,42 @@ _UNDEFINED_DATA = 1
 
 # Tag of the block holding the topography data
 _TOPOGRAPHY_TAG = 0x000B
+
+
+def _height_array(name, nb_grid_pts_x, nb_grid_pts_y, bits_per_pixel):
+    """
+    Height data: a raster of 16-bit unsigned or 32-bit signed integers,
+    stored row by row.
+    """
+    return BinaryArray(
+        name,
+        Tup(nb_grid_pts_y, nb_grid_pts_x),
+        Cond(bits_per_pixel == 16, F.dtype("<u2"), F.dtype("<i4")),
+        # Transpose to (nx, ny) order. The first stored row is the bottom
+        # line of the image; flip it to match the orientation of Gwyddion
+        # (`microprof.c` flips both the binary and the text variant of the
+        # format) and of the other readers.
+        conversion_fun=F.flip(F.transpose(V), 1),
+        # Undefined data is marked by the value 1
+        mask_fun=V == _UNDEFINED_DATA,
+    )
+
+
+# Image data types of the multi-image block 0x007D (bit flags). Only the
+# height-like types are reported as channels; the remaining ones (e.g.
+# intensity, camera, phase) are no topography data.
+_IMAGE_TYPE_MASK = 0x0000FFDF
+_IMAGE_TYPE_NAMES = DictExpr(
+    {
+        "4": "Topography",
+        "128": "Thickness",
+        "2048": "Sample thickness",
+        "4096": "AFM",
+    }
+)
+_HEIGHT_IMAGE_TYPES = 0x0004 | 0x0080 | 0x0800 | 0x1000
+_BOTTOM_SENSOR = 0x10000000
+_BUFFER_COUNTER_MASK = 0x0F000000
 
 
 def _block(fields, name=None, mode="read-once"):
@@ -642,17 +678,76 @@ _tag_map = {
     # `grid`; the size check guards against dimension mismatch.
     _TOPOGRAPHY_TAG: SizedChunk(
         C._block_size,
-        BinaryArray(
+        _height_array(
             "data",
-            Tup(C.grid.nb_grid_pts_y, C.grid.nb_grid_pts_x),
-            Cond(
-                C.grid.bytes_per_pixel == 16, F.dtype("<u2"), F.dtype("<i4")
-            ),
-            conversion_fun=F.transpose(V),  # Transpose to (nx, ny) order
-            # Undefined data is marked by the value 1
-            mask_fun=V == _UNDEFINED_DATA,
+            C.grid.nb_grid_pts_x,
+            C.grid.nb_grid_pts_y,
+            # Despite its name, this field holds the number of bits
+            C.grid.bytes_per_pixel,
         ),
         name="height_data",
+    ),
+    # Multi-image block: four buffer ids followed by a sequence of images,
+    # each with its own header (data type flags, grid dimensions and bits
+    # per pixel). Newer files store the topography (duplicated in block
+    # 0x000B) and further images such as intensity or a second sensor here.
+    0x007D: SizedChunk(
+        C._block_size,
+        CompoundLayout(
+            [
+                BinaryStructure(
+                    [
+                        ("currbuf_id1", "H"),
+                        ("currbuf_id2", "H"),
+                        ("currbuf_id3", "H"),
+                        ("currbuf_id4", "H"),
+                    ],
+                    byte_order="<",
+                    name="buffers",
+                ),
+                SizedChunk(
+                    C.__parent__._block_size - 8,
+                    CompoundLayout(
+                        [
+                            BinaryStructure(
+                                [
+                                    ("data_type", "I"),
+                                    (
+                                        "nb_grid_pts_x",
+                                        "I",
+                                        Validate(V > 0, CorruptFile),
+                                    ),
+                                    (
+                                        "nb_grid_pts_y",
+                                        "I",
+                                        Validate(V > 0, CorruptFile),
+                                    ),
+                                    (
+                                        "bits_per_pixel",
+                                        "I",
+                                        Validate(
+                                            V.isin(16, 32),
+                                            UnsupportedFormatFeature,
+                                        ),
+                                    ),
+                                ],
+                                byte_order="<",
+                                name="header",
+                            ),
+                            _height_array(
+                                "data",
+                                C.header.nb_grid_pts_x,
+                                C.header.nb_grid_pts_y,
+                                C.header.bits_per_pixel,
+                            ),
+                        ]
+                    ),
+                    mode="loop",
+                    name="images",
+                ),
+            ]
+        ),
+        name="multi_image",
     ),
 }
 
@@ -671,6 +766,35 @@ def _tag_list(size_format):
         # round trip: store them under hex string keys like '0x66'
         hex_tag_keys=True,
     )
+
+
+# Start of the measurement as a POSIX timestamp (block 0x0072, which may be
+# absent); 0 and 0xFFFFFFFF mark an unset time
+_meas_started = F.get(F.get(C.blocks, "0x72", {}), "meas_started", 0)
+_acquisition_time = Cond(
+    _meas_started.isin(0, 0xFFFFFFFF), None, F.from_timestamp(_meas_started)
+)
+
+
+_MULTI_IMAGE_TAG = 0x007D
+
+_physical_sizes = Tup(
+    C.blocks["0x67"].physical_size_x,
+    C.blocks["0x67"].physical_size_y,
+)
+
+_info = {
+    "instrument": {
+        "vendor": "FRT",
+        # The serial number block may be absent
+        "serial": F.get(F.get(C.blocks, "0x8e", {}), "serial_number", None),
+    },
+    "acquisition_time": _acquisition_time,
+    # The lazy height data handles are not metadata
+    "raw_metadata": F.omit(
+        F.omit(C.blocks, hex(_TOPOGRAPHY_TAG)), hex(_MULTI_IMAGE_TAG)
+    ),
+}
 
 
 class FRTReader(DeclarativeReaderBase):
@@ -713,38 +837,61 @@ Technology, now part of FormFactor).
     )
 
     def _validate_metadata(self):
-        if hex(_TOPOGRAPHY_TAG) not in self._metadata.blocks:
+        blocks = self._metadata.blocks
+        if hex(_TOPOGRAPHY_TAG) not in blocks and hex(_MULTI_IMAGE_TAG) not in blocks:
             raise CorruptFile(
                 "File does not appear to contain topography data."
             )
 
     _channel_bindings = [
+        # The topography of block 0x000B
         {
             "name": "default",
+            "where": F.get(C.blocks, hex(_TOPOGRAPHY_TAG), None) != None,  # noqa: E711
             "dim": 2,
             "nb_grid_pts": Tup(
                 C.blocks["0x66"].nb_grid_pts_x,
                 C.blocks["0x66"].nb_grid_pts_y,
             ),
-            "physical_sizes": Tup(
-                C.blocks["0x67"].physical_size_x,
-                C.blocks["0x67"].physical_size_y,
-            ),
+            "physical_sizes": _physical_sizes,
             "height_scale_factor": C.blocks["0x6c"].height_scale_factor,
             "unit": "m",  # All units m
             "periodic": False,
             "uniform": True,
-            "info": {
-                "instrument": {
-                    "vendor": "FRT",
-                    # The serial number block may be absent
-                    "serial": F.get(
-                        F.get(C.blocks, "0x8e", {}), "serial_number", None
-                    ),
-                },
-                # The lazy topography data handle is not metadata
-                "raw_metadata": F.omit(C.blocks, hex(_TOPOGRAPHY_TAG)),
-            },
+            "info": _info,
             "data": C.blocks[hex(_TOPOGRAPHY_TAG)].data,
-        }
+        },
+        # Files without block 0x000B: the height-like images of the
+        # multi-image block 0x007D (as in Gwyddion's `microprof.c`)
+        {
+            "foreach": F.get(
+                F.get(C.blocks, hex(_MULTI_IMAGE_TAG), {}), "images", []
+            ),
+            "where": (F.get(C.blocks, hex(_TOPOGRAPHY_TAG), None) == None)  # noqa: E711
+            & ((C.item.header.data_type & _HEIGHT_IMAGE_TYPES) != 0),
+            "name": F.get(
+                _IMAGE_TYPE_NAMES,
+                F.str(C.item.header.data_type & _IMAGE_TYPE_MASK),
+                "Unknown",
+            )
+            + Cond(
+                (C.item.header.data_type & _BOTTOM_SENSOR) != 0,
+                " (bottom sensor) ",
+                " (top sensor) ",
+            )
+            + F.str(
+                ((C.item.header.data_type & _BUFFER_COUNTER_MASK) >> 24) + 1
+            ),
+            "dim": 2,
+            "nb_grid_pts": Tup(
+                C.item.header.nb_grid_pts_x, C.item.header.nb_grid_pts_y
+            ),
+            "physical_sizes": _physical_sizes,
+            "height_scale_factor": C.blocks["0x6c"].height_scale_factor,
+            "unit": "m",
+            "periodic": False,
+            "uniform": True,
+            "info": _info,
+            "data": C.item.data,
+        },
     ]

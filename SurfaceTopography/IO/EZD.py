@@ -32,7 +32,7 @@ import datetime
 import numpy as np
 
 from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile
-from ..Support.UnitConversion import is_length_unit
+from ..Support.UnitConversion import get_unit_conversion_factor, is_length_unit
 from ..UniformLineScanAndTopography import Topography
 from .common import OpenFromAny
 from .Reader import ChannelInfo, ReaderBase
@@ -107,6 +107,18 @@ data blocks.
             )
         )
 
+        # Instrument information. The controller and the scan head have
+        # separate serial numbers; the latter is in the calibration section.
+        dataset_info = metadata.get("DataSet-Info", {})
+        scan_head_calibration = metadata.get("DataSet\\Calibration\\Scanhead", {})
+        instrument = {"vendor": "Nanosurf"}
+        if "Head type" in dataset_info:
+            instrument["name"] = dataset_info["Head type"]
+        if "Controller S/N" in dataset_info:
+            instrument["serial"] = dataset_info["Controller S/N"]
+        if "SerialNo" in scan_head_calibration:
+            instrument["scanner_serial"] = scan_head_calibration["SerialNo"]
+
         # Turn metadata in channel information
         self._channels = []
         global_metadata = metadata["DataSet"]
@@ -150,10 +162,29 @@ data blocks.
                     name = (
                         f"{dataset_metadata['Frame']} ({dataset_metadata['Dim2Name']})"
                     )
+                    # The lateral sizes are reported in the unit of the
+                    # heights
+                    unit = dataset_metadata["Dim2Unit"]
                     physical_sizes = (
-                        float(dataset_metadata["Dim0Range"]),
-                        float(dataset_metadata["Dim1Range"]),
+                        float(dataset_metadata["Dim0Range"])
+                        * get_unit_conversion_factor(
+                            dataset_metadata.get("Dim0Unit", unit), unit
+                        ),
+                        float(dataset_metadata["Dim1Range"])
+                        * get_unit_conversion_factor(
+                            dataset_metadata.get("Dim1Unit", unit), unit
+                        ),
                     )
+                    # The data covers the value range [Dim2Min, Dim2Min +
+                    # Dim2Range]: signed raw values are shifted by half of
+                    # the range of the data type (as in Gwyddion's
+                    # ezdfile.c)
+                    height_scale_factor = float(dataset_metadata["Dim2Range"]) / 2 ** (
+                        8 * nb_bytes
+                    )
+                    height_offset = float(dataset_metadata.get("Dim2Min", 0))
+                    if data_type == "i":
+                        height_offset += float(dataset_metadata["Dim2Range"]) / 2
                     self._channels += [
                         ChannelInfo(
                             self,
@@ -163,19 +194,17 @@ data blocks.
                             nb_grid_pts=nb_grid_pts,
                             physical_sizes=physical_sizes,
                             uniform=True,
-                            unit=dataset_metadata["Dim2Unit"],
-                            height_scale_factor=float(dataset_metadata["Dim2Range"])
-                            / 2 ** (8 * nb_bytes),
+                            unit=unit,
+                            height_scale_factor=height_scale_factor,
                             info={
                                 "acquisition_time": acquisition_time,
+                                "instrument": dict(instrument),
                                 "raw_metadata": dataset_metadata,
                             },
                             tags={
                                 "dtype": dtype,
                                 "offset": offset,
-                                "height_offset": float(
-                                    dataset_metadata["Dim2Min"]
-                                ),  # Currently unused
+                                "height_offset": height_offset,
                             },
                         )
                     ]
@@ -227,6 +256,14 @@ data blocks.
                 np.frombuffer(rawdata, count=nx * ny, dtype=dtype)
                 .reshape(ny, nx)
                 .T
+            )
+
+        # Apply the offset of the heights (in units of the height scale
+        # factor, which is applied below)
+        if channel.tags["height_offset"] != 0 and channel.height_scale_factor != 0:
+            unscaleddata = (
+                unscaleddata
+                + channel.tags["height_offset"] / channel.height_scale_factor
             )
 
         # internal information from file

@@ -44,7 +44,13 @@ def test_nmm_metadata(file_format_examples, plot=False):
 
     assert t.nb_grid_pts == (20001, 10)
     assert t.unit == "µm"
-    np.testing.assert_allclose(t.physical_sizes, (1000, 9))
+    # The scan line length (1000 µm) and scan field width (9 µm) are the
+    # distances between the first and last point; with points at pixel
+    # centers the physical size is the number of points times the spacing
+    # (0.05 µm along the line, 1 µm between lines, as the Lx/Ly coordinates
+    # in the DAT files confirm)
+    np.testing.assert_allclose(t.physical_sizes, (1000.05, 10))
+    np.testing.assert_allclose(t.pixel_size, (0.05, 1))
     np.testing.assert_allclose(t.rms_height_from_profile(), 1.222713, rtol=1e-6)
 
     if plot:

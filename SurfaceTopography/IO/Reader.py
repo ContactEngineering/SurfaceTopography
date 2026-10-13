@@ -33,7 +33,7 @@ import numpy as np
 
 from ..Exceptions import ERROR_CLASSES, CorruptFile, MetadataAlreadyFixedByFile
 from ..Metadata import InfoModel
-from ..UniformLineScanAndTopography import Topography
+from ..UniformLineScanAndTopography import Topography, UniformLineScan
 from .binary import AttrDict, LayoutWithNameBase, _identity
 from .common import OpenFromAny
 from .expr import Expr
@@ -134,7 +134,9 @@ class ChannelInfo:
         self._name = "channel {}".format(self._index) if name is None else str(name)
         self._dim = dim
         self._nb_grid_pts = (
-            None if nb_grid_pts is None else tuple(np.ravel(nb_grid_pts))
+            None
+            if nb_grid_pts is None
+            else tuple(int(n) for n in np.ravel(nb_grid_pts))
         )
         self._physical_sizes = (
             None if physical_sizes is None else tuple(np.ravel(physical_sizes))
@@ -1403,7 +1405,10 @@ class DeclarativeReaderBase(ReaderBase):
     `_channel_bindings` is a list of dictionaries with the entries
 
     - `name`, `dim`, `unit`, `periodic`, `uniform`: literals or
-      expressions
+      expressions; channels with `dim` 1 are returned as line scans
+    - `data_kind`, `data_unit`: optional literals or expressions for
+      channels that do not contain heights; `data_kind` is the value of a
+      `DataKind` (e.g. "phase"), `data_unit` the unit of the data values
     - `nb_grid_pts`, `physical_sizes`: expressions evaluating to tuples
     - `height_scale_factor`: literal, expression or absent (unscaled)
     - `info`: (nested) dictionary of literals or expressions; entries
@@ -1551,6 +1556,8 @@ class DeclarativeReaderBase(ReaderBase):
         "periodic",
         "uniform",
         "unit",
+        "data_kind",
+        "data_unit",
         "info",
     ]
 
@@ -1592,6 +1599,8 @@ class DeclarativeReaderBase(ReaderBase):
                 }
                 if "info" in kwargs:
                     kwargs["info"] = self._prune_undefined_info(kwargs["info"])
+                if kwargs.get("data_kind") is not None:
+                    kwargs["data_kind"] = DataKind(kwargs["data_kind"])
                 channels.append(
                     ChannelInfo(
                         self,
@@ -1645,13 +1654,26 @@ class DeclarativeReaderBase(ReaderBase):
         _info = channel.info.copy()
         _info.update(info)
 
-        topo = Topography(
-            height_data,
-            physical_sizes,
-            unit=unit,
-            periodic=False if periodic is None else periodic,
-            info=_info,
-        )
+        if channel.dim == 1:
+            topo = UniformLineScan(
+                np.ravel(height_data),
+                (
+                    None
+                    if physical_sizes is None
+                    else float(np.ravel(physical_sizes)[0])
+                ),
+                unit=unit,
+                periodic=False if periodic is None else periodic,
+                info=_info,
+            )
+        else:
+            topo = Topography(
+                height_data,
+                physical_sizes,
+                unit=unit,
+                periodic=False if periodic is None else periodic,
+                info=_info,
+            )
         if height_scale_factor is None:
             # A declarative reader is not required to provide height-scale
             # metadata; without it, the heights are returned unscaled

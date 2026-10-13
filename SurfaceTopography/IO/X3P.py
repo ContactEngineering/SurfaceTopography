@@ -183,15 +183,16 @@ format can be found [here](http://www.opengps.eu/).
                 "supported.",
             ),
             # The height data member is named within the XML index. Data
-            # types are per ISO 5436-2: I = uint16, L = uint32,
-            # F = float32, D = float64.
+            # types are per ISO 5436-2: I = int16, L = int32 (both signed,
+            # as in the openGPS reference library and Gwyddion's
+            # `opengps.c`), F = float32, D = float64.
             (
                 _data_link.PointDataLink,
                 BinaryArray(
                     "data",
                     Tup(_dims.SizeY, _dims.SizeX),
                     F.dtype(
-                        Lit({"I": "<u2", "L": "<u4", "F": "<f4", "D": "<f8"})[
+                        Lit({"I": "<i2", "L": "<i4", "F": "<f4", "D": "<f8"})[
                             _axes.CZ.DataType
                         ]
                     ),
@@ -295,8 +296,8 @@ def write_x3p(
         Data type for height values. Options are:
         - 'D' : 64-bit float (default)
         - 'F' : 32-bit float
-        - 'L' : 32-bit unsigned integer (requires height_scale_factor)
-        - 'I' : 16-bit unsigned integer (requires height_scale_factor)
+        - 'L' : 32-bit signed integer (with height increment and offset)
+        - 'I' : 16-bit signed integer (with height increment and offset)
     manufacturer : str, optional
         Manufacturer name to include in metadata. (Default: 'SurfaceTopography')
     model : str, optional
@@ -312,8 +313,8 @@ def write_x3p(
 
     # Data type mapping (reverse of reader)
     dtype_map = {
-        "I": np.dtype("<u2"),
-        "L": np.dtype("<u4"),
+        "I": np.dtype("<i2"),
+        "L": np.dtype("<i4"),
         "F": np.dtype("f4"),
         "D": np.dtype("f8"),
     }
@@ -350,7 +351,8 @@ def write_x3p(
     invalid_mask = np.isnan(heights)
     has_invalid = invalid_mask.any()
 
-    # For integer types, we need to scale the data
+    # For integer types, we need to scale the data. The full (signed)
+    # range of the integer type is used: h = raw * increment + offset
     if dtype in ("I", "L"):
         height_min = np.nanmin(heights)
         height_max = np.nanmax(heights)
@@ -362,13 +364,11 @@ def write_x3p(
             # invalid points is arbitrary since they are flagged in the
             # validity file
             heights = np.where(invalid_mask, height_min, heights)
-        if dtype == "I":
-            scale_factor = height_range / 65535
-            heights = ((heights - height_min) / scale_factor).astype(np_dtype)
-        else:  # L
-            scale_factor = height_range / 4294967295
-            heights = ((heights - height_min) / scale_factor).astype(np_dtype)
-        z_offset = height_min
+        int_info = np.iinfo(np_dtype)
+        scale_factor = height_range / (int(int_info.max) - int(int_info.min))
+        heights = np.round((heights - height_min) / scale_factor + int_info.min)
+        heights = np.clip(heights, int_info.min, int_info.max).astype(np_dtype)
+        z_offset = height_min - int_info.min * scale_factor
         z_increment = scale_factor
     else:
         z_offset = None

@@ -24,6 +24,8 @@
 
 """
 Reader for KLA Zeta ZMG files.
+
+Reference implementation: Gwyddion's zmgfile.c
 """
 
 from ..Exceptions import CorruptFile, FileFormatMismatch
@@ -58,7 +60,9 @@ ZMG data files of KLA Zeta (formerly Zeta Instruments) optical profilers.
                     ("step_z", "f"),
                     (None, "8s"),  # Reserved
                     ("comment_size", "I"),
-                    (None, "84s"),  # Reserved
+                    (None, "10s"),  # Reserved
+                    ("recipe_name", "68s"),
+                    (None, "6s"),  # Reserved
                 ],
                 name="header",
             ),
@@ -66,7 +70,9 @@ ZMG data files of KLA Zeta (formerly Zeta Instruments) optical profilers.
             BinaryArray(
                 "data",
                 Tup(C.header.nb_grid_pts_y, C.header.nb_grid_pts_x),
-                F.dtype("<i2"),
+                # Heights are unsigned 16-bit integers (as in Gwyddion's
+                # zmgfile.c)
+                F.dtype("<u2"),
                 conversion_fun=F.transpose(V),  # Transpose to (nx, ny) order
             ),
         ]

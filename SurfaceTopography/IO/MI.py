@@ -33,8 +33,12 @@ from .Reader import Check, CompoundLayout, DeclarativeReaderBase, For
 # its value selects the encoding of the data buffers that follow.
 _KEY_WIDTH = 14
 
+# The value of the `data` key selects the encoding of the data. An empty
+# value (as written by some software) means 16-bit data.
+_is_32bit = C.header.data == "BINARY_32"
+
 # Data is normalized with the range of the data type
-_type_range = Cond(C.header.data == "BINARY", 32768.0, 2147483648.0)
+_type_range = Cond(_is_32bit, 2147483648.0, 32768.0)
 
 # Unit of the data of the current channel
 _unit = F.mangle_length_unit(C.item.bufferUnit)
@@ -83,7 +87,7 @@ topography map as well as its units.
                 "Spectroscopy MI files are not supported.",
             ),
             Check(
-                F.get(C.header, "data", "").isin("BINARY", "BINARY_32"),
+                F.get(C.header, "data", None).isin("BINARY", "BINARY_32", ""),
                 UnsupportedFormatFeature,
                 "MI files with text (ASCII) data are not supported.",
             ),
@@ -95,20 +99,14 @@ topography map as well as its units.
                 BinaryArray(
                     "data",
                     Tup(F.int(C.header.yPixels), F.int(C.header.xPixels)),
-                    Cond(
-                        C.header.data == "BINARY",
-                        F.dtype("<i2"),
-                        F.dtype("<i4"),
-                    ),
-                    # If the scan direction is upwards, flip the height
-                    # map vertically; transpose to (nx, ny) order
-                    conversion_fun=F.transpose(
-                        Cond(
-                            F.get(C.header, "scanUp", "") == "TRUE",
-                            F.flip(V, 0),
-                            V,
-                        )
-                    ),
+                    Cond(_is_32bit, F.dtype("<i4"), F.dtype("<i2")),
+                    # The last line of the buffer is the top line of the
+                    # image, independent of the scan direction (`scanUp`).
+                    # Flip the height map vertically, such that the
+                    # orientation matches Gwyddion's (mifile.c) when
+                    # plotted with imshow(t.heights().T); transpose to
+                    # (nx, ny) order.
+                    conversion_fun=F.transpose(F.flip(V, 0)),
                 ),
                 name="data_buffers",
             ),
@@ -149,6 +147,11 @@ topography map as well as its units.
             "uniform": True,
             "unit": _unit,
             "info": {
+                "acquisition_time": Cond(
+                    F.get(C.header, "dateAcquired", None) != None,  # noqa: E711
+                    F.parse_datetime(F.get(C.header, "dateAcquired", None)),
+                    None,
+                ),
                 # Reported metadata mirrors the historic reader: the
                 # buffer keys are renamed (`label`, `range`, `name`), the
                 # unit is reported at the channel level only

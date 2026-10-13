@@ -82,3 +82,64 @@ def test_ezd_metadata(file_format_examples):
     np.testing.assert_allclose(r.topography(channel_index=2).rms_height_from_area(), 2.3941867686171115e-07, rtol=1e-6)
     assert r.channels[3].name == 'Scan backward (Z-AxisSensor)'
     np.testing.assert_allclose(r.topography(channel_index=3).rms_height_from_area(), 3.029781629305204e-07, rtol=1e-6)
+
+
+def _write_nid(raw, dim0_unit, dim2_unit, dim2_min, dim2_range):
+    """Write a minimal Nanosurf NID file with a single 16-bit data set."""
+    import io
+
+    ny, nx = raw.shape
+    header = [
+        "[DataSet]",
+        "Version=2",
+        "GroupCount=1",
+        "Gr0-Name=Scan forward",
+        "Gr0-Count=1",
+        "Gr0-Ch0=DataSet-0:0",
+        "",
+        "[DataSet-Info]",
+        "Date=03-11-2022",
+        "Time=11:46:25",
+        "",
+        "[DataSet-0:0]",
+        f"Points={nx}",
+        f"Lines={ny}",
+        "Frame=Scan forward",
+        "Dim0Name=X*",
+        f"Dim0Unit={dim0_unit}",
+        "Dim0Range=2",
+        "Dim0Min=0",
+        "Dim1Name=Y*",
+        f"Dim1Unit={dim0_unit}",
+        "Dim1Range=1",
+        "Dim1Min=0",
+        "Dim2Name=Z-Axis",
+        f"Dim2Unit={dim2_unit}",
+        f"Dim2Range={dim2_range}",
+        f"Dim2Min={dim2_min}",
+        "SaveMode=Binary",
+        "SaveBits=16",
+        "SaveSign=Signed",
+        "SaveOrder=Intel",
+        "",
+    ]
+    text = "\r\n".join(header).encode("latin-1")
+    return io.BytesIO(text + b"#!" + raw.astype("<i2").tobytes())
+
+
+def test_ezd_offset_and_units():
+    """
+    As in Gwyddion's ezdfile.c, the data covers the range [Dim2Min, Dim2Min
+    + Dim2Range], and lateral sizes are given in the unit of their axes.
+    """
+    raw = np.array([[-32768, 0, 32767], [100, 200, 300]])
+    r = EZDReader(_write_nid(raw, "um", "nm", 5.0, 65536.0))
+    (channel,) = r.channels
+    assert channel.unit == "nm"
+    assert channel.nb_grid_pts == (3, 2)
+    np.testing.assert_allclose(channel.physical_sizes, (2000.0, 1000.0))
+    t = r.topography()
+    assert t.unit == "nm"
+    expected = (raw / 65536 + 0.5) * 65536.0 + 5.0
+    # The first line of the data is at the bottom of the image
+    np.testing.assert_allclose(t.heights(), expected[::-1, :].T)

@@ -35,7 +35,9 @@ from muGrid.Wrappers import FFTEngine
 from NuMPI import MPI
 
 from SurfaceTopography import open_topography
-from SurfaceTopography.IO.NPY import NPYReader, save_npy
+from SurfaceTopography import UniformLineScan
+from SurfaceTopography.Exceptions import FileFormatMismatch, UnsupportedFormatFeature
+from SurfaceTopography.IO.NPY import NPYReader, NPZReader, save_npy
 
 
 @pytest.mark.skipif(
@@ -173,3 +175,92 @@ class npySurfaceTest(unittest.TestCase):
 
         # self.assertEqual(topo.info, loader.info)
         self.assertEqual(topo.physical_sizes, size)
+
+
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+def test_line_scan(tmp_path):
+    fn = str(tmp_path / 'line.npy')
+    np.save(fn, np.arange(5.))
+    reader = NPYReader(fn, communicator=MPI.COMM_SELF)
+    assert reader.default_channel.dim == 1
+    assert reader.default_channel.nb_grid_pts == (5,)
+    t = reader.topography(physical_sizes=(2.,))
+    assert isinstance(t, UniformLineScan)
+    np.testing.assert_allclose(t.heights(), np.arange(5.))
+
+
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+@pytest.mark.parametrize("data", [np.ones((2, 3, 4)), np.ones((2, 3), dtype=complex)])
+def test_unsupported_arrays(tmp_path, data):
+    # Gwyddion's npyfile.c only imports two-dimensional real arrays;
+    # SurfaceTopography additionally supports line scans
+    fn = str(tmp_path / 'unsupported.npy')
+    np.save(fn, data)
+    with pytest.raises(UnsupportedFormatFeature):
+        NPYReader(fn, communicator=MPI.COMM_SELF)
+
+
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+@pytest.mark.parametrize("dtype", ["<f4", ">f8", "<i2", ">u2", "f2"])
+def test_dtypes(tmp_path, dtype):
+    fn = str(tmp_path / 'dtype.npy')
+    data = np.arange(12).reshape(4, 3).astype(dtype)
+    np.save(fn, data)
+    t = NPYReader(fn, communicator=MPI.COMM_SELF).topography(physical_sizes=(1., 1.))
+    np.testing.assert_allclose(t.heights(), data.astype(float))
+
+
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+@pytest.mark.parametrize("save", [np.savez, np.savez_compressed])
+def test_npz(tmp_path, save):
+    fn = str(tmp_path / 'arrays.npz')
+    a = np.arange(12.).reshape(4, 3)
+    b = np.arange(20, dtype=np.int16).reshape(5, 4)
+    save(fn, first=a, line=np.arange(3.), volume=np.ones((2, 2, 2)), second=b,
+         label=np.array(['a', 'b']))
+
+    reader = NPZReader(fn)
+    assert [c.name for c in reader.channels] == ['first', 'second']
+    assert reader.channels[0].nb_grid_pts == (4, 3)
+    assert reader.channels[1].nb_grid_pts == (5, 4)
+    t = reader.topography(physical_sizes=(1., 2.))
+    np.testing.assert_allclose(t.heights(), a)
+    t = reader.topography(channel_index=1, physical_sizes=(1., 2.))
+    np.testing.assert_allclose(t.heights(), b)
+    assert t.physical_sizes == (1., 2.)
+
+    with open(fn, 'rb') as f:
+        reader = NPZReader(f)
+        np.testing.assert_allclose(reader.topography(physical_sizes=(1., 2.)).heights(), a)
+
+
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+def test_npz_without_images(tmp_path, file_format_examples):
+    fn = str(tmp_path / 'arrays.npz')
+    np.savez(fn, line=np.arange(3.))
+    with pytest.raises(FileFormatMismatch):
+        NPZReader(fn)
+    with pytest.raises(FileFormatMismatch):
+        NPZReader(os.path.join(file_format_examples, 'example-2d.npy'))
+
+
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+def test_npz_detection(tmp_path, file_format_examples):
+    fn = str(tmp_path / 'arrays.npz')
+    np.savez(fn, first=np.arange(12.).reshape(4, 3))
+    assert open_topography(fn).format() == 'npz'
+    # Other ZIP-based formats are still detected by their own readers
+    for name, fmt in [('nmm-1.zip', 'nmm'), ('plux-1.plux', 'plux'), ('poir-1.poir', 'poir')]:
+        assert open_topography(os.path.join(file_format_examples, name)).format() == fmt

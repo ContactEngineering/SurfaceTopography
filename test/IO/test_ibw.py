@@ -206,3 +206,192 @@ class ibwSurfaceTest2(unittest.TestCase):
         self.assertTrue(fmt, 'ibw')
         open_topography(f, format=fmt).topography()
         f.close()
+
+
+#
+# The tests below check the data interpretation against the Igor file module
+# of Gwyddion (igorfile.c). They use synthetic waves written by
+# `_write_ibw5`.
+#
+
+def _write_ibw5(arr, sfA=(1.0, 1.0, 1.0, 1.0), data_units=b'', dim_units=b'',
+                labels=None, note=b''):
+    """
+    Write a minimal Igor binary wave (version 5) with float32 data.
+
+    Parameters
+    ----------
+    arr : np.ndarray
+        Data with one to three dimensions, indexed (row, column, layer)
+        as in Igor.
+    sfA : tuple of floats
+        Spacing of the grid along each dimension.
+    data_units : bytes
+        Unit of the data values (at most three characters).
+    dim_units : bytes
+        Unit of the first two dimensions (at most three characters).
+    labels : list of bytes, optional
+        Element labels of the last dimension (the channel names).
+    note : bytes
+        Wave note.
+
+    Returns
+    -------
+    file : io.BytesIO
+        The binary wave.
+    """
+    import io
+    import struct
+
+    import numpy as np
+
+    arr = np.asarray(arr, dtype='<f4')
+    n_dim = list(arr.shape) + [0] * (4 - arr.ndim)
+    data = arr.tobytes(order='F')  # Igor stores data column-major
+
+    # Dimension labels: the first entry labels the dimension itself
+    dim_labels_size = [0, 0, 0, 0]
+    label_bytes = b''
+    if labels is not None:
+        for label in [b''] + labels:
+            label_bytes += label.ljust(32, b'\0')
+        dim_labels_size[arr.ndim - 1] = len(label_bytes)
+
+    wave_header = bytearray(320)
+    struct.pack_into('<l', wave_header, 12, arr.size)  # npnts
+    struct.pack_into('<h', wave_header, 16, 2)  # float32
+    struct.pack_into('<h', wave_header, 26, 1)  # whVersion
+    wave_header[28:28 + 4] = b'test'  # bname
+    struct.pack_into('<4l', wave_header, 68, *n_dim)
+    struct.pack_into('<4d', wave_header, 84, *sfA)
+    wave_header[148:148 + len(data_units)] = data_units
+    wave_header[152:152 + len(dim_units)] = dim_units
+    wave_header[156:156 + len(dim_units)] = dim_units
+
+    bin_header = bytearray(64)
+    struct.pack_into('<hhllll4l4llll', bin_header, 0, 5, 0,
+                     len(wave_header) + len(data), 0, len(note), 0,
+                     0, 0, 0, 0, *dim_labels_size, 0, 0, 0)
+    # The checksum makes the 16-bit sum of both headers vanish
+    checksum = -sum(struct.unpack('<192H', bytes(bin_header + wave_header)))
+    struct.pack_into('<H', bin_header, 2, checksum & 0xffff)
+
+    return io.BytesIO(bytes(bin_header + wave_header) + data + note + label_bytes)
+
+
+def test_ibw_channel_data_units(file_format_examples):
+    """
+    Asylum Research writes the same unit to the wave header for all channels;
+    as in Gwyddion, the physical unit of the data is derived from the channel
+    name.
+    """
+    reader = open_topography(os.path.join(file_format_examples, 'ibw-1.ibw'))
+    assert [ch.data_unit for ch in reader.channels] == ['m', 'm', 'deg', 'm']
+    assert all(ch.unit == 'm' for ch in reader.channels)
+
+    reader = open_topography(os.path.join(file_format_examples, 'spot_1-1000nm.ibw'))
+    assert [ch.data_unit for ch in reader.channels] == \
+        ['m', 'm', 'm', 'm', 'deg', 'deg', 'V', 'V']
+
+
+def test_ibw_acquisition_time(file_format_examples):
+    import datetime
+
+    reader = open_topography(os.path.join(file_format_examples, 'ibw-1.ibw'))
+    assert reader.channels[0].info['acquisition_time'] == \
+        datetime.datetime(2015, 10, 29, 19, 39, 34)
+    t = reader.topography()
+    assert t.info['acquisition_time'] == datetime.datetime(2015, 10, 29, 19, 39, 34)
+    assert t.info['instrument']['name'] == 'MFP3D'
+    assert t.info['raw_metadata']['ScanRate'] == '1.0016'
+
+
+def test_ibw_asylum_unit_from_note():
+    """An explicit `<name>Unit` entry of the note overrides the default unit"""
+    import numpy as np
+
+    arr = np.arange(2 * 2 * 2, dtype=float).reshape(2, 2, 2)
+    f = _write_ibw5(arr, sfA=(1e-6, 1e-6, 1, 1), data_units=b'm', dim_units=b'm',
+                    labels=[b'HeightTrace', b'UserIn0Retrace'],
+                    note=b'HeightUnit: nm\rUserIn0Unit: A\r')
+    reader = IBWReader(f)
+    assert [ch.data_unit for ch in reader.channels] == ['nm', 'A']
+    t = reader.topography(channel_index=0)
+    assert t.unit == 'm'
+    np.testing.assert_allclose(t.heights(), np.fliplr(arr[:, :, 0]) * 1e-9)
+    t = reader.topography(channel_index=1)
+    np.testing.assert_allclose(t.heights(), np.fliplr(arr[:, :, 1]))
+
+
+def test_ibw_different_data_and_dimension_units():
+    """Data and dimension units may differ (previously an assertion error)"""
+    import numpy as np
+
+    arr = np.random.default_rng(0).random((4, 3, 1))
+    f = _write_ibw5(arr, sfA=(0.5, 0.25, 1, 1), data_units=b'nm', dim_units=b'um')
+    reader = IBWReader(f)
+    (ch,) = reader.channels
+    assert ch.unit == 'µm'
+    assert ch.data_unit == 'nm'
+    assert ch.nb_grid_pts == (4, 3)
+    np.testing.assert_allclose(ch.physical_sizes, (2.0, 0.75))
+    t = reader.topography()
+    assert t.unit == 'µm'
+    np.testing.assert_allclose(t.heights(), np.fliplr(arr[:, :, 0]) * 1e-3)
+
+
+def test_ibw_two_dimensional_square_wave():
+    """Like Gwyddion, a square two-dimensional wave is a single image"""
+    import numpy as np
+
+    arr = np.random.default_rng(1).random((3, 3))
+    f = _write_ibw5(arr, sfA=(1e-6, 2e-6, 1, 1), data_units=b'm', dim_units=b'm')
+    reader = IBWReader(f)
+    assert len(reader.channels) == 1
+    t = reader.topography()
+    assert t.dim == 2
+    np.testing.assert_allclose(t.physical_sizes, (3e-6, 6e-6))
+    np.testing.assert_allclose(t.heights(), np.fliplr(arr))
+
+
+def test_ibw_curves():
+    """
+    One- and non-square two-dimensional waves contain curves; these are
+    reported as line scans
+    """
+    import numpy as np
+
+    arr = np.random.default_rng(2).random((5, 2))
+    f = _write_ibw5(arr, sfA=(1e-6, 1, 1, 1), data_units=b'm', dim_units=b'm',
+                    labels=[b'Profile1', b'Profile2'])
+    reader = IBWReader(f)
+    assert [ch.name for ch in reader.channels] == ['Profile1', 'Profile2']
+    for i, ch in enumerate(reader.channels):
+        assert ch.dim == 1
+        assert ch.nb_grid_pts == (5,)
+        t = ch.topography()
+        assert t.dim == 1
+        assert t.unit == 'm'
+        np.testing.assert_allclose(t.physical_sizes, (5e-6,))
+        np.testing.assert_allclose(t.heights(), arr[:, i])
+
+    arr = np.random.default_rng(3).random(7)
+    f = _write_ibw5(arr, sfA=(1e-9, 1, 1, 1), data_units=b'm', dim_units=b'm')
+    reader = IBWReader(f)
+    (ch,) = reader.channels
+    t = ch.topography()
+    assert t.dim == 1
+    np.testing.assert_allclose(t.physical_sizes, (7e-9,))
+    np.testing.assert_allclose(t.heights(), arr)
+
+
+def test_ibw_undefined_data():
+    """NaNs are undefined data (Gwyddion masks them)"""
+    import numpy as np
+
+    arr = np.ones((3, 3, 1))
+    arr[1, 2, 0] = np.nan
+    f = _write_ibw5(arr, data_units=b'm', dim_units=b'm')
+    t = IBWReader(f).topography()
+    assert t.has_undefined_data
+    assert t.heights().mask[1, 0]

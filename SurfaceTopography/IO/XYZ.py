@@ -39,6 +39,7 @@ from ..NonuniformLineScan import NonuniformLineScan
 from ..Support.UnitConversion import (
     find_length_unit_in_string,
     get_unit_conversion_factor,
+    is_length_unit,
     mangle_length_unit_utf8,
 )
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
@@ -197,6 +198,68 @@ def read_text_header_dektak(fobj, unit, height_scale_factor):
     return sep, usecols, 0, unit, height_scale_factor, info
 
 
+def read_text_header_comments(fobj, unit, height_scale_factor):
+    """
+    Read comment header (lines starting with '#'). The XYZ text export of
+    Gwyddion (see Gwyddion's `xyzexport.c`) optionally writes a header of the
+    form
+
+        # Channel: <title>
+        # Lateral units: µm
+        # Value units: m
+
+    from which units are extracted. Other comment lines are skipped.
+
+    Parameters
+    ----------
+    fobj : file object
+        File object to read from.
+    unit : str
+        Length unit of the data, only if not present in the file.
+    height_scale_factor : float
+        Conversion factor for the height data, only if not present in the
+        file.
+
+    Returns
+    -------
+    sep : str
+        Separator between columns.
+    usecols : list of int
+        List of column indices to read.
+    skiprows : int
+        Number of rows to skip before reading data.
+    unit : str
+        Length unit of the data.
+    height_scale_factor : float
+        Conversion factor for the height data.
+    info : dict
+        Additional information.
+    """
+    lateral_unit = value_unit = None
+    position = fobj.tell()
+    line = fobj.readline()
+    while line.startswith("#"):
+        match = re.match(r"#\s*Lateral units:\s*(\S+)", line)
+        if match is not None:
+            lateral_unit = mangle_length_unit_utf8(match.group(1))
+        match = re.match(r"#\s*Value units:\s*(\S+)", line)
+        if match is not None:
+            value_unit = mangle_length_unit_utf8(match.group(1))
+        position = fobj.tell()
+        line = fobj.readline()
+    fobj.seek(position)  # Rewind to beginning of data
+
+    if is_length_unit(lateral_unit) and is_length_unit(value_unit):
+        if unit is not None:
+            raise MetadataAlreadyFixedByFile("unit")
+        unit = lateral_unit
+        if height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile("height_scale_factor")
+        height_scale_factor = get_unit_conversion_factor(value_unit, lateral_unit)
+
+    return None, None, 0, unit, height_scale_factor, {}
+
+
 def read_csv(fobj, sep=None, usecols=None, skiprows=0):
     """
     Simple reader for tabular data in C(omma) S(eparated) V(alue) format. The
@@ -271,6 +334,7 @@ def read_csv(fobj, sep=None, usecols=None, skiprows=0):
 _text_header_parsers = {
     b"X;Y;valid": (["utf-8"], read_text_header_hfm),
     b"Scan Parameters": (["latin-1"], read_text_header_dektak),
+    b"#": (["utf-8", "utf-16", "latin-1"], read_text_header_comments),
 }
 
 

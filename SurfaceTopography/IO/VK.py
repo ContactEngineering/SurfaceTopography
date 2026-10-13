@@ -38,6 +38,58 @@ from .Reader import CompoundLayout, DeclarativeReaderBase, If, Seek, Skip
 # behind a proprietary prefix (which `ZipFile` gracefully skips).
 _VK4_MEMBER_NAME = "Vk4File"
 
+
+def _height_image(name):
+    """
+    Layout of a false-color (height or light intensity) image: a header,
+    a palette and the raw pixel data.
+    """
+    return CompoundLayout(
+        [
+            BinaryStructure(
+                [
+                    ("width", "I", Validate(V > 0, CorruptFile)),
+                    ("height", "I", Validate(V > 0, CorruptFile)),
+                    (
+                        "itemsize",
+                        "I",
+                        Validate(V.isin(8, 16, 32), CorruptFile),
+                    ),
+                    ("compression", "I"),
+                    (
+                        "byte_size",
+                        "I",
+                        Validate(
+                            V == C.width * C.height * C.itemsize // 8,
+                            CorruptFile,
+                        ),
+                    ),
+                    ("palette_range_min", "I"),
+                    ("palette_range_max", "I"),
+                ],
+                byte_order="<",
+                name="header",
+            ),
+            Skip(768, comment="palette"),
+            BinaryArray(
+                "data",
+                Tup(C.header.height, C.header.width),
+                Cond(
+                    C.header.itemsize == 8,
+                    F.dtype("<u1"),
+                    Cond(
+                        C.header.itemsize == 16,
+                        F.dtype("<u2"),
+                        F.dtype("<u4"),
+                    ),
+                ),
+                conversion_fun=F.transpose(V),  # Transpose to (nx, ny)
+            ),
+        ],
+        name=name,
+    )
+
+
 # Layout of the VK3/VK4 byte stream. Offsets in the offset table are
 # absolute positions within this stream.
 _vk34_layout = CompoundLayout(
@@ -170,55 +222,60 @@ _vk34_layout = CompoundLayout(
             byte_order="<",
             name="header",
         ),
-        # Right now, we are assuming that there is only a single (height)
-        # channel per VK4 file. Not sure if this is correct.
-        Seek(C.offset_table.height1, comment="height image"),
-        CompoundLayout(
-            [
-                BinaryStructure(
-                    [
-                        ("width", "I", Validate(V > 0, CorruptFile)),
-                        ("height", "I", Validate(V > 0, CorruptFile)),
-                        (
-                            "itemsize",
-                            "I",
-                            Validate(V.isin(8, 16, 32), CorruptFile),
-                        ),
-                        ("compression", "I"),
-                        (
-                            "byte_size",
-                            "I",
-                            Validate(
-                                V == C.width * C.height * C.itemsize // 8,
-                                CorruptFile,
-                            ),
-                        ),
-                        ("palette_range_min", "I"),
-                        ("palette_range_max", "I"),
-                    ],
-                    byte_order="<",
-                    name="header",
-                ),
-                Skip(768, comment="palette"),
-                BinaryArray(
-                    "data",
-                    Tup(C.header.height, C.header.width),
-                    Cond(
-                        C.header.itemsize == 8,
-                        F.dtype("<u1"),
-                        Cond(
-                            C.header.itemsize == 16,
-                            F.dtype("<u2"),
-                            F.dtype("<u4"),
-                        ),
-                    ),
-                    conversion_fun=F.transpose(V),  # Transpose to (nx, ny)
-                ),
-            ],
-            name="height_data",
+        # There are up to three height images (e.g. for multi-layer
+        # measurements); an offset of zero means that the image is absent
+        Seek(C.offset_table.height1, comment="first height image"),
+        _height_image("height_data"),
+        If(
+            C.offset_table.height2 != 0,
+            Seek(C.offset_table.height2, comment="second height image"),
         ),
+        If(C.offset_table.height2 != 0, _height_image("height_data2")),
+        If(
+            C.offset_table.height3 != 0,
+            Seek(C.offset_table.height3, comment="third height image"),
+        ),
+        If(C.offset_table.height3 != 0, _height_image("height_data3")),
     ]
 )
+
+
+def _height_channel_binding(name, image, where=None):
+    """Channel binding for one of the (up to three) height images."""
+    binding = {
+        "name": name,
+        "dim": 2,
+        "nb_grid_pts": Tup(C[image].header.width, C[image].header.height),
+        # Note: the physical size is the number of pixels times the
+        # pixel size (pixel convention, like everywhere else in this
+        # library and in other implementations of this file format),
+        # not the distance between the first and last pixel centers
+        "physical_sizes": Tup(
+            F.float(C[image].header.width) * C.header.x_length_per_pixel,
+            F.float(C[image].header.height) * C.header.y_length_per_pixel,
+        ),
+        # Picometers per digit
+        "height_scale_factor": F.float(C.header.height_scale_factor),
+        "uniform": True,
+        "unit": "pm",
+        "info": {
+            "acquisition_time": F.make_datetime(
+                C.header.year,
+                C.header.month,
+                C.header.day,
+                C.header.hour,
+                C.header.minute,
+                C.header.second,
+                C.header.diff_utc_by_minutes,
+            ),
+            "instrument": {"vendor": "Keyence"},
+            "raw_metadata": C.header,
+        },
+        "data": C[image].data,
+    }
+    if where is not None:
+        binding["where"] = where
+    return binding
 
 
 class VKReader(DeclarativeReaderBase):
@@ -269,38 +326,11 @@ microscopes (VK series).
     )
 
     _channel_bindings = [
-        {
-            "name": "Default",
-            "dim": 2,
-            "nb_grid_pts": Tup(
-                C.height_data.header.width, C.height_data.header.height
-            ),
-            # Note: the physical size is the number of pixels times the
-            # pixel size (pixel convention, like everywhere else in this
-            # library and in other implementations of this file format),
-            # not the distance between the first and last pixel centers
-            "physical_sizes": Tup(
-                F.float(C.height_data.header.width)
-                * C.header.x_length_per_pixel,
-                F.float(C.height_data.header.height)
-                * C.header.y_length_per_pixel,
-            ),
-            "height_scale_factor": F.float(C.header.height_scale_factor),
-            "uniform": True,
-            "unit": "pm",
-            "info": {
-                "acquisition_time": F.make_datetime(
-                    C.header.year,
-                    C.header.month,
-                    C.header.day,
-                    C.header.hour,
-                    C.header.minute,
-                    C.header.second,
-                    C.header.diff_utc_by_minutes,
-                ),
-                "instrument": {"vendor": "Keyence"},
-                "raw_metadata": C.header,
-            },
-            "data": C.height_data.data,
-        }
+        _height_channel_binding("Default", "height_data"),
+        _height_channel_binding(
+            "Height 2", "height_data2", where=C.offset_table.height2 != 0
+        ),
+        _height_channel_binding(
+            "Height 3", "height_data3", where=C.offset_table.height3 != 0
+        ),
     ]

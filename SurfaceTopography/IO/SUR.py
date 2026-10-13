@@ -33,6 +33,41 @@ from .expr import C, Cond, F, Tup, V
 from .Reader import CompoundLayout, DeclarativeReaderBase
 
 
+# Old files write the micro sign in an MS-DOS code page (0xE6, which is
+# "æ" in ISO-8859-1)
+_fix_unit = Cond(V == "\xe6m", "µm", V)
+
+# Inversion flag: 0 = none, 1 = inverted heights, 2 = inverted heights and
+# left-right mirrored ("flip"), 3 = inverted heights and upside-down
+# mirrored ("flop"); the same interpretation as in Gwyddion's `surffile.c`.
+# The array is in (nx, ny) order after transposition.
+_INVERSION_Z = 1
+_INVERSION_FLIP_Z = 2
+_INVERSION_FLOP_Z = 3
+_inversion = C.header.inversion
+_to_grid = Cond(
+    _inversion == _INVERSION_FLIP_Z,
+    F.flip(F.transpose(V), 0),
+    Cond(
+        _inversion == _INVERSION_FLOP_Z,
+        F.flip(F.transpose(V), 1),
+        F.transpose(V),
+    ),
+)
+_height_sign = Cond(
+    _inversion.isin(_INVERSION_Z, _INVERSION_FLIP_Z, _INVERSION_FLOP_Z), -1, 1
+)
+
+# If the file has non-measured points (`special_points` is 1), they are
+# marked by the value zmin - 2
+_NON_MEASURED_OFFSET = -2
+_non_measured = Cond(
+    C.header.special_points == 1,
+    V == C.header.zmin + _NON_MEASURED_OFFSET,
+    False,
+)
+
+
 class SURReader(DeclarativeReaderBase):
     _format = "sur"
     _mime_types = ["application/x-surf-spm"]
@@ -86,12 +121,12 @@ software. Instruments of several vendors write this format directly.
                     ("name_x", "16s"),
                     ("name_y", "16s"),
                     ("data_name", "16s"),
-                    ("delta_x_unit", "16s"),
-                    ("delta_y_unit", "16s"),
-                    ("delta_data_unit", "16s"),
-                    ("x_unit", "16s"),
-                    ("y_unit", "16s"),
-                    ("data_unit", "16s"),
+                    ("delta_x_unit", "16s", _fix_unit),
+                    ("delta_y_unit", "16s", _fix_unit),
+                    ("delta_data_unit", "16s", _fix_unit),
+                    ("x_unit", "16s", _fix_unit),
+                    ("y_unit", "16s", _fix_unit),
+                    ("data_unit", "16s", _fix_unit),
                     # The unit ratios validate that the respective unit
                     # pairs are convertible into each other
                     (
@@ -155,7 +190,8 @@ software. Instruments of several vendors write this format directly.
                 Cond(
                     C.header.itemsize == 16, F.dtype("<i2"), F.dtype("<i4")
                 ),
-                conversion_fun=F.transpose(V),
+                conversion_fun=_to_grid,
+                mask_fun=_non_measured,
             ),
         ]
     )
@@ -178,7 +214,7 @@ software. Instruments of several vendors write this format directly.
                 * C.header.grid_spacing_y
                 * C.header.nb_grid_pts_y,
             ),
-            "height_scale_factor": C.header.height_scale_factor,
+            "height_scale_factor": _height_sign * C.header.height_scale_factor,
             "uniform": True,
             "unit": C.header.delta_data_unit,
             "info": {

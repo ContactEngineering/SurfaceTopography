@@ -159,6 +159,57 @@ _gwy_readers = {
 }
 
 
+def _gwy_unit(data_field, key):
+    """
+    Unit string of a `GwySIUnit` entry of a data field. A missing unit means
+    a dimensionless quantity.
+    """
+    try:
+        return data_field[key]["GwySIUnit"].get("unitstr", "")
+    except (KeyError, AttributeError):
+        return ""
+
+
+def _sanitize_size(size):
+    """Gwyddion accepts negative sizes and replaces vanishing ones with 1."""
+    return abs(size) if size != 0 else 1.0
+
+
+def _instrument_from_meta(meta):
+    """
+    Extract instrument information from Gwyddion's per-channel metadata.
+
+    Gwyddion's file modules copy header fields into the metadata. Its
+    MetroPro module stores the 16-bit `sys_serial` (as a signed number) as
+    "Instrument serial number" and the full 32-bit `sys_serial2` as
+    "Instrument serial number 2".
+
+    Parameters
+    ----------
+    meta : dict or None
+        Entry `/<index>/meta` of the Gwyddion container.
+
+    Returns
+    -------
+    instrument : dict or None
+        Instrument information, or None if the metadata carries none.
+    """
+    if not isinstance(meta, dict):
+        return None
+    meta = meta.get("GwyContainer", meta)
+    serial = meta.get("Instrument serial number 2")
+    if serial in (None, "0"):
+        serial = meta.get("Instrument serial number")
+        try:
+            # Undo the sign of the 16-bit field
+            serial = str(int(serial) & 0xFFFF)
+        except (TypeError, ValueError):
+            pass
+    if serial is None:
+        return None
+    return {"serial": serial}
+
+
 class GWYReader(ReaderBase):
     _format = "gwy"
     _mime_types = ["application/x-gwyddion-spm"]
@@ -215,23 +266,25 @@ software [Gwyddion](http://gwyddion.net/).
                         if "yres" in data:
                             nb_grid_pts += [data["yres"]]
 
-                        # Get physical sizes
-                        physical_sizes = [data["xreal"]]
+                        # Get physical sizes; like Gwyddion, we accept
+                        # negative sizes (and replace vanishing ones)
+                        physical_sizes = [_sanitize_size(data["xreal"])]
                         if "yreal" in data:
-                            physical_sizes += [data["yreal"]]
+                            physical_sizes += [_sanitize_size(data["yreal"])]
 
                         assert len(nb_grid_pts) == len(physical_sizes)
 
-                        xyunit = data["si_unit_xy"]["GwySIUnit"]["unitstr"]
-                        zunit = data["si_unit_z"]["GwySIUnit"]["unitstr"]
+                        xyunit = _gwy_unit(data, "si_unit_xy")
+                        zunit = _gwy_unit(data, "si_unit_z")
 
-                        if is_length_unit(zunit):
+                        if is_length_unit(zunit) and is_length_unit(xyunit):
                             # This is height data!
                             self._indices += [index]
                             self._channels[index] = ChannelInfo(
                                 self,
                                 len(self._channels),
-                                name=self._metadata[f"/{index}/data/title"],
+                                # The title is optional
+                                name=self._metadata.get(f"/{index}/data/title"),
                                 dim=len(nb_grid_pts),
                                 nb_grid_pts=tuple(nb_grid_pts),
                                 physical_sizes=tuple(physical_sizes),
@@ -242,11 +295,14 @@ software [Gwyddion](http://gwyddion.net/).
                                 periodic=False,
                                 uniform=True,
                                 info={
+                                    "instrument": _instrument_from_meta(
+                                        self._metadata.get(f"/{index}/meta")
+                                    ),
                                     "raw_metadata": {
                                         key: value
                                         for key, value in self._metadata.items()
                                         if key.startswith(f"/{index}/")
-                                    }
+                                    },
                                 },
                                 tags={"data": data["data"], "index": index},
                             )
@@ -403,14 +459,16 @@ def write_gwy(
         raise RuntimeError("GWY writer does not support MPI parallelization.")
 
     nx, ny = self.nb_grid_pts
-    sx, sy = self.physical_sizes
 
-    # Get unit string - GWY uses SI units
+    # GWY stores values in SI base units; Gwyddion ignores any prefix of the
+    # unit string (i.e. 'µm' would be read as 'm'). Convert to meters.
     unit = self.unit if self.unit is not None else "m"
-    unit_str = mangle_length_unit_utf8(unit)
+    fac = get_unit_conversion_factor(mangle_length_unit_utf8(unit), "m")
+    unit_str = "m"
+    sx, sy = (fac * s for s in self.physical_sizes)
 
     # Get height data
-    heights = self.heights()
+    heights = fac * self.heights()
     has_mask = False
     if np.ma.isMaskedArray(heights):
         mask = np.ma.getmask(heights)

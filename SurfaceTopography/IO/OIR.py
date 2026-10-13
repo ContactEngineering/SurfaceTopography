@@ -495,11 +495,20 @@ OIR data files of Olympus (now Evident) laser scanning microscopes.
 
                 nx = int(image_info["commonimage:width"])
                 ny = int(image_info["commonimage:height"])
-                bit_counts = int(image_definition["commonphase:bitCounts"])
-                dtype = np.dtype("<u2")
-                if bit_counts != 16:
+                # The storage size of a pixel is given by `depth` (in bytes);
+                # `bitCounts` is the number of significant bits, which can
+                # be smaller than the storage size
+                if "commonphase:depth" in image_definition:
+                    depth = int(image_definition["commonphase:depth"])
+                else:
+                    depth = (int(image_definition["commonphase:bitCounts"]) + 7) // 8
+                if depth == 1:
+                    dtype = np.dtype("u1")
+                elif depth == 2:
+                    dtype = np.dtype("<u2")
+                else:
                     raise UnsupportedFormatFeature(
-                        f"Cannot read height data with {bit_counts} bits per pixel."
+                        f"Cannot read height data with {depth} bytes per pixel."
                     )
 
                 channels += [
@@ -515,7 +524,10 @@ OIR data files of Olympus (now Evident) laser scanning microscopes.
                         ),
                         uniform=True,
                         unit=zunit,
-                        height_scale_factor=float(lengths["commonparam:z"]),
+                        # The z-calibration factor applies to the heights
+                        # just like the x- and y-calibration factors apply
+                        # to the lateral sizes
+                        height_scale_factor=zfac * float(lengths["commonparam:z"]),
                         info=info,
                         tags={
                             # The suffix _0 is probably the frame number, but I have
@@ -557,7 +569,13 @@ containers holding a number of OIR files.
         self._readers = []
         with OpenFromAny(fobj, "rb") as f:
             with ZipFile(f, "r") as z:
-                for fn in z.namelist():
+                # Only the OIR members carry measurement data
+                oir_names = [fn for fn in z.namelist() if fn.lower().endswith(".oir")]
+                if len(oir_names) == 0:
+                    raise FileFormatMismatch(
+                        "ZIP archive does not contain OIR files, so this is not a packed OIR file."
+                    )
+                for fn in oir_names:
                     try:
                         self._readers += [(fn, OIRReader(z.open(fn, "r")))]
                     except UnsupportedFormatFeature:
