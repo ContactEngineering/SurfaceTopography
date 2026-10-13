@@ -21,11 +21,6 @@ python.install_sources(
     subdir: 'SurfaceTopography'
 )
 
-# Also copy data files
-install_data(
-    'ChangeLog.md'
-)
-
 subdir('CLI')
 subdir('Container')
 subdir('Generic')

@@ -76,7 +76,7 @@ test = [
 [project.urls]
 documentation = "https://contactengineering.github.io/SurfaceTopography/"
 repository = "https://github.com/ContactEngineering/SurfaceTopography"
-changelog = "https://github.com/ContactEngineering/SurfaceTopography/blob/master/SurfaceTopography/ChangeLog.md"
+changelog = "https://github.com/ContactEngineering/SurfaceTopography/blob/master/CHANGELOG.md"
 
 [project.scripts]
 show-topography = "SurfaceTopography.CLI.ShowTopography:main"
