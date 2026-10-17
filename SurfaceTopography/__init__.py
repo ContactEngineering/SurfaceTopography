@@ -29,6 +29,7 @@ defines all surface types used in SurfaceTopography
 """
 
 # These imports are required to register the analysis functions!
+import SurfaceTopography.Generic.Arithmetic  # noqa: F401
 import SurfaceTopography.Generic.Curvature  # noqa: F401
 import SurfaceTopography.Generic.Fractional  # noqa: F401
 import SurfaceTopography.Generic.ReliabilityCutoff  # noqa: F401
