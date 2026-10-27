@@ -31,24 +31,44 @@ import zipfile
 import numpy as np
 import pytest
 
-from SurfaceTopography.Container.IO import ZAGReader, read_container
+from SurfaceTopography.Container.IO import ZAGReader, detect_format, read_container
 from SurfaceTopography.IO import ZONReader
 
 
-@pytest.fixture
-def synthetic_zag(file_format_examples, tmp_path):
+def build_zag(fn, measurements):
     """
-    Build a minimal ZAG container (header + BMP thumbnail + ZIP archive)
-    that wraps the `zon-1.zon` example file, mirroring the layout parsed
-    by `ZAGReader`.
-    """
-    with open(os.path.join(file_format_examples, "zon-1.zon"), "rb") as f:
-        zon = f.read()
+    Build a minimal ZAG container (header + BMP thumbnail + ZIP archive),
+    mirroring the layout parsed by `ZAGReader`.
 
+    Parameters
+    ----------
+    fn : path
+        Where to write the container.
+    measurements : list of dict
+        One entry per measurement, with keys ``payload`` (bytes of the
+        wrapped ZON file) and optionally ``original_file_name`` and
+        ``visible`` (omitted from the XML when absent, mimicking older
+        container layouts).
+    """
     buf = io.BytesIO()
     fake_bmp = b"BM" + b"\x00" * 62  # dummy thumbnail
     buf.write(b"KPK0" + struct.pack("<L", len(fake_bmp)) + fake_bmp)
+    data_entries = []
     with zipfile.ZipFile(buf, "w") as z:
+        for i, measurement in enumerate(measurements):
+            entry = f"<Path>data{i}</Path>"
+            if "original_file_name" in measurement:
+                entry += (
+                    "<OriginalFileName>"
+                    f"{measurement['original_file_name']}"
+                    "</OriginalFileName>"
+                )
+            if "visible" in measurement:
+                entry += f"<Visible>{measurement['visible']}</Visible>"
+            data_entries.append(f"<MeasurementData>{entry}</MeasurementData>")
+            z.writestr(
+                f"abc/data{i}/{ZAGReader._ZON_UUID}", measurement["payload"]
+            )
         z.writestr(
             ZAGReader._INVENTORY_UUID,
             "<DeserializeDataMap><Item><Path>abc/item.xml</Path></Item>"
@@ -56,14 +76,46 @@ def synthetic_zag(file_format_examples, tmp_path):
         )
         z.writestr(
             "abc/item.xml",
-            "<MeasurementDataMap><MeasurementData><Path>data0</Path>"
-            "</MeasurementData></MeasurementDataMap>",
+            f"<MeasurementDataMap>{''.join(data_entries)}</MeasurementDataMap>",
         )
-        z.writestr(f"abc/data0/{ZAGReader._ZON_UUID}", zon)
 
-    fn = tmp_path / "zag-1.zag"
     fn.write_bytes(buf.getvalue())
     return str(fn)
+
+
+@pytest.fixture
+def zon_bytes(file_format_examples):
+    with open(os.path.join(file_format_examples, "zon-1.zon"), "rb") as f:
+        return f.read()
+
+
+@pytest.fixture
+def synthetic_zag(zon_bytes, tmp_path):
+    """A single measurement, without name and visibility tags (as written by
+    older versions of the Keyence software)."""
+    return build_zag(tmp_path / "zag-1.zag", [{"payload": zon_bytes}])
+
+
+@pytest.fixture
+def synthetic_zag_multi(zon_bytes, tmp_path):
+    """Three measurements: a named visible one, a named hidden one, and one
+    without name and visibility tags."""
+    return build_zag(
+        tmp_path / "zag-2.zag",
+        [
+            {
+                "payload": zon_bytes,
+                "original_file_name": r"C:\Users\sol\Documents\VR-20240405_102737.zon",
+                "visible": "True",
+            },
+            {
+                "payload": zon_bytes,
+                "original_file_name": r"C:\Users\sol\Documents\VR-20240405_103039.zon",
+                "visible": "False",
+            },
+            {"payload": zon_bytes},
+        ],
+    )
 
 
 def test_zag(synthetic_zag, file_format_examples):
@@ -89,3 +141,51 @@ def test_zag_read_container_outlives_reader(synthetic_zag, file_format_examples)
         os.path.join(file_format_examples, "zon-1.zon")
     ).topography()
     np.testing.assert_allclose(t.heights(), t_ref.heights())
+
+
+def test_zag_detect_format(synthetic_zag):
+    assert detect_format(synthetic_zag) == "zag"
+
+
+def test_zag_hidden_measurements_are_excluded_from_container(synthetic_zag_multi):
+    with ZAGReader(synthetic_zag_multi) as r:
+        c = r.container(0)
+        # The hidden measurement must not appear in the analysis view
+        assert len(c) == 2
+        for t in c:
+            assert t.dim == 2
+
+
+def test_zag_members(synthetic_zag_multi, zon_bytes):
+    with ZAGReader(synthetic_zag_multi) as r:
+        members = r.members(0)
+
+        # All measurements are enumerated, including the hidden one
+        assert len(members) == 3
+
+        # Names come from `OriginalFileName` (a Windows path); measurements
+        # without that tag get a generated name
+        assert members[0].name == "VR-20240405_102737.zon"
+        assert members[1].name == "VR-20240405_103039.zon"
+        assert members[2].name == "measurement-data2.zon"
+
+        assert [m.visible for m in members] == [True, False, True]
+
+        # ZAG containers carry no per-measurement schema metadata
+        assert all(m.metadata is None for m in members)
+
+        # The member streams must return the verbatim bytes of the wrapped
+        # raw data files -- this is what ingestion into a web application
+        # stores
+        for member in members:
+            with member.open() as f:
+                assert f.read() == zon_bytes
+
+
+def test_zag_members_outlive_reader(synthetic_zag_multi, zon_bytes):
+    # Like the container, members must be readable after the reader has been
+    # closed: ingestion enumerates first and copies the data afterwards
+    with ZAGReader(synthetic_zag_multi) as r:
+        members = r.members(0)
+    with members[0].open() as f:
+        assert f.read() == zon_bytes

@@ -48,6 +48,7 @@
 #
 
 import logging
+import ntpath
 import os
 from zipfile import ZipFile
 
@@ -55,7 +56,7 @@ import defusedxml.ElementTree as ElementTree
 
 from ...Exceptions import CorruptFile, FileFormatMismatch
 from ..SurfaceContainer import LazySurfaceContainer
-from .Reader import ContainerReaderBase
+from .Reader import ContainerMember, ContainerReaderBase
 
 _log = logging.getLogger(__name__)
 
@@ -99,6 +100,28 @@ class ZAGFileOpener(object):
         return stream
 
 
+class _ReadZONTopography(object):
+    """
+    Callable that opens and reads a single ZON measurement of a ZAG container.
+
+    Constructing the ZON reader is deferred to the first call: it re-opens the
+    ZAG archive and parses the measurement's headers, which for containers
+    with many measurements makes eager construction prohibitively slow (each
+    construction re-reads the archive's central directory). Opening a ZAG
+    container therefore parses only its inventory; a corrupt measurement
+    surfaces when the topography is accessed.
+    """
+
+    def __init__(self, opener):
+        self._opener = opener
+
+    def __call__(self):
+        # Lazy import to avoid circular dependency during package initialization
+        from ...IO import ZONReader
+
+        return ZONReader(self._opener).topography()
+
+
 class ZAGReader(ContainerReaderBase):
     _format = "zag"
     _mime_types = ["application/zip"]
@@ -128,6 +151,8 @@ class ZAGReader(ContainerReaderBase):
         "MeasurementDataMap"  # This is a toplevel tag. Is the file UUID unique?
     )
     _DATA_TAG = "MeasurementData"
+    _ORIGINAL_FILE_NAME_TAG = "OriginalFileName"
+    _VISIBLE_TAG = "Visible"
 
     _header_structure = [("magic", "4s"), ("bmp_size", "L")]
 
@@ -173,6 +198,7 @@ class ZAGReader(ContainerReaderBase):
             f.seek(header["bmp_size"], os.SEEK_CUR)
 
             readers = []
+            members = []
             with ZipFile(f, "r") as z:
                 # Parse inventory
                 root = ElementTree.parse(z.open(self._INVENTORY_UUID)).getroot()
@@ -191,27 +217,54 @@ class ZAGReader(ContainerReaderBase):
                     item_root = ElementTree.parse(z.open(item_path)).getroot()
                     if item_root.tag == self._MEASUREMENT_TAG:
                         for data in item_root.findall(self._DATA_TAG):
-                            # Construct reader - we currently assume that all are ZON files
-                            # Lazy import to avoid circular dependency during package initialization
-                            from ...IO import ZONReader
                             data_path = data.find(self._PATH_TAG).text
+
+                            # The name of the file that was originally imported
+                            # into the container is the only human-readable
+                            # identification of a measurement. It is a Windows
+                            # path; `ntpath` splits it on both separator styles.
+                            name_element = data.find(self._ORIGINAL_FILE_NAME_TAG)
+                            name = None
+                            if name_element is not None:
+                                name = ntpath.basename(name_element.text or "")
+                            if not name:
+                                name = f"measurement-{data_path}.zon"
+
+                            # Measurements can be hidden (without being
+                            # deleted) in the Keyence software; the container
+                            # excludes them, mirroring what the vendor
+                            # software displays, but they are still
+                            # enumerated as (invisible) members.
+                            visible_element = data.find(self._VISIBLE_TAG)
+                            visible = (
+                                visible_element is None
+                                or visible_element.text is None
+                                or visible_element.text.strip().lower() != "false"
+                            )
+
                             # We pass a callable that reopens the ZIP member
                             # rather than an open stream: the stream `f`
                             # is closed when this reader is closed, but the
                             # lazy container must be able to read
                             # topographies after that (see `read_container`).
-                            readers += [
-                                ZONReader(
-                                    ZAGFileOpener(
-                                        self._fobj,
-                                        f"{data_uuid}/{data_path}/{self._ZON_UUID}",
-                                    )
-                                ).topography
+                            opener = ZAGFileOpener(
+                                self._fobj,
+                                f"{data_uuid}/{data_path}/{self._ZON_UUID}",
+                            )
+                            members += [
+                                ContainerMember(
+                                    name=name, open=opener, visible=visible
+                                )
                             ]
+                            if visible:
+                                # We currently assume that all measurements
+                                # are ZON files
+                                readers += [_ReadZONTopography(opener)]
                     else:
                         _log.info(f"ZAG reader: Ignoring tag {item_root.tag}")
 
         self._containers = [LazySurfaceContainer(readers)]
+        self._members = [members]
 
     def __del__(self):
         self.close()
@@ -219,6 +272,13 @@ class ZAGReader(ContainerReaderBase):
     def close(self):
         if self._do_close:
             self._fstream.close()
+
+    def members(self, index=0):
+        """
+        Enumerate the raw data files (measurements) stored in this container,
+        including hidden ones. See :meth:`ContainerReaderBase.members`.
+        """
+        return self._members[index]
 
     def container(self, index=0):
         """
