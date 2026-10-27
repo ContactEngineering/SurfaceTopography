@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.25.0.dev4+g8208dc8b documentation</title>
+  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.25.0.dev6+g80518f4e documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=d81f9382"></script>
+      <script src="../_static/documentation_options.js?v=6ae40632"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
@@ -474,9 +474,14 @@ return a scalar value or an array, but the array size must be fixed.</p>
 unit before the derivative is computed.</p></li>
 <li><p><strong>nb_points_per_decade</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points per decade in length for automatic grid construction.
 (Default: 10)</p></li>
-<li><p><strong>distances</strong> (<em>float</em><em> or </em><em>np.ndarray</em><em>, </em><em>optional</em>) – Characteristic distances at which the derivatives are computed. If
-this is an array, then the statistical property is computed at each
-of these distances. (Default: None)</p></li>
+<li><p><strong>distances</strong> (<em>float</em><em> or </em><em>np.ndarray</em><em>, </em><em>optional</em>) – Characteristic distances at which the derivatives are computed. This
+is the overall length of the underlying stencil of lowest truncation
+order, not the effective grid spacing used by this stencil. (For a
+topography with grid spacing px, the corresponding scale factor is
+given by distance / (n * px) where n is the order of the derivative.)
+If this is an array, then the statistical property is computed at
+each of these distances. If None, the distances are chosen
+automatically on a logarithmic grid. (Default: None)</p></li>
 <li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only incorporate data deemed reliable. (Default: True)</p></li>
 <li><p><strong>progress_callback</strong> (<em>func</em><em>, </em><em>optional</em>) – Function taking iteration and the total number of iterations as
 arguments for progress reporting. (Default: None)</p></li>
