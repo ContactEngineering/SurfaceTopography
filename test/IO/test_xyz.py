@@ -30,7 +30,7 @@ import pytest
 from NuMPI import MPI
 from numpy.testing import assert_allclose
 
-from SurfaceTopography.IO import XYZReader
+from SurfaceTopography.IO import XYZReader, detect_format
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -128,3 +128,36 @@ def test_simple_nonuniform_line_scan(file_format_examples):
     bw = surf.bandwidth()
     np.testing.assert_allclose(bw[0], (8 * 1.0 + 2 * 0.5 / 10) / 9)
     np.testing.assert_allclose(bw[1], 9)
+
+
+def _gwyddion_xyz_export(header):
+    # Layout of Gwyddion's XYZ export (xyzexport.c): optional comment header,
+    # then one point per line with pixel-centered coordinates, x running
+    # fastest
+    lines = []
+    if header:
+        lines += ["# Channel: Height", "# Lateral units: µm", "# Value units: nm"]
+    dx, dy = 0.5, 0.25
+    for j in range(3):
+        for i in range(4):
+            lines += [f"{dx * (i + 0.5)}\t{dy * (j + 0.5)}\t{i + 4 * j}"]
+    return "\n".join(lines) + "\n"
+
+
+@pytest.mark.parametrize("header", [True, False])
+def test_gwyddion_xyz_export(tmp_path, header):
+    fn = tmp_path / "export.xyz"
+    fn.write_text(_gwyddion_xyz_export(header), encoding="utf-8")
+    fn = str(fn)
+
+    assert detect_format(fn) == "xyz"
+    r = XYZReader(fn)
+    t = r.topography()
+    assert t.nb_grid_pts == (4, 3)
+    assert_allclose(t.physical_sizes, (2.0, 0.75))
+    if header:
+        assert t.unit == "µm"
+        assert_allclose(t.heights(), 1e-3 * np.arange(12).reshape(3, 4).T)
+    else:
+        assert t.unit is None
+        assert_allclose(t.heights(), np.arange(12).reshape(3, 4).T)

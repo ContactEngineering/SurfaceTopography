@@ -157,9 +157,11 @@ _scanned_frame = CompoundLayout(
             F.dtype("<i2"),
             # Report heights in the unit of the z axis scale, like the
             # reference implementation (a zero or undefined step means
-            # unscaled DAC values). The result is indexed (x, y) per the
-            # array convention.
-            conversion_fun=F.transpose(V)
+            # unscaled DAC values). The first stored row is the bottom
+            # line of the image; it is flipped to match the orientation
+            # of Gwyddion (and of the other readers). The result is
+            # indexed (x, y) per the array convention.
+            conversion_fun=F.transpose(F.flip(V, 0))
             * Cond(
                 F.isnan(C.axis_scales.z_step) | (C.axis_scales.z_step == 0),
                 1.0,
@@ -276,15 +278,17 @@ multidimensional-array (MDA) frames are skipped.
                 {
                     # NaN-valued steps are sanitized to null by the
                     # decoder; `isnan(null)` is true
+                    # The sign of the steps is irrelevant (the reference
+                    # implementation uses their absolute values)
                     "condition": Cond(
                         F.isnan(C.item.axis_scales.x_step)
                         | F.isnan(C.item.axis_scales.y_step),
                         False,
-                        (C.item.axis_scales.x_step > 0)
-                        & (C.item.axis_scales.y_step > 0),
+                        (C.item.axis_scales.x_step != 0)
+                        & (C.item.axis_scales.y_step != 0),
                     ),
                     "error": "corrupt_file",
-                    "message": "A scanned-data frame has a non-positive "
+                    "message": "A scanned-data frame has a zero "
                     "lateral step size.",
                 }
             ],
@@ -296,8 +300,8 @@ multidimensional-array (MDA) frames are skipped.
                 C.item.frame_mode.nb_grid_pts_x, C.item.frame_mode.nb_grid_pts_y
             ),
             "physical_sizes": Tup(
-                C.item.frame_mode.nb_grid_pts_x * C.item.axis_scales.x_step,
-                C.item.frame_mode.nb_grid_pts_y * C.item.axis_scales.y_step,
+                C.item.frame_mode.nb_grid_pts_x * F.abs(C.item.axis_scales.x_step),
+                C.item.frame_mode.nb_grid_pts_y * F.abs(C.item.axis_scales.y_step),
             ),
             "unit": _xy_unit,
             # The data is reported in the z-axis unit; convert to the

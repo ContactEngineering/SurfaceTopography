@@ -23,12 +23,14 @@
 #
 
 import os
+import struct
 
 import numpy as np
 import pytest
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
+from SurfaceTopography.Exceptions import UnsupportedFormatFeature
 from SurfaceTopography.IO import MetroProReader
 
 pytestmark = pytest.mark.skipif(
@@ -74,3 +76,44 @@ def test_metropro_metadata(file_format_examples):
     t = t.detrend('curvature')
     np.testing.assert_allclose(t.rms_height_from_area(), 3.911386124282179e-09, rtol=1e-6)
     np.testing.assert_allclose(t.rms_height_from_profile(), 3.868313e-09, rtol=1e-6)
+
+
+def test_metropro_little_endian_header_fields(file_format_examples):
+    """
+    The second part of the common header is stored little endian (as in
+    Gwyddion's metropro.c). As big endian, `min_mod_pct` would decode to a
+    denormal number.
+    """
+    r = MetroProReader(os.path.join(file_format_examples, 'metropro-1.dat'))
+    raw = r.channels[0].info['raw_metadata']
+    assert raw['min_mod_pct'] == 1.0
+    # Big endian start of the header
+    assert raw['light_level_pct'] == pytest.approx(6.0639353)
+    assert raw['sys_serial2'] == raw['sys_serial'] == 59407
+
+
+def _patched_metropro(file_format_examples, tmp_path, offset, fmt, value):
+    with open(os.path.join(file_format_examples, 'metropro-1.dat'), 'rb') as f:
+        buffer = bytearray(f.read())
+    struct.pack_into(fmt, buffer, offset, value)
+    file_path = tmp_path / 'patched.dat'
+    file_path.write_bytes(bytes(buffer))
+    return file_path
+
+
+def test_metropro_unknown_lateral_resolution(file_format_examples, tmp_path):
+    """A lateral resolution of zero means unknown physical sizes"""
+    file_path = _patched_metropro(file_format_examples, tmp_path, 184, '>f', 0.0)
+    r = MetroProReader(file_path)
+    assert r.channels[0].physical_sizes is None
+    t = r.topography(physical_sizes=(1e-3, 1e-3))
+    assert t.physical_sizes == (1e-3, 1e-3)
+    t_ref = MetroProReader(os.path.join(file_format_examples, 'metropro-1.dat')).topography()
+    np.testing.assert_allclose(t.heights(), t_ref.heights())
+
+
+def test_metropro_header_size_mismatch(file_format_examples, tmp_path):
+    """The header size must match the header format"""
+    file_path = _patched_metropro(file_format_examples, tmp_path, 6, '>I', 4096)
+    with pytest.raises(UnsupportedFormatFeature):
+        MetroProReader(file_path).channels

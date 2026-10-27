@@ -28,6 +28,7 @@ import pytest
 from NuMPI import MPI
 
 from SurfaceTopography.Support.UnitConversion import (
+    is_length_unit,
     mangle_length_unit_ascii,
     mangle_length_unit_utf8,
     suggest_length_unit,
@@ -75,3 +76,14 @@ def test_mangle_length_unit_to_ascii():
 def test_mangle_length_unit_is_partially_idempotent():
     for unit in ["Å", "µm", "mm", "m"]:
         assert mangle_length_unit_utf8(mangle_length_unit_ascii(unit)) == unit
+
+
+def test_ampere_is_not_angstrom():
+    # By default, 'A' is the ASCII form of the ångström
+    assert is_length_unit("A")
+    assert mangle_length_unit_utf8("A") == "Å"
+    # Formats that use 'A' for the ampere can switch this off
+    assert not is_length_unit("A", ascii_angstrom=False)
+    assert mangle_length_unit_utf8("A", ascii_angstrom=False) == "A"
+    assert is_length_unit("Å", ascii_angstrom=False)
+    assert mangle_length_unit_utf8("um", ascii_angstrom=False) == "µm"

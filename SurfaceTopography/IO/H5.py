@@ -36,10 +36,12 @@ class H5Reader(ReaderBase):
 
     _name = 'Hierarchical data format (HDF5)'
     _description = '''
-Import filter for [HDF5](https://support.hdfgroup.org/HDF5/) files provided
-within the contact mechanics challenge. The reader looks for a two-dimensional
-array named `surface`. HDF5 files do not store units or physical sizes. These
-need to be manually provided by the user.
+Import filter for generic [HDF5](https://support.hdfgroup.org/HDF5/) files,
+such as those provided within the contact mechanics challenge. The reader
+presents every two-dimensional numerical dataset in the file as a separate
+channel; the first index of the dataset runs along x, the second along y.
+HDF5 files do not store units or physical sizes. These need to be manually
+provided by the user.
 
 The original contact mechanics challenge data can be downloaded
 [here](https://www.lmp.uni-saarland.de/index.php/research-topics/contact-mechanics-challenge-announcement/).
@@ -67,8 +69,13 @@ The original contact mechanics challenge data can be downloaded
             # two-dimensional datasets are candidate topographies. (Groups
             # have no `shape`, and files containing them used to crash the
             # reader.)
+            # Only datasets with real numbers can be interpreted as heights;
+            # strings, compound types (e.g. complex numbers) or references
+            # are ignored, as are empty datasets.
             nonlocal channel_index
-            if isinstance(node, h5py.Dataset) and len(node.shape) == 2:
+            if isinstance(node, h5py.Dataset) and len(node.shape) == 2 \
+                    and min(node.shape) > 0 \
+                    and node.dtype.kind in 'biuf':
                 # This looks like a topography
                 self._channels += [ChannelInfo(self,
                                                channel_index,  # channel index

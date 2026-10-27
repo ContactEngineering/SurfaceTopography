@@ -35,7 +35,8 @@ from .Reader import Check, CompoundLayout, DeclarativeReaderBase, If, Seek
 _MAGIC = "fileformat = bcr"
 
 # The header is either 2048 or 4096 characters; its exact length is given
-# by the `headersize` key, which sits within the first 2048 characters
+# by the `headersize` key, which sits within the first 2048 characters.
+# Old files without this key have a header of 2048 characters.
 _MIN_HEADER_SIZE = 2048
 
 # Files of the `bcrstm` flavor hold 16-bit integer data, `bcrf` files
@@ -45,11 +46,19 @@ _STM_FORMATS = ("bcrstm", "bcrstm_unicode")
 _ALL_FORMATS = ("bcrstm", "bcrf", "bcrstm_unicode", "bcrf_unicode")
 
 # Void (undefined) pixels are marked by the maximum value of the
-# respective data type; `voidpixels` holds the *number* of void pixels in
-# the file, not the marker value. If the key is missing, the file
-# contains no void pixels.
+# respective data type. The `voidpixels` key is not reliable (it holds
+# the number of void pixels in some files and the marker value in others),
+# hence the marker rule is always applied. For floating-point data, any
+# value above 1.7e38 is treated as void (as in Gwyddion's `bcrfile.c`).
 _VOID_STM = 32767
-_VOID_F = 3.4028e38
+_VOID_F = 1.7e38
+
+# Units default to nanometers when the respective key is missing
+_DEFAULT_UNIT = "nm"
+
+
+def _unit(header, key):
+    return F.get(header, key, _DEFAULT_UNIT)
 
 
 def _variant(encoding, bytes_per_char):
@@ -60,7 +69,8 @@ def _variant(encoding, bytes_per_char):
     the header size (which counts characters).
     """
     is_stm = C.header.fileformat.isin(*_STM_FORMATS)
-    little_endian = F.int(C.header.intelmode) != 0
+    # Byte order defaults to little endian when `intelmode` is missing
+    little_endian = F.int(F.get(C.header, "intelmode", "1")) != 0
     return CompoundLayout(
         [
             TextHeader(
@@ -69,15 +79,15 @@ def _variant(encoding, bytes_per_char):
                 encoding=encoding,
                 comment_prefixes=("%", "#"),
             ),
-            Check(
-                F.get(C.headersize_probe, "headersize", None) != None,  # noqa: E711
-                CorruptFile,
-                "Could not find 'headersize' key in file metadata",
-            ),
             Seek(0),
             TextHeader(
                 name="header",
-                size=F.int(C.headersize_probe.headersize) * bytes_per_char,
+                # Older files lack the `headersize` key; their header is
+                # always 2048 characters long
+                size=F.int(
+                    F.get(C.headersize_probe, "headersize", _MIN_HEADER_SIZE)
+                )
+                * bytes_per_char,
                 encoding=encoding,
                 comment_prefixes=("%", "#"),
             ),
@@ -85,12 +95,13 @@ def _variant(encoding, bytes_per_char):
                 C.header.fileformat.isin(*_ALL_FORMATS), FileFormatMismatch
             ),
             Check(
-                C.header.xunit == C.header.yunit,
+                _unit(C.header, "xunit") == _unit(C.header, "yunit"),
                 CorruptFile,
                 "x and y units differ",
             ),
             Check(
-                F.unit_conversion_factor(C.header.zunit, "m") != None,  # noqa: E711
+                F.unit_conversion_factor(_unit(C.header, "zunit"), "m")
+                != None,  # noqa: E711
                 UnsupportedFormatFeature,
                 "This BCR/BCRF file reports data in units that are not "
                 "height units as expected for topography data.",
@@ -105,9 +116,7 @@ def _variant(encoding, bytes_per_char):
                 ),
                 conversion_fun=F.transpose(V),  # Transpose to (nx, ny) order
                 mask_fun=Cond(
-                    F.float(F.get(C.header, "voidpixels", 0)) > 0,
-                    Cond(is_stm, V == _VOID_STM, V >= _VOID_F),
-                    False,
+                    is_stm, V == _VOID_STM, (V > _VOID_F) | F.isnan(V)
                 ),
             ),
         ]
@@ -172,9 +181,18 @@ and write this format.
                 F.float(C.header.xlength), F.float(C.header.ylength)
             ),
             "uniform": True,
-            "unit": C.header.xunit,
-            "height_scale_factor": F.float(C.header.bit2nm)
-            * F.unit_conversion_factor(C.header.zunit, C.header.xunit),
+            "unit": F.mangle_length_unit(_unit(C.header, "xunit")),
+            # `bit2nm` converts integer data to `zunit`; floating-point data
+            # is already stored in `zunit` (Gwyddion also ignores `bit2nm`
+            # for floating-point data)
+            "height_scale_factor": Cond(
+                C.header.fileformat.isin(*_STM_FORMATS),
+                F.float(F.get(C.header, "bit2nm", "1")),
+                1.0,
+            )
+            * F.unit_conversion_factor(
+                _unit(C.header, "zunit"), _unit(C.header, "xunit")
+            ),
             "info": {"raw_metadata": C.header},
             "data": C.data,
         }

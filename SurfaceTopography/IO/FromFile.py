@@ -194,8 +194,14 @@ def read_hgt(
             "physical_sizes for a map of dimension {1}x{1}.".format(fsize, dim)
         )
     dtype = np.dtype(">i2")
-    data = np.frombuffer(fobj.read(dim * dim * dtype.itemsize), dtype=dtype).reshape(
-        (dim, dim)
+    # The tile is stored row by row, starting at the northern edge; each row
+    # runs from west to east. Transpose to (nx, ny) order such that the first
+    # index runs along x (west to east) and the second along y (north to
+    # south), as for all other raster formats.
+    data = (
+        np.frombuffer(fobj.read(dim * dim * dtype.itemsize), dtype=dtype)
+        .reshape((dim, dim))
+        .T
     )
 
     # SRTM marks voids (missing data, e.g. over water or in radar shadows)

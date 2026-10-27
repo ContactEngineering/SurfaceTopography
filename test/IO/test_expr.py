@@ -241,7 +241,9 @@ zmg_file_layout = CompoundLayout(
                 ("step_z", "f"),
                 (None, "8s"),
                 ("comment_size", "I"),
-                (None, "84s"),
+                (None, "10s"),
+                ("recipe_name", "68s"),
+                (None, "6s"),
             ],
             name="header",
         ),
@@ -249,7 +251,7 @@ zmg_file_layout = CompoundLayout(
         BinaryArray(
             "data",
             Tup(C.header.nb_grid_pts_y, C.header.nb_grid_pts_x),
-            F.dtype("<i2"),
+            F.dtype("<u2"),
             conversion_fun=F.transpose(V),
         ),
     ]

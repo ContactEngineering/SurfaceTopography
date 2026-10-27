@@ -133,6 +133,28 @@ _channel_name = Cond(
 # Conversion from meters to the reported unit
 _lateral_conversion = F.unit_conversion_factor("m", _unit)
 
+# The raster image of a page is converted to physical heights by the
+# linear scaling of the page's default slot, `ScalingMultiply * raw +
+# ScalingOffset`. The multiplier is the height scale factor of the
+# channel; the offset is added to the raw data (in units of the
+# multiplier) when the image is read. Evaluated within the page record.
+_page_default_slot = F.get(
+    F.index_by(C.slots, "SlotName"), F.get(C.tags, "DefaultSlot", ""), {}
+)
+_page_raw_offset = F.get(_page_default_slot, "ScalingOffset", 0.0) / F.get(
+    _page_default_slot, "ScalingMultiply", 1.0
+)
+
+# The first scan line is stored first, i.e. at the top of the TIFF raster;
+# it is at the bottom of the image unless the grid is reflected. The
+# orientation matches Gwyddion's (jpkscan.c, which evaluates the reflection
+# flag of the channel page) when plotted with imshow(t.heights().T).
+_page_image = Cond(
+    F.get(C.tags, "GridReflect", 0) != 0,
+    F.transpose(V),
+    F.flip(F.transpose(V), 1),
+)
+
 
 class JPKReader(DeclarativeReaderBase):
     _format = "jpk"
@@ -167,7 +189,7 @@ microscopes.
             "slots": {"first": 0x8090, "stride": 0x30, "names": _SLOT_TAG_NAMES}
         },
         # The data is stored line by line; transpose to (nx, ny) order
-        image_conversion=F.transpose(V),
+        image_conversion=_page_image + _page_raw_offset,
     )
 
     _channel_bindings = [

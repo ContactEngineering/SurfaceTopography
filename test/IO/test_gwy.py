@@ -156,10 +156,52 @@ def test_write_gwy_unit_conversion():
         t.to_gwy(fname)
         t2 = read_topography(fname)
 
-        np.testing.assert_allclose(t2.physical_sizes, t.physical_sizes, rtol=1e-10)
-        np.testing.assert_allclose(t2.heights(), t.heights(), rtol=1e-10)
+        # GWY files store SI base units; Gwyddion ignores unit prefixes.
+        # Data is hence written in meters.
+        assert t2.unit == 'm'
+        np.testing.assert_allclose(t2.physical_sizes, np.array(t.physical_sizes) * 1e-6, rtol=1e-10)
+        np.testing.assert_allclose(t2.heights(), t.heights() * 1e-6, rtol=1e-10)
+
+        # Check the raw file contents
+        reader = GWYReader(fname)
+        data_field = reader._metadata["/0/data"]["GwyDataField"]
+        assert data_field["si_unit_xy"]["GwySIUnit"]["unitstr"] == "m"
+        assert data_field["si_unit_z"]["GwySIUnit"]["unitstr"] == "m"
+        np.testing.assert_allclose(data_field["xreal"], 50e-6)
     finally:
         os.unlink(fname)
+
+
+def test_read_gwy_without_title_and_negative_size():
+    """
+    The channel title is optional; like Gwyddion, negative sizes are
+    accepted
+    """
+    import io
+
+    from SurfaceTopography.IO.GWY import _gwy_write_object
+
+    heights = np.arange(6, dtype=float).reshape(2, 3)  # 2 rows, 3 columns
+    data_field = {
+        "xres": ("i", 3),
+        "yres": ("i", 2),
+        "xreal": ("d", -3e-6),
+        "yreal": ("d", 2e-6),
+        "si_unit_xy": ("o", ("GwySIUnit", {"unitstr": ("s", "m")})),
+        "si_unit_z": ("o", ("GwySIUnit", {"unitstr": ("s", "m")})),
+        "data": ("D", heights.ravel()),
+    }
+    f = io.BytesIO()
+    f.write(b"GWYP")
+    _gwy_write_object(f, "GwyContainer", {"/0/data": ("o", ("GwyDataField", data_field))})
+    f.seek(0)
+
+    reader = GWYReader(f)
+    (channel,) = reader.channels
+    assert channel.name == "channel 0"
+    np.testing.assert_allclose(channel.physical_sizes, (3e-6, 2e-6))
+    t = channel.topography()
+    np.testing.assert_allclose(t.heights(), heights.T)
 
 
 def test_write_gwy_read_back_existing_file(file_format_examples):
