@@ -25,7 +25,6 @@
 
 """Compute derivatives of uniform line scans and topographies"""
 
-import muGrid._muGrid
 import numpy as np
 
 from ..Exceptions import UndefinedDataError
@@ -83,10 +82,11 @@ class FourierDerivative:
 
 class DiscreteDerivative:
     """
-    Wrapper around muGrid.ConvolutionOperator that provides lbounds and stencil.
+    Finite-differences derivative operator defined by a stencil.
 
-    This wrapper exposes the lbounds (offset) and stencil (coefficients)
-    via properties that delegate to the underlying ConvolutionOperator.
+    The stencil coefficient ``stencil[k]`` multiplies the value at the grid
+    point displaced by ``lbounds + k`` from the point where the derivative is
+    computed.
     """
 
     def __init__(self, lbounds, stencil):
@@ -100,24 +100,33 @@ class DiscreteDerivative:
         stencil : array_like
             The stencil array (coefficients).
         """
-        self._operator = muGrid._muGrid.ConvolutionOperator(list(lbounds), stencil)
+        self._lbounds = np.array(lbounds, dtype=int)
+        self._stencil = np.array(stencil, dtype=float)
+        if self._lbounds.ndim != 1 or self._stencil.ndim != len(self._lbounds):
+            raise ValueError(
+                "Stencil of shape {} does not match lower bounds {}.".format(
+                    self._stencil.shape, self._lbounds
+                )
+            )
+        # Operators are shared module-level objects; protect them from
+        # modification through the properties below
+        self._lbounds.flags.writeable = False
+        self._stencil.flags.writeable = False
 
     @property
     def lbounds(self):
         """Return the lower bounds (offset) of the stencil."""
-        return np.asarray(self._operator.offset)
+        return self._lbounds
 
     @property
     def stencil(self):
         """Return the stencil (coefficients) array."""
-        # Coefficients have shape (1, 1, 1, *stencil_shape) - extract the stencil
-        coeffs = np.asarray(self._operator.coefficients)
-        return coeffs.reshape(self._operator.stencil_shape)
+        return self._stencil
 
     @property
     def shape(self):
         """Return the shape of the stencil."""
-        return self._operator.stencil_shape
+        return self._stencil.shape
 
     def fourier(self, phase):
         """
@@ -126,14 +135,30 @@ class DiscreteDerivative:
         Parameters
         ----------
         phase : array_like
-            Phase array (frequency * scale_factor).
+            Phase array (frequency * scale_factor) of shape (dim, ...).
 
         Returns
         -------
         multiplier : complex array
-            The Fourier multiplier for the discrete derivative.
+            The Fourier multiplier
+            sum_k stencil[k] * exp(i * 2π * (lbounds + k) · phase),
+            of shape phase.shape[1:].
         """
-        return self._operator.fourier(phase)
+        phase = np.asarray(phase)
+        if len(phase) != len(self._lbounds):
+            raise ValueError(
+                "Phase has {} components, but the stencil is {}-dimensional.".format(
+                    len(phase), len(self._lbounds)
+                )
+            )
+        result = np.zeros(phase.shape[1:], dtype=complex)
+        for k, coefficient in np.ndenumerate(self._stencil):
+            if coefficient != 0:
+                displacement = self._lbounds + np.array(k)
+                result += coefficient * np.exp(
+                    2j * np.pi * np.tensordot(displacement, phase, axes=1)
+                )
+        return result
 
 
 def _operator_direction(op):
@@ -320,7 +345,7 @@ def derivative(
         factor is then given by distance / (n * px) where n is the order of the
         derivative and px the grid spacing.
         (Default: None)
-    operator : :obj:`muGrid.Derivative` object or tuple of :obj:`muGrid.Derivative` objects, optional
+    operator : :obj:`DiscreteDerivative` or :obj:`FourierDerivative` object or tuple of these objects, optional
         Derivative operator used to compute the derivative. If unspecified,
         a simple upwind differences scheme will be applied to compute the
         derivative. A tuple contains the gradient, i.e. the derivative
