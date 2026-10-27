@@ -72,6 +72,8 @@ def sinewave2D(comm=None):
 
 
 def test_rms_curvature(comm):
+    if comm.Get_size() > 1:
+        pytest.xfail("Derivatives with linear interpolation do not support domain-decomposed topographies")
     L, hm, top = sinewave2D(comm)
     numerical = top.rms_curvature_from_area()
     analytical = np.sqrt(4 * (16 * np.pi**4 / L**4) * hm**2 / 4 / 4)
@@ -665,6 +667,8 @@ def test_integrate_psd_remove_tip_artefacts_profile(seed):
     assert abs(hrms_f_reliable[2] / hrms_tip_artefacts_removed[2] - 1) < 0.5
 
 
+# Downloads data; nothing to test in parallel
+@serial_only
 def test_integrate_psd_from_profile_remove_tip_artefacts_areal_scan():
     data_container = read_published_container("https://doi.org/10.57703/ce-v9qwe")[
         0
