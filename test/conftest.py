@@ -23,54 +23,17 @@
 # SOFTWARE.
 #
 
-import pytest
 import os
 
-from runtests.mpi.tester import WorldTooSmall, create_comm
-
-import NuMPI
+import pytest
 from NuMPI import MPI
+from NuMPI.Testing.Fixtures import MPITestFixture
 
+# Communicators of these sizes; falls back to NuMPI's MPI stub if mpi4py is
+# not installed
+comm = MPITestFixture([1, 4], scope="session")
 
-def MyMPITestFixture(commsize, scope='function'):
-    """
-    Create a test fixture for MPI Communicators of various communicator
-    sizes.
-    """
-
-    @pytest.fixture(params=commsize, scope=scope)
-    def fixture(request):
-        MPI.COMM_WORLD.barrier()
-        # Return an NuMPI stub communicator if we don't have mpi4py
-        if not NuMPI._has_mpi4py:
-            return MPI.COMM_SELF
-
-        # Try creating a communicator and fallback to NuMPI stub
-        try:
-            comm, color = create_comm(request.param)
-
-            if color != 0:
-                pytest.skip("Not using communicator {}."
-                            .format(request.param))
-                return None
-            else:
-                # Turn a None into a NuMPI stub communicator
-                if comm is None:
-                    comm = MPI.COMM_SELF
-                print('MPI communicator: Rank {} (of {}).'
-                      .format(comm.rank, comm.size))
-                return comm
-
-        except WorldTooSmall:
-            pytest.skip("Not using communicator {}.".format(request.param))
-            return None
-
-    return fixture
-
-
-comm = MyMPITestFixture([1, 4], scope='session')
-
-maxcomm = MyMPITestFixture([MPI.COMM_WORLD.Get_size()], scope="session")
+maxcomm = MPITestFixture([MPI.COMM_WORLD.Get_size()], scope="session")
 
 
 @pytest.fixture(scope="session")
