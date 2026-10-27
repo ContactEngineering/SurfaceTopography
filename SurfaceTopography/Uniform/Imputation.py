@@ -28,9 +28,8 @@ Filter pipelines for data imputation (filling undefined data points)
 
 import numpy as np
 import scipy.sparse
+import scipy.sparse.linalg
 
-from .GeometryAnalysis import assign_patch_numbers_area, assign_patch_numbers_profile, outer_perimeter_area, \
-    outer_perimeter_profile
 from ..HeightContainer import UniformTopographyInterface
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
@@ -61,64 +60,34 @@ class InterpolateUndefinedDataHarmonic(DecoratedUniformTopography):
         if super().has_undefined_data:
             dim = self.dim
 
-            # Coordinates for each point on the topography
-            if dim == 1:
-                nx, = self.nb_grid_pts
-                x = np.arange(nx)
-            elif dim == 2:
-                nx, ny = self.nb_grid_pts
-                x, y = np.mgrid[:nx, :ny]
-            else:
-                # Should not happen
-                raise NotImplementedError
-
-            # Get undefined data points and identify continuous patches
+            # Undefined points are the unknowns of a discrete Laplace equation;
+            # defined points enter as Dirichlet boundary values. Disconnected
+            # patches of undefined data do not couple to each other, so all of
+            # them are solved in a single sparse system. (Solving per patch is
+            # equivalent but costs a pass over the full grid for every patch.)
             mask = np.ma.getmaskarray(heights)
-            if dim == 2:
-                nb_patches, patch_ids = assign_patch_numbers_area(mask, self.is_periodic)
-            else:
-                nb_patches, patch_ids = assign_patch_numbers_profile(mask, self.is_periodic)
-            assert np.max(patch_ids) == nb_patches
+            values = np.ma.getdata(heights)
+            nb_unknowns = np.sum(mask)
 
-            # We now fill in the patches individually
-            for id in range(1, nb_patches + 1):
-                # Create mask identifying points in patch
-                patch_mask = patch_ids == id
-                nb_patch = np.sum(patch_mask)
+            # Unique index for each undefined point
+            unknown_index = np.zeros(mask.shape, dtype=int)
+            unknown_index[mask] = np.arange(nb_unknowns)
 
-                # Create mask identifying perimeter points
-                if dim == 2:
-                    perimeter_mask = outer_perimeter_area(patch_mask, self.is_periodic)
-                else:
-                    perimeter_mask = outer_perimeter_profile(patch_mask, self.is_periodic)
-                nb_perimeter = np.sum(perimeter_mask)
-
-                # Total number of pixels
-                nb_pixels = nb_patch + nb_perimeter
-
-                # Create unique pixel indices in patch and perimeter
-                pixel_index = np.zeros_like(patch_ids)
-                pixel_index[patch_mask] = np.arange(nb_patch)
-                pixel_index[perimeter_mask] = np.arange(nb_patch, nb_pixels)
-
-                # Assemble Laplace matrix. Each patch pixel couples to its
-                # nearest neighbors; for nonperiodic topographies, stencil
-                # legs that cross the domain boundary must be dropped (and
-                # the diagonal reduced correspondingly, yielding a natural
-                # boundary condition). An unconditional `np.roll` would wrap
-                # around the boundary and couple edge pixels to unrelated
-                # pixels (whose `pixel_index` entry is zero, aliasing patch
-                # unknown #0).
-                legs = [(1, 0), (-1, 0)]
-                if dim == 2:
-                    legs += [(1, 1), (-1, 1)]
-
-                diagonal = np.zeros(nb_patch)
-                rows = []
-                cols = []
-                for shift, axis in legs:
-                    neighbor = np.roll(pixel_index, shift, axis)
-                    valid = np.ones_like(patch_mask)
+            # Assemble Laplace matrix. Each undefined point couples to its
+            # nearest neighbors; for nonperiodic topographies, stencil legs
+            # that cross the domain boundary must be dropped (and the diagonal
+            # reduced correspondingly, yielding a natural boundary condition).
+            # Legs ending on a defined point move to the right hand side.
+            diagonal = np.zeros(nb_unknowns)
+            rhs = np.zeros(nb_unknowns)
+            rows = []
+            cols = []
+            for axis in range(dim):
+                for shift in [1, -1]:
+                    neighbor_index = np.roll(unknown_index, shift, axis)
+                    neighbor_mask = np.roll(mask, shift, axis)
+                    neighbor_values = np.roll(values, shift, axis)
+                    valid = mask.copy()
                     if not self.is_periodic:
                         # `np.roll(a, 1)[p]` is the neighbor a[p - 1], so
                         # for shift == 1 the wrapped (invalid) entries are
@@ -127,23 +96,23 @@ class InterpolateUndefinedDataHarmonic(DecoratedUniformTopography):
                         edge = [slice(None)] * dim
                         edge[axis] = 0 if shift == 1 else -1
                         valid[tuple(edge)] = False
-                    sel = np.logical_and(patch_mask, valid)
-                    rows += [pixel_index[sel]]
-                    cols += [neighbor[sel]]
-                    diagonal[pixel_index[sel]] -= 1
+                    diagonal[unknown_index[valid]] -= 1
+                    # Neighbor is undefined: off-diagonal matrix entry
+                    sel = np.logical_and(valid, neighbor_mask)
+                    rows += [unknown_index[sel]]
+                    cols += [neighbor_index[sel]]
+                    # Neighbor is defined: Dirichlet value on right hand side
+                    sel = np.logical_and(valid, np.logical_not(neighbor_mask))
+                    np.subtract.at(rhs, unknown_index[sel], neighbor_values[sel])
 
-                laplace = scipy.sparse.coo_matrix(
-                    (np.concatenate([diagonal] + [np.ones(len(r)) for r in rows] + [np.ones(nb_perimeter)]),
-                     (np.concatenate([np.arange(nb_patch)] + rows + [np.arange(nb_patch, nb_pixels)]),
-                      np.concatenate([np.arange(nb_patch)] + cols + [np.arange(nb_patch, nb_pixels)]))),
-                    shape=(nb_pixels, nb_pixels))
+            laplace = scipy.sparse.coo_matrix(
+                (np.concatenate([diagonal] + [np.ones(len(r)) for r in rows]),
+                 (np.concatenate([np.arange(nb_unknowns)] + rows),
+                  np.concatenate([np.arange(nb_unknowns)] + cols))),
+                shape=(nb_unknowns, nb_unknowns))
 
-                # Dirichlet boundary conditions (heights on perimeter)
-                rhs = np.zeros(nb_pixels)
-                rhs[nb_patch:] = heights[perimeter_mask]
-
-                # Solve for undefined heights
-                heights[patch_mask] = scipy.sparse.linalg.spsolve(laplace.tocsr(), rhs)[:nb_patch]
+            # Solve for undefined heights
+            heights[mask] = scipy.sparse.linalg.spsolve(laplace.tocsr(), rhs)
         return heights
 
 

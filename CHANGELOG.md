@@ -1,8 +1,8 @@
 Change log for SurfaceTopography
 ================================
 
-v1.25.0 (not yet released)
---------------------------
+Unreleased
+----------
 
 - API: `InstrumentModel` gained `scanner_serial`; serial numbers are
   normalized and placeholders such as "not available" become `None`
@@ -63,6 +63,18 @@ v1.25.0 (not yet released)
 - BUG: X3P: integer data is signed
 - ENH: XYZ: unit header of Gwyddion exports
 - BUG: ZMG: heights are unsigned; recipe name
+
+v1.25.0 (13Oct26)
+-----------------
+
+- ENH: `variance_half_derivative` and `elastic_energy` for topographies
+  and line scans; the elastic energy per area required to press a
+  half-space into full contact with the topography (#197)
+- ENH: `InterpolateUndefinedDataHarmonic` solves all patches of undefined
+  data in a single sparse system; orders of magnitude faster for
+  measurements with many small dropouts
+- DOC: Updated file format descriptions
+- MAINT: Moved change log to `CHANGELOG.md` in the main directory
 
 v1.24.0 (25Aug26)
 -----------------
