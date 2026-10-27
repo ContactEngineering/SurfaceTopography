@@ -22,6 +22,7 @@ v1.27.0 (not yet released)
 - BUILD: MPI and muGrid are optional; the default install runs serially, install the `mpi`
   extra for domain-decomposed topographies
 - CI: Parallel tests run under MPI again; they had silently been skipped
+- BUG: Areal rms height of domain-decomposed (MPI-parallel) topographies was computed per process
 
 v1.26.0 (27Oct26)
 -----------------
