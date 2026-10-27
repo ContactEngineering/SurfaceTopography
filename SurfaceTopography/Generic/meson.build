@@ -10,7 +10,8 @@ python_sources = [
     'ScanningProbe.py',
     'Slope.py',
     'Fractional.py',
-    'Moments.py'
+    'Moments.py',
+    'Arithmetic.py'
 ]
 
 # Install pure Python

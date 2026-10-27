@@ -204,6 +204,66 @@ def moment_power_spectrum(self, order=0, window=None, reliable=True, ):
     return integrate_psd(self, lambda q: q ** order, window=window, reliable=reliable, )
 
 
+def variance_half_derivative(self, window=None, reliable=True):
+    r"""
+    Variance of the half derivative of the heights,
+
+    .. math::
+
+        \langle |\nabla^{1/2} h|^2 \rangle
+        = \frac{1}{(2 \pi)^2} \int d^2q\, |q|\, C^{2D}(q),
+
+    computed from the full power spectral density (of a periodic
+    topography). For line scans, the surface is assumed to be invariant
+    perpendicular to the scan.
+
+    Parameters
+    ----------
+    window : str, optional
+        Window for eliminating edge effects of nonperiodic data. See
+        scipy.signal.get_window. (Default: None)
+    reliable : bool, optional
+        Only include data deemed reliable. (Default: True)
+
+    Returns
+    -------
+    variance : float
+        Variance of the half derivative.
+    """
+    return self.integrate_psd(lambda q: q, window=window, reliable=reliable)
+
+
+def elastic_energy(self, contact_modulus, window=None, reliable=True):
+    r"""
+    Elastic energy per unit area stored in an elastic half-space that is
+    pressed into full contact with the topography,
+
+    .. math::
+
+        \frac{U}{A} = \frac{E^*}{4} \langle |\nabla^{1/2} h|^2 \rangle,
+
+    where :math:`E^*` is the contact modulus. See `variance_half_derivative`.
+
+    Parameters
+    ----------
+    contact_modulus : float
+        Contact modulus :math:`E^*`.
+    window : str, optional
+        Window for eliminating edge effects of nonperiodic data. See
+        scipy.signal.get_window. (Default: None)
+    reliable : bool, optional
+        Only include data deemed reliable. (Default: True)
+
+    Returns
+    -------
+    energy : float
+        Elastic energy per unit area.
+    """
+    return contact_modulus / 4 * variance_half_derivative(self, window=window, reliable=reliable)
+
+
 UniformTopographyInterface.register_function('moment_power_spectrum', moment_power_spectrum)
 UniformTopographyInterface.register_function('integrate_psd', integrate_psd)
 UniformTopographyInterface.register_function('integrate_psd_from_profile', integrate_psd_from_profile)
+UniformTopographyInterface.register_function('variance_half_derivative', variance_half_derivative)
+UniformTopographyInterface.register_function('elastic_energy', elastic_energy)

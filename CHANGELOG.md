@@ -23,6 +23,18 @@ Unreleased
   9.6 GB archive)
 - DOC: Updated file format descriptions
 
+v1.25.0 (13Oct26)
+-----------------
+
+- ENH: `variance_half_derivative` and `elastic_energy` for topographies
+  and line scans; the elastic energy per area required to press a
+  half-space into full contact with the topography (#197)
+- ENH: `InterpolateUndefinedDataHarmonic` solves all patches of undefined
+  data in a single sparse system; orders of magnitude faster for
+  measurements with many small dropouts
+- DOC: Updated file format descriptions
+- MAINT: Moved change log to `CHANGELOG.md` in the main directory
+
 v1.24.0 (25Aug26)
 -----------------
 
