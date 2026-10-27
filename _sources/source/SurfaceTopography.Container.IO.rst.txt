@@ -20,6 +20,14 @@ SurfaceTopography.Container.IO.Reader module
    :show-inheritance:
    :undoc-members:
 
+SurfaceTopography.Container.IO.Schema module
+--------------------------------------------
+
+.. automodule:: SurfaceTopography.Container.IO.Schema
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 SurfaceTopography.Container.IO.ZAG module
 -----------------------------------------
 

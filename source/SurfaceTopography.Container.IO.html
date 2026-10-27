@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Container.IO package &mdash; SurfaceTopography 1.25.0.dev9+g3ccb4248 documentation</title>
+  <title>SurfaceTopography.Container.IO package &mdash; SurfaceTopography 1.25.0.dev12+g17df1a83 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=32e0d103"></script>
+      <script src="../_static/documentation_options.js?v=1ad07950"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -98,6 +98,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.IO.CE">SurfaceTopography.Container.IO.CE module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.IO.Reader">SurfaceTopography.Container.IO.Reader module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.IO.Schema">SurfaceTopography.Container.IO.Schema module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.IO.ZAG">SurfaceTopography.Container.IO.ZAG module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.IO">Module contents</a></li>
 </ul>
@@ -173,13 +174,18 @@
 <dt class="sig sig-object py" id="SurfaceTopography.Container.IO.CE.CEReader.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datafile_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['original',</span> <span class="pre">'squeezed-netcdf']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_filters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.CE.CEReader.__init__" title="Link to this definition"></a></dt>
 <dd><p>Read all surfaces in a contact.engineering container file and associated
-metadata. The container is a ZIP file with raw data files and a YAML file
-meta.yml that contains all metadata not contained in the raw data files.</p>
+metadata. The container is a ZIP file with raw data files and a single
+metadata file: canonically <cite>index.json</cite> (validated against
+<a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.ContainerMeta" title="SurfaceTopography.Container.IO.Schema.ContainerMeta"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Container.IO.Schema.ContainerMeta</span></code></a>), with a
+legacy <cite>meta.yml</cite> accepted as fallback for archives written by older
+versions of TopoBank or SurfaceTopography.</p>
+<p>Opening a container parses only the metadata; the data files themselves
+are opened when the individual topographies are accessed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fn</strong> (<em>str</em><em> or </em><em>stream</em>) – File or stream that contains the ZIP-container.</p></li>
-<li><p><strong>datafile_keys</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – List of possible keys in ‘meta.yml’ that contains the name of the
+<li><p><strong>datafile_keys</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – List of possible keys in the metadata that contains the name of the
 datafile to open. Code will try these keys in order. If a key
 starts with ‘squeezed’, the pipeline is not constructed from
 the metadata.
@@ -222,12 +228,23 @@ contains a list of topographies.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.CE.CEReader.members">
+<span class="sig-name descname"><span class="pre">members</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.CE.CEReader.members" title="Link to this definition"></a></dt>
+<dd><p>Enumerate the raw data files (measurements) stored in this container.
+See <code class="xref py py-meth docutils literal notranslate"><span class="pre">ContainerReaderBase.members()</span></code>.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.IO.CE.write_containers">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.CE.</span></span><span class="sig-name descname"><span class="pre">write_containers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">containers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.CE.write_containers" title="Link to this definition"></a></dt>
 <dd><p>Write multiple surface containers into a ZIP file.</p>
+<p>The container metadata is written twice, with identical content: as the
+canonical <cite>index.json</cite> (validated against
+<a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.ContainerMeta" title="SurfaceTopography.Container.IO.Schema.ContainerMeta"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Container.IO.Schema.ContainerMeta</span></code></a>) and as the
+legacy <cite>meta.yml</cite>, which older readers understand.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -241,6 +258,55 @@ contains a list of topographies.</p>
 </section>
 <section id="module-SurfaceTopography.Container.IO.Reader">
 <span id="surfacetopography-container-io-reader-module"></span><h2>SurfaceTopography.Container.IO.Reader module<a class="headerlink" href="#module-SurfaceTopography.Container.IO.Reader" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Reader.ContainerMember">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.Reader.</span></span><span class="sig-name descname"><span class="pre">ContainerMember</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">open</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visible</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta" title="SurfaceTopography.Container.IO.Schema.TopographyMeta"><span class="pre">TopographyMeta</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.Reader.ContainerMember" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A single raw data file (measurement) stored inside a container.</p>
+<p>This is the <em>ingestion</em> view of a container: unlike
+<a class="reference internal" href="#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.container" title="SurfaceTopography.Container.IO.Reader.ContainerReaderBase.container"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ContainerReaderBase.container()</span></code></a>, which decodes measurements into
+topographies for analysis, a member gives access to the verbatim bytes of
+the underlying data file plus the little metadata the container format
+carries about it. Web applications use this to store the raw file and
+defer decoding.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Reader.ContainerMember.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Reader.ContainerMember.name" title="Link to this definition"></a></dt>
+<dd><p>Human-readable name of the measurement (typically the name of the file
+that was originally imported into the container).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Reader.ContainerMember.open">
+<span class="sig-name descname"><span class="pre">open</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Reader.ContainerMember.open" title="Link to this definition"></a></dt>
+<dd><p>Callable that returns a fresh binary stream with the verbatim bytes of
+the raw data file. Each call returns a new stream; the caller is
+responsible for closing it.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Reader.ContainerMember.visible">
+<span class="sig-name descname"><span class="pre">visible</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Reader.ContainerMember.visible" title="Link to this definition"></a></dt>
+<dd><p>Whether the measurement is visible. Some container formats (e.g.
+Keyence ZAG) can mark measurements as hidden without deleting them;
+hidden measurements are excluded from <cite>container()</cite> but reported here
+so that callers can account for them.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Reader.ContainerMember.metadata">
+<span class="sig-name descname"><span class="pre">metadata</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta" title="SurfaceTopography.Container.IO.Schema.TopographyMeta"><span class="pre">TopographyMeta</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Reader.ContainerMember.metadata" title="Link to this definition"></a></dt>
+<dd><p>Validated per-measurement metadata, if the container format provides
+it (contact.engineering containers do, ZAG does not).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Reader.ContainerMember.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">open</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visible</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta" title="SurfaceTopography.Container.IO.Schema.TopographyMeta"><span class="pre">TopographyMeta</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Reader.ContainerMember.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Reader.ContainerReaderBase">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.Reader.</span></span><span class="sig-name descname"><span class="pre">ContainerReaderBase</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Reader.ContainerReaderBase" title="Link to this definition"></a></dt>
@@ -304,6 +370,31 @@ there are no typical file extensions.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Reader.ContainerReaderBase.members">
+<span class="sig-name descname"><span class="pre">members</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.members" title="Link to this definition"></a></dt>
+<dd><p>Enumerate the raw data files (measurements) stored in this container,
+without decoding them into topographies.</p>
+<p>This is the ingestion companion to <a class="reference internal" href="#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.container" title="SurfaceTopography.Container.IO.Reader.ContainerReaderBase.container"><code class="xref py py-meth docutils literal notranslate"><span class="pre">container()</span></code></a>: it exposes the
+verbatim bytes of each measurement’s data file plus the metadata the
+container carries about it, so that callers (e.g. web applications)
+can store the raw files and defer decoding. Hidden measurements are
+included, flagged with <code class="docutils literal notranslate"><span class="pre">visible=False</span></code>; <a class="reference internal" href="#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.container" title="SurfaceTopography.Container.IO.Reader.ContainerReaderBase.container"><code class="xref py py-meth docutils literal notranslate"><span class="pre">container()</span></code></a> excludes
+them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>index</strong> (<em>int</em>) – Index of the container to enumerate.
+(Default: 0, which enumerates the first container)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>members</strong> – All measurements stored in this container.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of <a class="reference internal" href="#SurfaceTopography.Container.IO.Reader.ContainerMember" title="SurfaceTopography.Container.IO.Reader.ContainerMember"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ContainerMember</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Reader.ContainerReaderBase.container">
 <span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.container" title="Link to this definition"></a></dt>
 <dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceContainer</span></code> that
@@ -322,6 +413,398 @@ contains a list of topographies.</p>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+</section>
+<section id="module-SurfaceTopography.Container.IO.Schema">
+<span id="surfacetopography-container-io-schema-module"></span><h2>SurfaceTopography.Container.IO.Schema module<a class="headerlink" href="#module-SurfaceTopography.Container.IO.Schema" title="Link to this heading"></a></h2>
+<p>Pydantic schema for the surface-container metadata file.</p>
+<p>A surface container is a ZIP archive bundling one or more digital surface twins
+(surfaces), each holding any number of topography measurements, together with
+their data files and a single metadata file.</p>
+<p>There is exactly one source of truth for that metadata: <code class="docutils literal notranslate"><span class="pre">index.json</span></code>. This
+module holds the canonical schema; TopoBank re-exports it (as
+<code class="docutils literal notranslate"><span class="pre">topobank.manager.container_schema</span></code>) and uses it for both export and import,
+and <a class="reference internal" href="#SurfaceTopography.Container.IO.CE.CEReader" title="SurfaceTopography.Container.IO.CE.CEReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Container.IO.CE.CEReader</span></code></a> validates <code class="docutils literal notranslate"><span class="pre">index.json</span></code>
+against it when reading a container. Archives produced by older versions of
+TopoBank stored a similar structure as a YAML file named <code class="docutils literal notranslate"><span class="pre">meta.yml</span></code>; those
+are still accepted on import (see <a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.load_container_metadata" title="SurfaceTopography.Container.IO.Schema.load_container_metadata"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_container_metadata()</span></code></a>).</p>
+<section id="serialization-rule">
+<h3>Serialization rule<a class="headerlink" href="#serialization-rule" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">index.json</span></code> is produced with <code class="docutils literal notranslate"><span class="pre">model_dump(by_alias=True,</span> <span class="pre">exclude_none=True)</span></code>:
+any field whose value is <code class="docutils literal notranslate"><span class="pre">None</span></code> is omitted entirely. In particular the
+<code class="docutils literal notranslate"><span class="pre">orcid</span></code> of an author and the <code class="docutils literal notranslate"><span class="pre">squeezed-netcdf</span></code> data file are only written
+when present.</p>
+</section>
+<dl class="py data">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.CONTAINER_METADATA_FILENAME">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.Schema.</span></span><span class="sig-name descname"><span class="pre">CONTAINER_METADATA_FILENAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'index.json'</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.CONTAINER_METADATA_FILENAME" title="Link to this definition"></a></dt>
+<dd><p>Canonical name of the metadata file inside a container archive.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.LEGACY_METADATA_FILENAME">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.Schema.</span></span><span class="sig-name descname"><span class="pre">LEGACY_METADATA_FILENAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'meta.yml'</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.LEGACY_METADATA_FILENAME" title="Link to this definition"></a></dt>
+<dd><p>Name of the legacy YAML metadata file written by older TopoBank versions.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.CreatedBy">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.Schema.</span></span><span class="sig-name descname"><span class="pre">CreatedBy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orcid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.CreatedBy" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Author of a surface or topography.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.CreatedBy.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.CreatedBy.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.CreatedBy.orcid">
+<span class="sig-name descname"><span class="pre">orcid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.CreatedBy.orcid" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.CreatedBy.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.CreatedBy.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.PropertyMeta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.Schema.</span></span><span class="sig-name descname"><span class="pre">PropertyMeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.PropertyMeta" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>A single custom key/value property attached to a surface.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.PropertyMeta.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.PropertyMeta.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.PropertyMeta.value">
+<span class="sig-name descname"><span class="pre">value</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.PropertyMeta.value" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.PropertyMeta.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.PropertyMeta.unit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.PropertyMeta.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.PropertyMeta.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.PublicationMeta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.Schema.</span></span><span class="sig-name descname"><span class="pre">PublicationMeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">license</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">authors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doi_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doi_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.PublicationMeta" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Publication information, present only for published surfaces.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.PublicationMeta.url">
+<span class="sig-name descname"><span class="pre">url</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.PublicationMeta.url" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.PublicationMeta.license">
+<span class="sig-name descname"><span class="pre">license</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.PublicationMeta.license" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.PublicationMeta.authors">
+<span class="sig-name descname"><span class="pre">authors</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.PublicationMeta.authors" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.PublicationMeta.version">
+<span class="sig-name descname"><span class="pre">version</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.PublicationMeta.version" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.PublicationMeta.date">
+<span class="sig-name descname"><span class="pre">date</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.PublicationMeta.date" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.PublicationMeta.doi_url">
+<span class="sig-name descname"><span class="pre">doi_url</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.PublicationMeta.doi_url" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.PublicationMeta.doi_state">
+<span class="sig-name descname"><span class="pre">doi_state</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.PublicationMeta.doi_state" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.PublicationMeta.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.PublicationMeta.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.InstrumentMeta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.Schema.</span></span><span class="sig-name descname"><span class="pre">InstrumentMeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.InstrumentMeta" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Instrument used to acquire a measurement.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.InstrumentMeta.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.InstrumentMeta.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.InstrumentMeta.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.InstrumentMeta.type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.InstrumentMeta.parameters">
+<span class="sig-name descname"><span class="pre">parameters</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.InstrumentMeta.parameters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.InstrumentMeta.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.InstrumentMeta.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.DatafileMeta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.Schema.</span></span><span class="sig-name descname"><span class="pre">DatafileMeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">original</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">squeezed_netcdf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.DatafileMeta" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>References to the data files of a single measurement inside the archive.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.DatafileMeta.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'populate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.DatafileMeta.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.DatafileMeta.original">
+<span class="sig-name descname"><span class="pre">original</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.DatafileMeta.original" title="Link to this definition"></a></dt>
+<dd><p>Original data file as uploaded by the user. Optional because containers
+written by <cite>SurfaceTopography.Container.IO.CE.write_containers</cite> bundle
+only a preprocessed NetCDF; TopoBank always writes it.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.DatafileMeta.squeezed_netcdf">
+<span class="sig-name descname"><span class="pre">squeezed_netcdf</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.DatafileMeta.squeezed_netcdf" title="Link to this definition"></a></dt>
+<dd><p>Optional NetCDF 3 file with preprocessed (“squeezed”) data.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.Schema.</span></span><span class="sig-name descname"><span class="pre">TopographyMeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">*,</span> <span class="pre">name:</span> <span class="pre">str,</span> <span class="pre">datafile:</span> <span class="pre">~SurfaceTopography.Container.IO.Schema.DatafileMeta,</span> <span class="pre">size:</span> <span class="pre">list[float],</span> <span class="pre">unit:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">data_source:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0,</span> <span class="pre">has_undefined_data:</span> <span class="pre">bool</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">fill_undefined_data_mode:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'do-not-fill',</span> <span class="pre">detrend_mode:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'center',</span> <span class="pre">is_periodic:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">created_by:</span> <span class="pre">~SurfaceTopography.Container.IO.Schema.CreatedBy</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">measurement_date:</span> <span class="pre">~datetime.date</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">datetime.date(1970,</span> <span class="pre">1,</span> <span class="pre">1),</span> <span class="pre">description:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'',</span> <span class="pre">tags:</span> <span class="pre">list[str]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;,</span> <span class="pre">instrument:</span> <span class="pre">~SurfaceTopography.Container.IO.Schema.InstrumentMeta</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">height_scale:</span> <span class="pre">float</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Metadata of a single topography measurement.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'populate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta.datafile">
+<span class="sig-name descname"><span class="pre">datafile</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.DatafileMeta" title="SurfaceTopography.Container.IO.Schema.DatafileMeta"><span class="pre">DatafileMeta</span></a></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta.datafile" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta.size">
+<span class="sig-name descname"><span class="pre">size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta.size" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta.unit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta.data_source">
+<span class="sig-name descname"><span class="pre">data_source</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta.data_source" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta.has_undefined_data">
+<span class="sig-name descname"><span class="pre">has_undefined_data</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta.has_undefined_data" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta.fill_undefined_data_mode">
+<span class="sig-name descname"><span class="pre">fill_undefined_data_mode</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta.fill_undefined_data_mode" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta.detrend_mode">
+<span class="sig-name descname"><span class="pre">detrend_mode</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta.detrend_mode" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta.is_periodic">
+<span class="sig-name descname"><span class="pre">is_periodic</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta.is_periodic" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta.created_by">
+<span class="sig-name descname"><span class="pre">created_by</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.CreatedBy" title="SurfaceTopography.Container.IO.Schema.CreatedBy"><span class="pre">CreatedBy</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta.created_by" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta.measurement_date">
+<span class="sig-name descname"><span class="pre">measurement_date</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">date</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta.measurement_date" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta.description">
+<span class="sig-name descname"><span class="pre">description</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta.description" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta.tags">
+<span class="sig-name descname"><span class="pre">tags</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta.tags" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta.instrument">
+<span class="sig-name descname"><span class="pre">instrument</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.InstrumentMeta" title="SurfaceTopography.Container.IO.Schema.InstrumentMeta"><span class="pre">InstrumentMeta</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta.instrument" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.TopographyMeta.height_scale">
+<span class="sig-name descname"><span class="pre">height_scale</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta.height_scale" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.SurfaceMeta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.Schema.</span></span><span class="sig-name descname"><span class="pre">SurfaceMeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">created_by</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.CreatedBy" title="SurfaceTopography.Container.IO.Schema.CreatedBy"><span class="pre">CreatedBy</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_published</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">publication</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.PublicationMeta" title="SurfaceTopography.Container.IO.Schema.PublicationMeta"><span class="pre">PublicationMeta</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.PropertyMeta" title="SurfaceTopography.Container.IO.Schema.PropertyMeta"><span class="pre">PropertyMeta</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topographies</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta" title="SurfaceTopography.Container.IO.Schema.TopographyMeta"><span class="pre">TopographyMeta</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.SurfaceMeta" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Metadata of a single digital surface twin and its measurements.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.SurfaceMeta.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.SurfaceMeta.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.SurfaceMeta.category">
+<span class="sig-name descname"><span class="pre">category</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.SurfaceMeta.category" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.SurfaceMeta.created_by">
+<span class="sig-name descname"><span class="pre">created_by</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.CreatedBy" title="SurfaceTopography.Container.IO.Schema.CreatedBy"><span class="pre">CreatedBy</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.SurfaceMeta.created_by" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.SurfaceMeta.description">
+<span class="sig-name descname"><span class="pre">description</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.SurfaceMeta.description" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.SurfaceMeta.tags">
+<span class="sig-name descname"><span class="pre">tags</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.SurfaceMeta.tags" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.SurfaceMeta.is_published">
+<span class="sig-name descname"><span class="pre">is_published</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.SurfaceMeta.is_published" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.SurfaceMeta.publication">
+<span class="sig-name descname"><span class="pre">publication</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.PublicationMeta" title="SurfaceTopography.Container.IO.Schema.PublicationMeta"><span class="pre">PublicationMeta</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.SurfaceMeta.publication" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.SurfaceMeta.properties">
+<span class="sig-name descname"><span class="pre">properties</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.PropertyMeta" title="SurfaceTopography.Container.IO.Schema.PropertyMeta"><span class="pre">PropertyMeta</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.SurfaceMeta.properties" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.SurfaceMeta.topographies">
+<span class="sig-name descname"><span class="pre">topographies</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.TopographyMeta" title="SurfaceTopography.Container.IO.Schema.TopographyMeta"><span class="pre">TopographyMeta</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.SurfaceMeta.topographies" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.SurfaceMeta.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.SurfaceMeta.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.ContainerMeta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.Schema.</span></span><span class="sig-name descname"><span class="pre">ContainerMeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">versions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">str]</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surfaces</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.SurfaceMeta" title="SurfaceTopography.Container.IO.Schema.SurfaceMeta"><span class="pre">SurfaceMeta</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">created_at</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.ContainerMeta" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Top-level schema of a container’s <code class="docutils literal notranslate"><span class="pre">index.json</span></code> (or legacy <code class="docutils literal notranslate"><span class="pre">meta.yml</span></code>).</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.ContainerMeta.versions">
+<span class="sig-name descname"><span class="pre">versions</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.ContainerMeta.versions" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.ContainerMeta.surfaces">
+<span class="sig-name descname"><span class="pre">surfaces</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.SurfaceMeta" title="SurfaceTopography.Container.IO.Schema.SurfaceMeta"><span class="pre">SurfaceMeta</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.ContainerMeta.surfaces" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.ContainerMeta.created_at">
+<span class="sig-name descname"><span class="pre">created_at</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.ContainerMeta.created_at" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.ContainerMeta.extra">
+<span class="sig-name descname"><span class="pre">extra</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.ContainerMeta.extra" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.ContainerMeta.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.ContainerMeta.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.Schema.load_container_metadata">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.Schema.</span></span><span class="sig-name descname"><span class="pre">load_container_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surface_zip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsafe_yaml_loader</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.ContainerMeta" title="SurfaceTopography.Container.IO.Schema.ContainerMeta"><span class="pre">ContainerMeta</span></a></span></span><a class="headerlink" href="#SurfaceTopography.Container.IO.Schema.load_container_metadata" title="Link to this definition"></a></dt>
+<dd><p>Load and validate the metadata of a surface container.</p>
+<p>The canonical metadata file is <code class="docutils literal notranslate"><span class="pre">index.json</span></code>. For backward compatibility
+with archives produced by older versions of TopoBank, a legacy <code class="docutils literal notranslate"><span class="pre">meta.yml</span></code>
+file is accepted as a fallback. In both cases the metadata is validated
+against (and returned as) a <a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.ContainerMeta" title="SurfaceTopography.Container.IO.Schema.ContainerMeta"><code class="xref py py-class docutils literal notranslate"><span class="pre">ContainerMeta</span></code></a> instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>surface_zip</strong> (<em>zipfile.ZipFile</em>) – The container archive.</p></li>
+<li><p><strong>unsafe_yaml_loader</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, use an unsafe YAML loader when reading the legacy <code class="docutils literal notranslate"><span class="pre">meta.yml</span></code>.
+This can execute malicious code contained in the YAML file and should be
+used with caution. (Default: False)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The validated container metadata.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#SurfaceTopography.Container.IO.Schema.ContainerMeta" title="SurfaceTopography.Container.IO.Schema.ContainerMeta">ContainerMeta</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -370,6 +853,13 @@ meta.yml that contains all metadata not contained in the raw data files.</p>
 <dt class="sig sig-object py" id="SurfaceTopography.Container.IO.ZAG.ZAGReader.close">
 <span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.ZAG.ZAGReader.close" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.ZAG.ZAGReader.members">
+<span class="sig-name descname"><span class="pre">members</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.ZAG.ZAGReader.members" title="Link to this definition"></a></dt>
+<dd><p>Enumerate the raw data files (measurements) stored in this container,
+including hidden ones. See <code class="xref py py-meth docutils literal notranslate"><span class="pre">ContainerReaderBase.members()</span></code>.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.IO.ZAG.ZAGReader.container">

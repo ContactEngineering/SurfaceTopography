@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.25.0.dev9+g3ccb4248 documentation</title>
+  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.25.0.dev12+g17df1a83 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=32e0d103"></script>
+      <script src="../_static/documentation_options.js?v=1ad07950"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
@@ -192,12 +192,21 @@
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.CE.CEReader.__init__"><code class="docutils literal notranslate"><span class="pre">CEReader.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.CE.CEReader.nb_containers"><code class="docutils literal notranslate"><span class="pre">CEReader.nb_containers</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.CE.CEReader.container"><code class="docutils literal notranslate"><span class="pre">CEReader.container()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.CE.CEReader.members"><code class="docutils literal notranslate"><span class="pre">CEReader.members()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.CE.write_containers"><code class="docutils literal notranslate"><span class="pre">write_containers()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.IO.html#module-SurfaceTopography.Container.IO.Reader">SurfaceTopography.Container.IO.Reader module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerMember"><code class="docutils literal notranslate"><span class="pre">ContainerMember</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerMember.name"><code class="docutils literal notranslate"><span class="pre">ContainerMember.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerMember.open"><code class="docutils literal notranslate"><span class="pre">ContainerMember.open</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerMember.visible"><code class="docutils literal notranslate"><span class="pre">ContainerMember.visible</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerMember.metadata"><code class="docutils literal notranslate"><span class="pre">ContainerMember.metadata</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerMember.__init__"><code class="docutils literal notranslate"><span class="pre">ContainerMember.__init__()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.format"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase.format()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.mime_types"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase.mime_types()</span></code></a></li>
@@ -206,9 +215,94 @@
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.description"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase.description()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.close"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase.close()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.nb_containers"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase.nb_containers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.members"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase.members()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.container"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase.container()</span></code></a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.IO.html#module-SurfaceTopography.Container.IO.Schema">SurfaceTopography.Container.IO.Schema module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#serialization-rule">Serialization rule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.CONTAINER_METADATA_FILENAME"><code class="docutils literal notranslate"><span class="pre">CONTAINER_METADATA_FILENAME</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.LEGACY_METADATA_FILENAME"><code class="docutils literal notranslate"><span class="pre">LEGACY_METADATA_FILENAME</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.CreatedBy"><code class="docutils literal notranslate"><span class="pre">CreatedBy</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.CreatedBy.name"><code class="docutils literal notranslate"><span class="pre">CreatedBy.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.CreatedBy.orcid"><code class="docutils literal notranslate"><span class="pre">CreatedBy.orcid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.CreatedBy.model_config"><code class="docutils literal notranslate"><span class="pre">CreatedBy.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.PropertyMeta"><code class="docutils literal notranslate"><span class="pre">PropertyMeta</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.PropertyMeta.name"><code class="docutils literal notranslate"><span class="pre">PropertyMeta.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.PropertyMeta.value"><code class="docutils literal notranslate"><span class="pre">PropertyMeta.value</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.PropertyMeta.unit"><code class="docutils literal notranslate"><span class="pre">PropertyMeta.unit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.PropertyMeta.model_config"><code class="docutils literal notranslate"><span class="pre">PropertyMeta.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.PublicationMeta"><code class="docutils literal notranslate"><span class="pre">PublicationMeta</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.PublicationMeta.url"><code class="docutils literal notranslate"><span class="pre">PublicationMeta.url</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.PublicationMeta.license"><code class="docutils literal notranslate"><span class="pre">PublicationMeta.license</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.PublicationMeta.authors"><code class="docutils literal notranslate"><span class="pre">PublicationMeta.authors</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.PublicationMeta.version"><code class="docutils literal notranslate"><span class="pre">PublicationMeta.version</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.PublicationMeta.date"><code class="docutils literal notranslate"><span class="pre">PublicationMeta.date</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.PublicationMeta.doi_url"><code class="docutils literal notranslate"><span class="pre">PublicationMeta.doi_url</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.PublicationMeta.doi_state"><code class="docutils literal notranslate"><span class="pre">PublicationMeta.doi_state</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.PublicationMeta.model_config"><code class="docutils literal notranslate"><span class="pre">PublicationMeta.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.InstrumentMeta"><code class="docutils literal notranslate"><span class="pre">InstrumentMeta</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.InstrumentMeta.name"><code class="docutils literal notranslate"><span class="pre">InstrumentMeta.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.InstrumentMeta.type"><code class="docutils literal notranslate"><span class="pre">InstrumentMeta.type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.InstrumentMeta.parameters"><code class="docutils literal notranslate"><span class="pre">InstrumentMeta.parameters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.InstrumentMeta.model_config"><code class="docutils literal notranslate"><span class="pre">InstrumentMeta.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.DatafileMeta"><code class="docutils literal notranslate"><span class="pre">DatafileMeta</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.DatafileMeta.model_config"><code class="docutils literal notranslate"><span class="pre">DatafileMeta.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.DatafileMeta.original"><code class="docutils literal notranslate"><span class="pre">DatafileMeta.original</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.DatafileMeta.squeezed_netcdf"><code class="docutils literal notranslate"><span class="pre">DatafileMeta.squeezed_netcdf</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta"><code class="docutils literal notranslate"><span class="pre">TopographyMeta</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta.model_config"><code class="docutils literal notranslate"><span class="pre">TopographyMeta.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta.name"><code class="docutils literal notranslate"><span class="pre">TopographyMeta.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta.datafile"><code class="docutils literal notranslate"><span class="pre">TopographyMeta.datafile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta.size"><code class="docutils literal notranslate"><span class="pre">TopographyMeta.size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta.unit"><code class="docutils literal notranslate"><span class="pre">TopographyMeta.unit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta.data_source"><code class="docutils literal notranslate"><span class="pre">TopographyMeta.data_source</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta.has_undefined_data"><code class="docutils literal notranslate"><span class="pre">TopographyMeta.has_undefined_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta.fill_undefined_data_mode"><code class="docutils literal notranslate"><span class="pre">TopographyMeta.fill_undefined_data_mode</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta.detrend_mode"><code class="docutils literal notranslate"><span class="pre">TopographyMeta.detrend_mode</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta.is_periodic"><code class="docutils literal notranslate"><span class="pre">TopographyMeta.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta.created_by"><code class="docutils literal notranslate"><span class="pre">TopographyMeta.created_by</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta.measurement_date"><code class="docutils literal notranslate"><span class="pre">TopographyMeta.measurement_date</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta.description"><code class="docutils literal notranslate"><span class="pre">TopographyMeta.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta.tags"><code class="docutils literal notranslate"><span class="pre">TopographyMeta.tags</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta.instrument"><code class="docutils literal notranslate"><span class="pre">TopographyMeta.instrument</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.TopographyMeta.height_scale"><code class="docutils literal notranslate"><span class="pre">TopographyMeta.height_scale</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.SurfaceMeta"><code class="docutils literal notranslate"><span class="pre">SurfaceMeta</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.SurfaceMeta.name"><code class="docutils literal notranslate"><span class="pre">SurfaceMeta.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.SurfaceMeta.category"><code class="docutils literal notranslate"><span class="pre">SurfaceMeta.category</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.SurfaceMeta.created_by"><code class="docutils literal notranslate"><span class="pre">SurfaceMeta.created_by</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.SurfaceMeta.description"><code class="docutils literal notranslate"><span class="pre">SurfaceMeta.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.SurfaceMeta.tags"><code class="docutils literal notranslate"><span class="pre">SurfaceMeta.tags</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.SurfaceMeta.is_published"><code class="docutils literal notranslate"><span class="pre">SurfaceMeta.is_published</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.SurfaceMeta.publication"><code class="docutils literal notranslate"><span class="pre">SurfaceMeta.publication</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.SurfaceMeta.properties"><code class="docutils literal notranslate"><span class="pre">SurfaceMeta.properties</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.SurfaceMeta.topographies"><code class="docutils literal notranslate"><span class="pre">SurfaceMeta.topographies</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.SurfaceMeta.model_config"><code class="docutils literal notranslate"><span class="pre">SurfaceMeta.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.ContainerMeta"><code class="docutils literal notranslate"><span class="pre">ContainerMeta</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.ContainerMeta.versions"><code class="docutils literal notranslate"><span class="pre">ContainerMeta.versions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.ContainerMeta.surfaces"><code class="docutils literal notranslate"><span class="pre">ContainerMeta.surfaces</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.ContainerMeta.created_at"><code class="docutils literal notranslate"><span class="pre">ContainerMeta.created_at</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.ContainerMeta.extra"><code class="docutils literal notranslate"><span class="pre">ContainerMeta.extra</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.ContainerMeta.model_config"><code class="docutils literal notranslate"><span class="pre">ContainerMeta.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Schema.load_container_metadata"><code class="docutils literal notranslate"><span class="pre">load_container_metadata()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.IO.html#module-SurfaceTopography.Container.IO.ZAG">SurfaceTopography.Container.IO.ZAG module</a><ul>
@@ -219,6 +313,7 @@
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.ZAG.ZAGReader"><code class="docutils literal notranslate"><span class="pre">ZAGReader</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.ZAG.ZAGReader.__init__"><code class="docutils literal notranslate"><span class="pre">ZAGReader.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.ZAG.ZAGReader.close"><code class="docutils literal notranslate"><span class="pre">ZAGReader.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.ZAG.ZAGReader.members"><code class="docutils literal notranslate"><span class="pre">ZAGReader.members()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.ZAG.ZAGReader.container"><code class="docutils literal notranslate"><span class="pre">ZAGReader.container()</span></code></a></li>
 </ul>
 </li>
