@@ -50,7 +50,7 @@ dependencies = [
     "h5py",
     "igor2",
     "matplotlib>=1.0.0",
-    "NuMPI>=0.17.0",
+    "NuMPI>=0.17.1",
     "numpyencoder",
     "openpyxl",
     "Pillow",
