@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Format description contract &mdash; SurfaceTopography 1.25.0.dev12+g17df1a83 documentation</title>
+  <title>Format description contract &mdash; SurfaceTopography 1.25.0.dev55+gb794bbd3 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=1ad07950"></script>
+      <script src="_static/documentation_options.js?v=d192db4a"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -539,6 +539,14 @@ A null <code class="docutils literal notranslate"><span class="pre">height_scale
 <code class="docutils literal notranslate"><span class="pre">(nx,</span> <span class="pre">ny)</span></code> with the first index running along the physical x
 direction. Descriptions are responsible for any crop/transpose needed
 to satisfy this (via conversion expressions).</p></li>
+<li><p>Channels with <code class="docutils literal notranslate"><span class="pre">dim</span></code> 1 are line scans: <code class="docutils literal notranslate"><span class="pre">nb_grid_pts</span></code> and
+<code class="docutils literal notranslate"><span class="pre">physical_sizes</span></code> have a single entry and the data array has shape
+<code class="docutils literal notranslate"><span class="pre">(nx,)</span></code>.</p></li>
+<li><p>Channels that do not contain heights declare <code class="docutils literal notranslate"><span class="pre">data_kind</span></code> (one of
+<code class="docutils literal notranslate"><span class="pre">height</span></code>, <code class="docutils literal notranslate"><span class="pre">voltage</span></code>, <code class="docutils literal notranslate"><span class="pre">current</span></code>, <code class="docutils literal notranslate"><span class="pre">phase</span></code>, <code class="docutils literal notranslate"><span class="pre">amplitude</span></code>,
+<code class="docutils literal notranslate"><span class="pre">error</span></code>, <code class="docutils literal notranslate"><span class="pre">deflection</span></code>, <code class="docutils literal notranslate"><span class="pre">friction</span></code>, <code class="docutils literal notranslate"><span class="pre">other</span></code>; default <code class="docutils literal notranslate"><span class="pre">height</span></code>)
+and may declare <code class="docutils literal notranslate"><span class="pre">data_unit</span></code>, the unit of the data values (<code class="docutils literal notranslate"><span class="pre">unit</span></code>
+remains the lateral unit).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">mask</span></code> is optional; where present, true marks an <strong>undefined</strong> pixel.
 Engines map undefined pixels to their native representation (masked
 arrays in numpy, NaN in Eigen fields). Example rules:
