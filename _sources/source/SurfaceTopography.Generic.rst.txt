@@ -4,6 +4,14 @@ SurfaceTopography.Generic package
 Submodules
 ----------
 
+SurfaceTopography.Generic.Arithmetic module
+-------------------------------------------
+
+.. automodule:: SurfaceTopography.Generic.Arithmetic
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 SurfaceTopography.Generic.Curvature module
 ------------------------------------------
 
