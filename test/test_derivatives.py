@@ -33,8 +33,12 @@ from NuMPI import MPI
 
 from SurfaceTopography import Topography, UniformLineScan, read_topography
 from SurfaceTopography.Generation import fourier_synthesis
+from SurfaceTopography.Uniform import Derivative
 from SurfaceTopography.Uniform.Derivative import (
-    DiscreteDerivative, first_central_2d, third_2d, trim_nonperiodic
+    DiscreteDerivative,
+    first_central_2d,
+    third_2d,
+    trim_nonperiodic,
 )
 
 pytestmark = pytest.mark.skipif(
@@ -440,3 +444,54 @@ def test_derivative_with_undefined_data(file_format_examples, plot=False):
         plt.show()
         plt.pcolormesh(dx)
         plt.show()
+
+
+ALL_DISCRETE_DERIVATIVES = [
+    name for name, op in vars(Derivative).items() if isinstance(op, DiscreteDerivative)
+]
+
+
+@pytest.mark.parametrize("name", ALL_DISCRETE_DERIVATIVES)
+def test_discrete_derivative_fourier_matches_stencil(name):
+    # Applying the Fourier multiplier must equal applying the stencil on a
+    # periodic grid
+    op = getattr(Derivative, name)
+    dim = len(op.lbounds)
+    nb_grid_pts = (11, 8)[:dim]
+    h = np.random.default_rng(0).random(nb_grid_pts)
+
+    # Stencil applied directly: sum_k stencil[k] * h(x + lbounds + k)
+    expected = np.zeros(nb_grid_pts)
+    for k, coefficient in np.ndenumerate(op.stencil):
+        displacement = op.lbounds + np.array(k)
+        expected += coefficient * np.roll(h, -displacement, axis=tuple(range(dim)))
+
+    phase = np.array(np.meshgrid(*[np.fft.fftfreq(n) for n in nb_grid_pts], indexing="ij"))
+    multiplier = op.fourier(phase)
+    assert multiplier.shape == nb_grid_pts
+    np.testing.assert_allclose(np.fft.ifftn(np.fft.fftn(h) * multiplier).real, expected, atol=1e-12)
+
+
+@pytest.mark.parametrize("name", ALL_DISCRETE_DERIVATIVES)
+def test_discrete_derivative_matches_mugrid(name):
+    _muGrid = pytest.importorskip("muGrid._muGrid")
+    op = getattr(Derivative, name)
+    mugrid_op = _muGrid.ConvolutionOperator(list(op.lbounds), op.stencil)
+    np.testing.assert_array_equal(op.lbounds, np.asarray(mugrid_op.offset))
+    np.testing.assert_array_equal(op.shape, mugrid_op.stencil_shape)
+    np.testing.assert_allclose(op.stencil, np.asarray(mugrid_op.coefficients).reshape(op.shape))
+    phase = np.random.default_rng(1).random((len(op.lbounds), 5, 4))
+    np.testing.assert_allclose(op.fourier(phase), mugrid_op.fourier(phase), atol=1e-12)
+
+
+def test_discrete_derivative_validation():
+    with pytest.raises(ValueError):
+        DiscreteDerivative([0, 0], [-1, 1])
+    op = DiscreteDerivative([0], [-1, 1])
+    with pytest.raises(ValueError):
+        op.fourier(np.zeros((2, 4)))
+    # Operators are shared and must not be modified accidentally
+    with pytest.raises(ValueError):
+        op.stencil[0] = 2
+    with pytest.raises(ValueError):
+        op.lbounds[0] = 2
