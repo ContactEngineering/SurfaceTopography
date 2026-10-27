@@ -27,8 +27,8 @@ import tempfile
 
 import numpy as np
 import pytest
-from muGrid.Wrappers import FFTEngine
 from NuMPI import MPI
+from NuMPI.FFT import make_fft_engine
 from scipy.io import netcdf_file
 
 from SurfaceTopography.Exceptions import FileFormatMismatch
@@ -50,7 +50,7 @@ def test_save_and_load(maxcomm):
     np.random.seed(1)
     t = fourier_synthesis(nb_grid_pts, size, 0.8, rms_slope=0.1, unit="µm")
 
-    fft = FFTEngine(nb_grid_pts, communicator=maxcomm)
+    fft = make_fft_engine(nb_grid_pts, communicator=maxcomm)
     dt = t.domain_decompose(
         fft.subdomain_locations, fft.nb_subdomain_grid_pts, communicator=maxcomm
     )

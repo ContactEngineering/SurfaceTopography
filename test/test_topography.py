@@ -36,8 +36,8 @@ from tempfile import TemporaryDirectory as tmp_dir
 
 import numpy as np
 import pytest
-from muGrid.Wrappers import FFTEngine
 from NuMPI import MPI
+from NuMPI.FFT import make_fft_engine
 from NuMPI.Tools import Reduction
 from numpy.random import rand
 from numpy.testing import assert_array_equal
@@ -649,7 +649,7 @@ def test_positions(comm):
     nx, ny = (12 * comm.Get_size(), 10 * comm.Get_size() + 1)
     sx = 33.
     sy = 54.
-    fftengine = FFTEngine((nx, ny), communicator=comm)
+    fftengine = make_fft_engine((nx, ny), communicator=comm)
     nb_subdomain_grid_pts = fftengine.nb_subdomain_grid_pts
     subdomain_locations = fftengine.subdomain_locations
 

@@ -31,11 +31,10 @@ import unittest
 import NuMPI
 import numpy as np
 import pytest
-from muGrid.Wrappers import FFTEngine
 from NuMPI import MPI
+from NuMPI.FFT import make_fft_engine
 
-from SurfaceTopography import open_topography
-from SurfaceTopography import UniformLineScan
+from SurfaceTopography import UniformLineScan, open_topography
 from SurfaceTopography.Exceptions import FileFormatMismatch, UnsupportedFormatFeature
 from SurfaceTopography.IO.NPY import NPYReader, NPZReader, save_npy
 
@@ -120,7 +119,7 @@ def test_reader(comm, loader, examplefile):
 
     assert fileReader.nb_grid_pts == res
 
-    fftengine = FFTEngine(fileReader.nb_grid_pts, communicator=comm)
+    fftengine = make_fft_engine(fileReader.nb_grid_pts, communicator=comm)
 
     top = fileReader.topography(
         subdomain_locations=fftengine.subdomain_locations,
