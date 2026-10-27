@@ -75,8 +75,7 @@ mpi = [
 ]
 test = [
     "pytest",
-    "pytest-cov",
-    "runtests"
+    "pytest-cov"
 ]
 
 [project.urls]

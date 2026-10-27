@@ -18,9 +18,10 @@ jobs:
 
     strategy:
       matrix:
-        mpi: ['no', 'mpi']
+        # 'no': core install, without mpi4py and muGrid
+        # 'yes': mpi extra, with mpi4py and muGrid compiled against OpenMPI
+        mpi: ['no', 'yes']
         python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
-        mpi4py-version: [4.0.3]
 
     steps:
       - uses: actions/checkout@v7
@@ -33,54 +34,43 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
+      - name: Install dependencies and extension module
         run: |
+          set -x
           sudo apt-get update -qy
           python3 -m venv venv
           source venv/bin/activate
-          python3 -m pip install --upgrade pip pip-tools meson build
+          python3 -m pip install --upgrade pip
           if [ "${{ matrix.mpi }}" == "yes" ]; then
-            sudo apt-get install -y \
-              openmpi-bin \
-              libopenmpi-dev \
-              libfftw3-dev \
-              libfftw3-mpi-dev \
-              libhdf5-mpi-dev \
-              libpnetcdf-dev \
-              libnetcdf-pnetcdf-dev \
-              meson \
-              ninja-build
-            # Compute mpi4py, numpy and muGrid versions
-            pip-compile pyproject.toml
-            NUMPY_VERSION=$(grep 'numpy==' requirements.txt)
-            MUGRID_VERSION=$(grep 'mugrid==' requirements.txt)
-            echo "numpy version: ${NUMPY_VERSION}"
-            echo "muGrid version: ${MUGRID_VERSION}"
-            # Install numpy
-            pip install -v ${NUMPY_VERSION}
-            # Install mpi4py
-            echo "Installing mpi4py==${{ matrix.mpi4py-version }}"
-            CC=mpicc python3 -m pip install -v \
-              --no-binary mpi4py \
-              mpi4py==${{ matrix.mpi4py-version }}
-            # Manually install muGrid with MPI enabled
-            echo "Installing ${MUGRID_VERSION}"
-            pip install -v --no-binary muGrid ${MUGRID_VERSION}
+            sudo apt-get install -y openmpi-bin libopenmpi-dev
+            # mpi4py and muGrid must be compiled against the system's MPI
+            export CC=mpicc CXX=mpicxx
+            python3 -m pip install -v --no-binary mpi4py --no-binary muGrid .[mpi,test]
           else
-            sudo apt-get install -y \
-              libfftw3-dev \
-              libhdf5-dev \
-              libnetcdf-dev
+            python3 -m pip install -v .[test]
           fi
           python3 -m pip list
 
-      - name: Install extension module
+      - name: Check MPI capabilities
         run: |
           source venv/bin/activate
-          python3 -m pip install .[test]
+          if [ "${{ matrix.mpi }}" == "yes" ]; then
+            python3 -c "import muGrid, sys; print('muGrid', muGrid.__version__); sys.exit(0 if muGrid.has_mpi else 'muGrid was compiled without MPI')"
+            python3 -c "import NuMPI, sys; sys.exit(0 if NuMPI._has_mpi4py else 'mpi4py is missing')"
+          else
+            # The core install must work without MPI and muGrid
+            python3 -c "import importlib.util as u, sys; sys.exit('muGrid or mpi4py is installed' if u.find_spec('muGrid') or u.find_spec('mpi4py') else 0)"
+          fi
 
       - name: Test with pytest
         run: |
           source venv/bin/activate
-          python3 .check_mufft_capabilities.py ${{ matrix.mpi }}
-          if [ "${{ matrix.mpi }}" == "yes" ]; then python3 run-tests.py --no-build --verbose --full-trace; else python3 -m pytest --verbose --full-trace -s; fi
+          if [ "${{ matrix.mpi }}" == "yes" ]; then
+            export OMPI_MCA_mpi_yield_when_idle=1
+            for nbprocs in 1 4; do
+              echo "=== $nbprocs MPI processes ==="
+              mpirun --oversubscribe -n $nbprocs python3 -m pytest --verbose --full-trace
+            done
+          else
+            python3 -m pytest --verbose --full-trace -s
+          fi
