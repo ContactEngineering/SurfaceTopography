@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.26.0.dev2+g1bc0b598 documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.26.0.dev5+g04041611 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=68e0d67a"></script>
+      <script src="../_static/documentation_options.js?v=23ae03e7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
@@ -647,9 +647,10 @@ where q is the wave vector component in the specified direction.</p>
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Derivative.DiscreteDerivative">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Derivative.</span></span><span class="sig-name descname"><span class="pre">DiscreteDerivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lbounds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stencil</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Derivative.DiscreteDerivative" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Wrapper around muGrid.ConvolutionOperator that provides lbounds and stencil.</p>
-<p>This wrapper exposes the lbounds (offset) and stencil (coefficients)
-via properties that delegate to the underlying ConvolutionOperator.</p>
+<p>Finite-differences derivative operator defined by a stencil.</p>
+<p>The stencil coefficient <code class="docutils literal notranslate"><span class="pre">stencil[k]</span></code> multiplies the value at the grid
+point displaced by <code class="docutils literal notranslate"><span class="pre">lbounds</span> <span class="pre">+</span> <span class="pre">k</span></code> from the point where the derivative is
+computed.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Derivative.DiscreteDerivative.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lbounds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stencil</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Derivative.DiscreteDerivative.__init__" title="Link to this definition"></a></dt>
@@ -688,10 +689,12 @@ via properties that delegate to the underlying ConvolutionOperator.</p>
 <dd><p>Return the Fourier multiplier for the discrete derivative.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>phase</strong> (<em>array_like</em>) – Phase array (frequency * scale_factor).</p>
+<dd class="field-odd"><p><strong>phase</strong> (<em>array_like</em>) – Phase array (frequency * scale_factor) of shape (dim, …).</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>multiplier</strong> – The Fourier multiplier for the discrete derivative.</p>
+<dd class="field-even"><p><strong>multiplier</strong> – The Fourier multiplier
+sum_k stencil[k] * exp(i * 2π * (lbounds + k) · phase),
+of shape phase.shape[1:].</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>complex array</p>
@@ -751,7 +754,7 @@ order, not the effective grid spacing used by this stencil. The scale
 factor is then given by distance / (n * px) where n is the order of the
 derivative and px the grid spacing.
 (Default: None)</p></li>
-<li><p><strong>operator</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">muGrid.Derivative</span></code> object or tuple of <code class="xref py py-obj docutils literal notranslate"><span class="pre">muGrid.Derivative</span></code> objects, optional) – Derivative operator used to compute the derivative. If unspecified,
+<li><p><strong>operator</strong> (<a class="reference internal" href="#SurfaceTopography.Uniform.Derivative.DiscreteDerivative" title="SurfaceTopography.Uniform.Derivative.DiscreteDerivative"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DiscreteDerivative</span></code></a> or <a class="reference internal" href="#SurfaceTopography.Uniform.Derivative.FourierDerivative" title="SurfaceTopography.Uniform.Derivative.FourierDerivative"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FourierDerivative</span></code></a> object or tuple of these objects, optional) – Derivative operator used to compute the derivative. If unspecified,
 a simple upwind differences scheme will be applied to compute the
 derivative. A tuple contains the gradient, i.e. the derivative
 operators in the Cartesian directions for multidimensional fields.
