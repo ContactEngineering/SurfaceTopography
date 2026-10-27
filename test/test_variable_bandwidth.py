@@ -29,16 +29,17 @@ Test tools for variable bandwidth analysis.
 import os
 
 import numpy as np
-import pytest
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 
-from SurfaceTopography import (Topography, UniformLineScan, read_container,
-                               read_topography)
+from SurfaceTopography import (
+    Topography,
+    UniformLineScan,
+    read_container,
+    read_topography,
+)
 from SurfaceTopography.Generation import fourier_synthesis
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+pytestmark = serial_only
 
 
 def test_checkerboard_detrend_1d():

@@ -31,6 +31,7 @@ import numpy as np
 import pytest
 from NuMPI import MPI
 from NuMPI.FFT import make_fft_engine
+from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography import (
     NonuniformLineScan,
@@ -79,10 +80,7 @@ def test_rms_curvature(comm):
     np.testing.assert_almost_equal(numerical, analytical, 5)
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 def test_rms_slope():
     L, hm, top = sinewave2D()
     numerical = top.rms_gradient()
@@ -99,10 +97,7 @@ def test_rms_height(comm):
     assert numerical == analytical
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 def test_mad_height(comm, plot=False):
     L, hm, top = sinewave2D(comm)
     numerical = top.mad_height()
@@ -123,10 +118,7 @@ def test_mad_height(comm, plot=False):
     assert numerical > analytical  # Fixme! Derive exact analytic expression
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 @pytest.mark.parametrize("periodic", [False, True])
 def test_rms_curvature_sinewave_2D(periodic):
     precision = 5
@@ -150,10 +142,7 @@ def test_rms_curvature_sinewave_2D(periodic):
     )
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 def test_rms_curvature_paraboloid_uniform_1D():
     n = 16
     x = np.arange(n)
@@ -165,10 +154,7 @@ def test_rms_curvature_paraboloid_uniform_1D():
     assert abs((surf.rms_curvature_from_profile() - curvature) / curvature) < 1e-14
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 def test_rms_curvature_paraboloid_uniform_2D():
     n = 16
     X, Y = np.mgrid[slice(0, n), slice(0, n)]
@@ -233,10 +219,7 @@ class SinewaveTest(unittest.TestCase):
         self.assertAlmostEqual(numerical, analytical, self.precision)
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 def test_rms_slope_from_profile():
     r = 4096
     res = (r,)
@@ -267,10 +250,7 @@ def test_rms_slope_from_profile():
                 last_rms_slope = rms_slope
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 def test_rms_slope_from_area():
     r = 2048
     res = [r, r]
@@ -311,10 +291,7 @@ def test_rms_height_with_undefined_data(file_format_examples):
     np.testing.assert_allclose(t.rms_height_from_area(), 0.011782127367582199)
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 @pytest.mark.parametrize(
     "nx",
     (255, 256),
@@ -343,10 +320,7 @@ def test_moment_0_1d(
     assert abs(1 - hrms_r / hrms_f) < 0.001
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 @pytest.mark.parametrize(
     "nx",
     (255, 256),
@@ -375,10 +349,7 @@ def test_moment_1_2d(
     assert abs(1 - hrms_r / hrms_f) < 0.01
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 @pytest.mark.parametrize(
     "nb_grid_pts", ((255, 256), (256, 255), (256, 256), (255, 255))
 )
@@ -403,10 +374,7 @@ def test_moment_2_2d(nb_grid_pts, physical_sizes):
     assert abs(1 - hrms_r / hrms_f) < 0.01
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 @pytest.mark.parametrize(
     "nb_grid_pts", ((255, 256), (256, 255), (256, 256), (255, 255))
 )
@@ -431,10 +399,7 @@ def test_moment_0_2d(nb_grid_pts, physical_sizes):
     assert abs(1 - hrms_r / hrms_f) < 0.001
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 @pytest.mark.parametrize(
     "nb_grid_pts", ((255, 256), (256, 255), (256, 256), (255, 255))
 )

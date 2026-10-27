@@ -42,7 +42,7 @@ import os
 
 import numpy as np
 import pytest
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography.Exceptions import CorruptFile, UnsupportedSchema
 from SurfaceTopography.IO.binary import BinaryStructure, ValidationError
@@ -57,10 +57,7 @@ from SurfaceTopography.IO.description import (
 from SurfaceTopography.IO.export import _EXPORTED_READERS, exported_reader_classes
 from SurfaceTopography.IO.Reader import MagicMatch
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+pytestmark = serial_only
 
 # All readers with declarative channel bindings, and their corpus fixtures;
 # the exporter's registry is the single source of truth

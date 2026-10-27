@@ -31,7 +31,6 @@ Tests for C extension patchfinder functions that were previously untested:
 """
 
 import numpy as np
-import pytest
 from _SurfaceTopography import (
     assign_patch_numbers,
     closest_patch_map,
@@ -39,12 +38,10 @@ from _SurfaceTopography import (
     perimeter_length,
     shortest_distance,
 )
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 from numpy.testing import assert_allclose, assert_array_equal
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+pytestmark = serial_only
 
 
 # =============================================================================

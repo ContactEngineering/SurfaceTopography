@@ -28,20 +28,14 @@ import zlib
 
 import numpy as np
 import pytest
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography import read_topography
 from SurfaceTopography.Exceptions import CorruptFile, MetadataAlreadyFixedByFile
 from SurfaceTopography.IO import MNTReader, open_topography
-from SurfaceTopography.IO.MNT import (
-    _decode_block_array,
-    _decode_cstring,
-    _decode_text,
-)
+from SurfaceTopography.IO.MNT import _decode_block_array, _decode_cstring, _decode_text
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+pytestmark = serial_only
 
 
 @pytest.mark.parametrize("filename", ["mnt-1.mnt", "mnt-2.mnt"])

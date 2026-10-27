@@ -23,19 +23,15 @@
 # SOFTWARE.
 #
 
-import pytest
-
 import numpy as np
-
-from NuMPI import MPI
+import pytest
+from NuMPI.Testing.Fixtures import serial_only
 
 import SurfaceTopography
-from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography import Topography, UniformLineScan
+from SurfaceTopography.Generation import fourier_synthesis
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+pytestmark = serial_only
 
 
 def test_longcut():

@@ -29,15 +29,13 @@ import os
 import unittest
 
 import pytest
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography import open_topography, read_topography
 from SurfaceTopography.IO import detect_format
 from SurfaceTopography.IO.IBW import IBWReader
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial funcionalities, please execute with pytest")
+pytestmark = serial_only
 
 DATADIR = os.path.join(
     os.path.dirname(

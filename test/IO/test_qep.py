@@ -27,7 +27,7 @@ import os
 
 import numpy as np
 import pytest
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography.Exceptions import MetadataAlreadyFixedByFile
 from SurfaceTopography.IO import detect_format, open_topography
@@ -35,10 +35,7 @@ from SurfaceTopography.IO.QEP import QEPReader
 from SurfaceTopography.NonuniformLineScan import NonuniformLineScan
 from SurfaceTopography.UniformLineScanAndTopography import UniformLineScan
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+pytestmark = serial_only
 
 
 def _expected_measured():

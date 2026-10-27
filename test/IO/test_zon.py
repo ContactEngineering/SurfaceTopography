@@ -25,15 +25,11 @@
 import os
 
 import numpy as np
-import pytest
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography.IO.ZON import ZONReader
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+pytestmark = serial_only
 
 
 def test_read_header(file_format_examples):

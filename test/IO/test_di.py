@@ -28,15 +28,13 @@ import os
 
 import numpy as np
 import pytest
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography import read_topography
 from SurfaceTopography.Exceptions import CorruptFile, UnsupportedFormatFeature
 from SurfaceTopography.IO import DIReader
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+pytestmark = serial_only
 
 
 def test_di_date(file_format_examples):

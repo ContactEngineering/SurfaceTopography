@@ -23,17 +23,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-import pytest
 import numpy as np
-
-from NuMPI import MPI
+import pytest
+from NuMPI.Testing.Fixtures import serial_only
 
 import SurfaceTopography
-from SurfaceTopography import UniformLineScan, NonuniformLineScan, Topography
+from SurfaceTopography import NonuniformLineScan, Topography, UniformLineScan
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+pytestmark = serial_only
 
 
 common_properties = [

@@ -24,14 +24,11 @@
 
 import numpy as np
 import pytest
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography import Topography, UniformLineScan
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+pytestmark = serial_only
 
 
 @pytest.mark.parametrize("kx,ky", [(3, 0), (0, 2), (3, 4)])

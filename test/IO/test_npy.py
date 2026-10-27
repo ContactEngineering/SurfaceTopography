@@ -33,15 +33,14 @@ import numpy as np
 import pytest
 from NuMPI import MPI
 from NuMPI.FFT import make_fft_engine
+from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography import UniformLineScan, open_topography
 from SurfaceTopography.Exceptions import FileFormatMismatch, UnsupportedFormatFeature
 from SurfaceTopography.IO.NPY import NPYReader, NPZReader, save_npy
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+@serial_only
 def test_save_and_load(file_format_examples):
     # sometimes the surface isn't transposed the same way when
     topography = open_topography(
@@ -63,9 +62,7 @@ def test_save_and_load(file_format_examples):
 @pytest.mark.skipif(
     NuMPI._has_mpi4py,
     reason="NuMPI is using MPI I/O which does not support Python streams")
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+@serial_only
 def test_load_binary_stream(file_format_examples):
     with open(os.path.join(file_format_examples, 'example-2d.npy'), mode="rb") as f:
         loaded_topography = NPYReader(f).topography(
@@ -75,9 +72,7 @@ def test_load_binary_stream(file_format_examples):
         loaded_topography
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+@serial_only
 def test_save_and_load_np(file_format_examples):
     # sometimes the surface isn't transposed the same way when
 
@@ -176,9 +171,7 @@ class npySurfaceTest(unittest.TestCase):
         self.assertEqual(topo.physical_sizes, size)
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+@serial_only
 def test_line_scan(tmp_path):
     fn = str(tmp_path / 'line.npy')
     np.save(fn, np.arange(5.))
@@ -190,9 +183,7 @@ def test_line_scan(tmp_path):
     np.testing.assert_allclose(t.heights(), np.arange(5.))
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+@serial_only
 @pytest.mark.parametrize("data", [np.ones((2, 3, 4)), np.ones((2, 3), dtype=complex)])
 def test_unsupported_arrays(tmp_path, data):
     # Gwyddion's npyfile.c only imports two-dimensional real arrays;
@@ -203,9 +194,7 @@ def test_unsupported_arrays(tmp_path, data):
         NPYReader(fn, communicator=MPI.COMM_SELF)
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+@serial_only
 @pytest.mark.parametrize("dtype", ["<f4", ">f8", "<i2", ">u2", "f2"])
 def test_dtypes(tmp_path, dtype):
     fn = str(tmp_path / 'dtype.npy')
@@ -215,9 +204,7 @@ def test_dtypes(tmp_path, dtype):
     np.testing.assert_allclose(t.heights(), data.astype(float))
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+@serial_only
 @pytest.mark.parametrize("save", [np.savez, np.savez_compressed])
 def test_npz(tmp_path, save):
     fn = str(tmp_path / 'arrays.npz')
@@ -241,9 +228,7 @@ def test_npz(tmp_path, save):
         np.testing.assert_allclose(reader.topography(physical_sizes=(1., 2.)).heights(), a)
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+@serial_only
 def test_npz_without_images(tmp_path, file_format_examples):
     fn = str(tmp_path / 'arrays.npz')
     np.savez(fn, line=np.arange(3.))
@@ -253,9 +238,7 @@ def test_npz_without_images(tmp_path, file_format_examples):
         NPZReader(os.path.join(file_format_examples, 'example-2d.npy'))
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+@serial_only
 def test_npz_detection(tmp_path, file_format_examples):
     fn = str(tmp_path / 'arrays.npz')
     np.savez(fn, first=np.arange(12.).reshape(4, 3))

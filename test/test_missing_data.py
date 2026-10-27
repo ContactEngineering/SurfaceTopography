@@ -27,16 +27,12 @@ import tempfile
 
 import numpy as np
 import pytest
-
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography.Exceptions import UndefinedDataError
 from SurfaceTopography.IO import open_topography, read_topography
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+pytestmark = serial_only
 
 
 @pytest.fixture

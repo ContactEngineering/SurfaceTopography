@@ -38,7 +38,7 @@ import warnings
 import NuMPI
 import numpy as np
 import pytest
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 from numpy.testing import assert_array_equal
 from scipy.io import netcdf_file
 
@@ -56,10 +56,7 @@ from SurfaceTopography.IO.XYZ import XYZReader
 from SurfaceTopography.Support.JSON import ExtendedJSONEncoder
 from SurfaceTopography.UniformLineScanAndTopography import Topography
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+pytestmark = serial_only
 
 DATADIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "file_format_examples"

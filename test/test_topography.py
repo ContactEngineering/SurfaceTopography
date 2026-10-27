@@ -36,8 +36,8 @@ from tempfile import TemporaryDirectory as tmp_dir
 
 import numpy as np
 import pytest
-from NuMPI import MPI
 from NuMPI.FFT import make_fft_engine
+from NuMPI.Testing.Fixtures import serial_only
 from NuMPI.Tools import Reduction
 from numpy.random import rand
 from numpy.testing import assert_array_equal
@@ -55,9 +55,7 @@ from SurfaceTopography.IO import XYZReader
 from SurfaceTopography.IO.Text import read_matrix
 from SurfaceTopography.Support.UnitConversion import get_unit_conversion_factor
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+pytestmark = serial_only
 
 DATADIR = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), 'file_format_examples')

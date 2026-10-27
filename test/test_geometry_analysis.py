@@ -26,16 +26,20 @@ import os
 
 import numpy as np
 import pytest
+from NuMPI.Testing.Fixtures import serial_only
 
-from NuMPI import MPI
+from SurfaceTopography.Uniform.GeometryAnalysis import (
+    assign_patch_numbers_area,
+    assign_patch_numbers_profile,
+    assign_segment_numbers_area,
+    distance_map,
+    inner_perimeter_area,
+    outer_perimeter_area,
+    outer_perimeter_profile,
+    patch_areas,
+)
 
-from SurfaceTopography.Uniform.GeometryAnalysis import assign_patch_numbers_profile, outer_perimeter_profile, \
-    assign_patch_numbers_area, outer_perimeter_area, inner_perimeter_area, patch_areas, distance_map, \
-    assign_segment_numbers_area
-
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+pytestmark = serial_only
 
 
 @pytest.mark.parametrize('periodic,expected_nb_patches,mask,expected_patch_ids',

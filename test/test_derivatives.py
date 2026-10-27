@@ -29,7 +29,7 @@ import os
 
 import numpy as np
 import pytest
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography import Topography, UniformLineScan, read_topography
 from SurfaceTopography.Generation import fourier_synthesis
@@ -41,10 +41,7 @@ from SurfaceTopography.Uniform.Derivative import (
     trim_nonperiodic,
 )
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+pytestmark = serial_only
 
 
 def test_uniform_vs_nonuniform():
