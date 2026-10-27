@@ -17,6 +17,8 @@ jobs:
     timeout-minutes: 45
 
     strategy:
+      # Report every leg; a failure in one does not tell whether the others pass
+      fail-fast: false
       matrix:
         # 'no': core install, without mpi4py and muGrid
         # 'yes': mpi extra, with mpi4py and muGrid compiled against OpenMPI
