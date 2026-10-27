@@ -16,6 +16,13 @@ Style for this changelog (keep to it so entries stay uniform):
 Change log for SurfaceTopography
 ================================
 
+v1.27.0 (not yet released)
+--------------------------
+
+- BUILD: MPI and muGrid are optional; the default install runs serially, install the `mpi`
+  extra for domain-decomposed topographies
+- CI: Parallel tests run under MPI again; they had silently been skipped
+
 v1.26.0 (27Oct26)
 -----------------
 
