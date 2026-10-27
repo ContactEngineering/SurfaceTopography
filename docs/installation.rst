@@ -30,8 +30,16 @@ Or if you want the latest unreleased version
     python3 -m pip  install [--user] git+https://github.com/ContactEngineering/SurfaceTopography.git
 
 
-The command will install other dependencies including muGrid_, NuMPI_ and
-runtests_.
+The command will install other dependencies including NuMPI_. This
+installation runs serially and does not need MPI.
+
+MPI-parallel (domain-decomposed) topographies require mpi4py, muGrid_ and
+netCDF4, which are installed with the `mpi` extra. They must be compiled
+against the MPI library of your system:
+
+.. code-block:: bash
+
+    CC=mpicc CXX=mpicxx python3 -m pip install [--user] --no-binary mpi4py --no-binary muGrid SurfaceTopography[mpi]
 
 If you want to install all optional dependencies for full functionality:
 
@@ -158,6 +166,5 @@ We provide a definition file to build a singularity container `here <https://git
 .. _FFTW3: http://www.fftw.org/
 .. _muGrid: https://github.com/muSpectre/muGrid.git
 .. _NuMPI: https://github.com/IMTEK-Simulation/NuMPI.git
-.. _runtests: https://github.com/bccp/runtests
 .. _Homebrew: https://brew.sh/
 .. _NetCDF: https://www.unidata.ucar.edu/software/netcdf/

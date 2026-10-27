@@ -7,17 +7,13 @@ To run the automated tests, go to the main source directory and execute the foll
 
     pytest
 
-Tests that are parallelizable have to run with runtests_.
+This runs serially and does not need MPI. Parallel tests require the `mpi`
+extra (see :doc:`installation`) and are run with `mpirun`:
 
 .. code-block:: bash
 
-    python run-tests.py --no-build
+    mpirun -n 4 python3 -m pytest
 
-You can choose the number of processors with the option `--mpirun="mpirun -np 4"`. For development purposes you can go beyond the number of processors of your computer using `--mpirun="mpirun -np 10 --oversubscribe"`
-
-Other usefull flags:
-
-- `--xterm`: one window per processor
-- `--xterm --pdb`: debugging
-
-.. _runtests: https://github.com/bccp/runtests
+The tests use communicators of size 1 and 4; tests for other sizes are
+skipped. For development purposes you can go beyond the number of processors
+of your computer using `mpirun -n 10 --oversubscribe`.
