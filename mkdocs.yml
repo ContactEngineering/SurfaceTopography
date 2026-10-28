@@ -1,0 +1,83 @@
+site_name: SurfaceTopography
+site_description: Read and analyze surface topographies with Python
+site_url: https://contactengineering.github.io/SurfaceTopography/
+repo_url: https://github.com/ContactEngineering/SurfaceTopography
+repo_name: ContactEngineering/SurfaceTopography
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+    - toc.follow
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      check_paths: true
+  - tables
+  - pymdownx.arithmatex:
+      generic: true
+
+# MathJax renders the $...$ / $$...$$ blocks that arithmatex marks up.
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - User guide:
+      - Topographies: topographies.md
+      - Reading and writing files: reading.md
+      - Supported file formats: formats.md
+      - Pipelines: pipelines.md
+      - Scalar statistics: statistics.md
+      - Spectral analysis: spectral.md
+      - Scale-dependent parameters: scale-dependent.md
+      - Containers: containers.md
+      - Synthetic topographies: generation.md
+  - File formats and readers:
+      - Declarative readers: declarative-readers.md
+      - Format description contract: format-description-contract.md
+      - Digital Surf MNT: file-formats/mnt.md
+  - Development:
+      - Contributing: contributing.md
+      - Testing: testing.md
+  - Changelog: changelog.md
+
+# Broken links to headings fail the strict build in CI
+validation:
+  anchors: warn
+
+exclude_docs: |
+  requirements.txt
+  Figures/
