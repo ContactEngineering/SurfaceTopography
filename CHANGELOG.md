@@ -16,13 +16,15 @@ Style for this changelog (keep to it so entries stay uniform):
 Change log for SurfaceTopography
 ================================
 
-v1.27.0 (not yet released)
---------------------------
+v1.27.0 (28Oct26)
+-----------------
 
 - BUILD: MPI and muGrid are optional; the default install runs serially, install the `mpi`
   extra for domain-decomposed topographies
-- CI: Parallel tests run under MPI again; they had silently been skipped
 - BUG: Areal rms height of domain-decomposed (MPI-parallel) topographies was computed per process
+- BUG: NPY files in big-endian byte order or half precision failed to load when mpi4py is
+  installed
+- CI: Parallel tests run under MPI again; they had silently been skipped
 
 v1.26.0 (27Oct26)
 -----------------
