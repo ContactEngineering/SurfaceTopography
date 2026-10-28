@@ -22,6 +22,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
+
+"""
+Variance of the half derivative of the heights, estimated from the
+height-difference autocorrelation function.
+"""
+
 import numpy as np
 import scipy.integrate
 
@@ -33,14 +39,30 @@ from ..Support import doi
 @doi("10.1016/j.apsadv.2021.100190")
 def variance_half_derivative_via_autocorrelation_from_area(topography, **kwargs):
     r"""
+    Estimate the variance of the half derivative,
+    :math:`\langle|\nabla^{1/2}h|^2\rangle`, from the radially averaged
+    autocorrelation function :math:`A(r)`:
+
+    .. math::
+
+        \langle|\nabla^{1/2}h|^2\rangle = \int_0^\infty dr\, \frac{A(r)}{r^2}
+
+    This identity follows from :math:`\int_0^\infty dr\,[1-J_0(qr)]/r^2 = q`.
+    See :func:`variance_half_derivative_via_scale_dependent_slope` for the
+    discretization.
 
     Parameters
     ----------
-    topography : SurfaceTopography or UniformLineScan
+    topography : :obj:`Topography`
         Container storing the uniform topography map
     **kwargs : dict
         Additional keyword parameters are passed on to
-        `autocorrelation_from_area` or `autocorrelation_from_profile`
+        `autocorrelation_from_area`
+
+    Returns
+    -------
+    variance_half_derivative : float
+        Variance of the half derivative. (Units: length)
     """
     r, s = topography.scale_dependent_slope_from_area(**kwargs)
     return variance_half_derivative_via_scale_dependent_slope(r, s)
@@ -49,14 +71,35 @@ def variance_half_derivative_via_autocorrelation_from_area(topography, **kwargs)
 @doi("10.1016/j.apsadv.2021.100190")
 def variance_half_derivative_via_autocorrelation_from_profile(topography, **kwargs):
     r"""
+    Estimate the variance of the half derivative from the profile
+    autocorrelation function :math:`A(r)` (along x):
+
+    .. math::
+
+        \int_0^\infty dr\, \frac{A(r)}{r^2} = \frac{\pi}{2}\int \frac{d^2q}{(2\pi)^2}\, |q_x|\, C^\text{2D}(\mathbf{q}),
+
+    which follows from :math:`\int_0^\infty dr\,[1-\cos(q_x r)]/r^2 = \pi|q_x|/2`.
+    For an isotropic surface, the angular average of :math:`|q_x|` is
+    :math:`2q/\pi`, so this estimates the areal
+    :math:`\langle|\nabla^{1/2}h|^2\rangle = \int d^2q/(2\pi)^2\, q\, C^\text{2D}(q)`.
+    For a line scan, the result is :math:`\pi/2` times
+    :math:`\int dq/(2\pi)\,|q|\,C^\text{1D}(q)`.
+    See :func:`variance_half_derivative_via_scale_dependent_slope` for the
+    discretization.
 
     Parameters
     ----------
-    topography : SurfaceTopography or UniformLineScan or Container
-        Container storing the uniform topography map
+    topography : :obj:`Topography` or :obj:`UniformLineScan` or :obj:`NonuniformLineScan` or :obj:`SurfaceContainer`
+        Topography, line scan or container of these
     **kwargs : dict
         Additional keyword parameters are passed on to
-        `autocorrelation_from_area` or `autocorrelation_from_profile`
+        `scale_dependent_slope_from_profile`, i.e. to
+        `autocorrelation_from_profile`
+
+    Returns
+    -------
+    variance_half_derivative : float
+        Variance of the half derivative. (Units: length)
     """
     r, s = topography.scale_dependent_slope_from_profile(**kwargs)
     return variance_half_derivative_via_scale_dependent_slope(r, s)
@@ -65,6 +108,17 @@ def variance_half_derivative_via_autocorrelation_from_profile(topography, **kwar
 @doi("10.1016/j.apsadv.2021.100190")
 def variance_half_derivative_via_scale_dependent_slope(r, slope):
     r"""
+    Integrate the squared scale-dependent slope :math:`s(r)` to obtain
+
+    .. math::
+
+        \frac{1}{2}\int_0^{r_\text{max}} dr\, s^2(r)
+        = \int_0^{r_\text{max}} dr\, \frac{A(r)}{r^2}
+        \approx \frac{1}{2}\left[r_0 s^2(r_0) + \int_{r_0}^{r_\text{max}} dr\, s^2(r)\right],
+
+    where :math:`s^2(r) = 2A(r)/r^2`. Below the smallest distance
+    :math:`r_0`, the slope is assumed constant; the remaining integral is
+    evaluated with the trapezoidal rule. NaN entries are dropped.
 
     Parameters
     ----------
@@ -74,8 +128,8 @@ def variance_half_derivative_via_scale_dependent_slope(r, slope):
         Slope. (Units: dimensionless)
     Returns
     -------
-    float
-    variance of the half derivative  (Units: length)
+    variance_half_derivative : float
+        Variance of the half derivative. (Units: length)
     """
 
     # handle nans
@@ -88,26 +142,42 @@ def variance_half_derivative_via_scale_dependent_slope(r, slope):
 def container_variance_half_derivative_from_autocorrelation(
     container, scale_dependent=False, **kwargs
 ):
-    """
+    r"""
+    Variance of the half derivative of all topographies in a container,
+    computed from the container-averaged autocorrelation function
+    :math:`A(r)`:
 
-    The scale-dependence is introduced by considering only the ACF below the distance scale.
+    .. math::
 
-    This is the definition of scale-dependent elastic energy as in Wang and Müser equation 44
+        V(r) = \frac{A(r_0)}{r_0} + \int_{r_0}^{r} dr'\, \frac{A(r')}{r'^2}
 
-    see container.autocorrelation concerning further arguments
+    The first term assumes a constant slope below the smallest distance
+    :math:`r_0`; the integral is evaluated with the trapezoidal rule. The
+    scale dependence is introduced by integrating the autocorrelation function
+    only up to the distance :math:`r`. This is the scale-dependent elastic
+    energy of Wang and Müser (their Eq. 44), up to the prefactor
+    :math:`E^*/4`.
+
+    .. TODO: full reference for Wang and Müser?
+
+    Parameters
+    ----------
+    container : :obj:`SurfaceContainer`
+        Container of topographies.
+    scale_dependent : bool, optional
+        Return the cumulative integral :math:`V(r)` instead of its value at
+        the largest distance. (Default: False)
+    **kwargs : dict
+        Additional keyword parameters are passed on to
+        `container.autocorrelation`.
 
     Returns
-    ------
-
-    if scale_dependent
-    r: array of floats
-    distance scale
-    variance_half_derivative: array of floats
-
-
+    -------
+    r : np.ndarray
+        Distances, only if `scale_dependent` is true. (Units: length)
+    variance_half_derivative : float or np.ndarray
+        Variance of the half derivative. (Units: length)
     """
-
-    # This is how martin Mueser defines the SDRP elastic energy
 
     r, acf = container.autocorrelation(**kwargs)
     r = r[~np.isnan(acf)]

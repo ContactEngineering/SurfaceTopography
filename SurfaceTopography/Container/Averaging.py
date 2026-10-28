@@ -38,8 +38,27 @@ _log = logging.getLogger(__name__)
 
 
 def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=True, progress_callback=None, **kwargs):
-    """
+    r"""
     Return average property on a logarithmic grid.
+
+    The property `function_name` is computed for each topography (converted
+    to `unit`) without resampling. The raw data of topography :math:`i`,
+    which spans the range :math:`[a_i, b_i]`, is bin-averaged onto
+    logarithmically spaced bins covering the full decades
+    :math:`[10^{\lfloor \log_{10} a_i \rfloor}, 10^{\lceil \log_{10} b_i \rceil}]`
+    with `nb_points_per_decade` bins per decade. Because the bins start at a
+    full decade, bin :math:`j` of topography :math:`i` corresponds to the
+    global bin :math:`k = \lfloor \log_{10} a_i \rfloor\,n_d + j` (with
+    :math:`n_d` the number of points per decade). The result in bin
+    :math:`k` is the unweighted arithmetic mean over the set :math:`S_k` of
+    topographies that have data in this bin,
+
+    .. math::
+
+        \bar y_k = \frac{1}{|S_k|} \sum_{i \in S_k} \bar y_{i,k},
+
+    where :math:`\bar y_{i,k}` is the bin average of topography :math:`i`;
+    the abscissa is averaged in the same way. Bins without data are masked.
 
     Parameters
     ----------
@@ -59,6 +78,21 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
     progress_callback : func, optional
         Function taking iteration and the total number of iterations as
         arguments for progress reporting. (Default: None)
+    **kwargs
+        Additional keyword arguments are passed to `function_name`.
+
+    Returns
+    -------
+    x : np.ma.MaskedArray
+        Abscissa (distances, wavevectors or bandwidths) on a logarithmic grid.
+        (Units: `unit` or 1/`unit`)
+    y : np.ma.MaskedArray
+        Averaged property.
+
+    Raises
+    ------
+    NoReliableDataError
+        If no topography contributes data.
     """
     results = defaultdict(list)
     for i, topography in enumerate(self):
@@ -79,7 +113,7 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
 
         # Construct grid in this range
         if has_data:
-            # Idiot check: Is there actually more than one data point
+            # Sanity check: Is there actually more than one data point
             # (if not, NoReliableDataError should actually have been raised above)
             m = x > 0
             has_data = np.sum(m) >= 1
@@ -141,8 +175,10 @@ def autocorrelation(self, unit, **kwargs):
     """
     Return average autocorrelation function on a logarithmic grid.
 
-    This computes the autocorrelation function for each topography in the
-    container and returns an average over all topographies.
+    This computes the height-difference autocorrelation function along
+    the profiles (`autocorrelation_from_profile`) for each topography in the
+    container and returns an average over all topographies. See
+    `log_average` for the averaging rule.
 
     Parameters
     ----------
@@ -163,9 +199,10 @@ def autocorrelation(self, unit, **kwargs):
     Returns
     -------
     distances : np.ma.MaskedArray
-        Distances on a logarithmic grid.
+        Distances on a logarithmic grid. (Units: `unit`)
     acf : np.ma.MaskedArray
-        Averaged autocorrelation function values.
+        Averaged height-difference autocorrelation function.
+        (Units: `unit`^2)
     """
     return log_average(self, 'autocorrelation_from_profile', unit, **kwargs)
 
@@ -174,8 +211,10 @@ def power_spectrum(self, unit, **kwargs):
     """
     Return average power spectral density on a logarithmic grid.
 
-    This computes the power spectral density for each topography in the
-    container and returns an average over all topographies.
+    This computes the 1D power spectral density
+    (`power_spectrum_from_profile`) for each topography in the container
+    and returns an average over all topographies. See `log_average` for the
+    averaging rule.
 
     Parameters
     ----------
@@ -196,9 +235,9 @@ def power_spectrum(self, unit, **kwargs):
     Returns
     -------
     wavevectors : np.ma.MaskedArray
-        Wavevectors on a logarithmic grid.
+        Wavevectors on a logarithmic grid. (Units: 1/`unit`)
     psd : np.ma.MaskedArray
-        Averaged power spectral density values.
+        Averaged 1D power spectral density. (Units: `unit`^3)
     """
     return log_average(self, 'power_spectrum_from_profile', unit, **kwargs)
 
@@ -207,8 +246,10 @@ def variable_bandwidth(self, unit, **kwargs):
     """
     Return average variable bandwidth analysis on a logarithmic grid.
 
-    This computes the variable bandwidth analysis for each topography in the
-    container and returns an average over all topographies.
+    This computes the variable bandwidth analysis along the profiles
+    (`variable_bandwidth_from_profile`) for each topography in the
+    container and returns an average over all topographies. See
+    `log_average` for the averaging rule.
 
     Parameters
     ----------
@@ -228,10 +269,10 @@ def variable_bandwidth(self, unit, **kwargs):
 
     Returns
     -------
-    magnifications : np.ma.MaskedArray
-        Magnifications on a logarithmic grid.
+    bandwidths : np.ma.MaskedArray
+        Bandwidths on a logarithmic grid. (Units: `unit`)
     rms_heights : np.ma.MaskedArray
-        Averaged RMS height values.
+        Averaged RMS height values. (Units: `unit`)
     """
     return log_average(self, 'variable_bandwidth_from_profile', unit, **kwargs)
 

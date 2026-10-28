@@ -24,8 +24,7 @@
 
 """
 Functions for regression of noisy data and resampling/averaging from one grid
-to another. Currently implemented are simple bin averages and Gaussian process
-regression.
+to another: bin averages and Gaussian process regression.
 """
 
 import logging
@@ -44,16 +43,14 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
 
     Parameters
     ----------
-    collocation : {'log', 'quadratic', 'linear', array_like}
+    collocation : {'log', 'quadratic', 'linear'}
         Resampling grid. Specifying 'log' yields collocation points
-        equally spaced on a log scale, 'quadratic' yields bins with
-        similar number of data points and 'linear' yields linear bins.
-        Alternatively, it is possible to explicitly specify the bin edges.
-        If bin edges are explicitly specified, then the other arguments
-        to this function are ignored.
+        equally spaced on a log scale, 'quadratic' yields bin edges
+        equally spaced in the square of the value (similar number of data
+        points per bin on a 2D radial grid) and 'linear' yields linear bins.
     min_value : float
-        Minimum value. Note that for log-spaced collocation points, this
-        is the first value - the leftmost bin edge with always be zero.
+        Minimum value. For log-spaced collocation points, bin edges extend
+        `dectol` decades beyond `min_value` and `max_value`.
     max_value : float
         Maximum value.
     nb_points : int, optional
@@ -63,8 +60,8 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
         for 'linear' and 'quadratic' collocation it is the number of
         collocation points (`nb_points` + 1 edges). (Default: None)
     nb_points_per_decade : int, optional
-        Number of points per decade for log-spaced collocation points.
-        (Default: None)
+        Number of bin edges per decade for log-spaced collocation points,
+        used if `nb_points` is None. (Default: 10)
     dectol : float, optional
         Tolerance for left and right bin edge in terms of decades added to
         the edges. (Default: 0.01)
@@ -108,8 +105,9 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
 
 
 def gaussian_kernel(x1, x2, length_scale=1, signal_variance=1):
-    """
-    Gaussian (squared exponential) kernel for Gaussian process regression.
+    r"""
+    Gaussian (squared exponential) kernel for Gaussian process regression,
+    :math:`k(x_1, x_2) = \sigma^2 \exp[-(x_1 - x_2)^2/(2\ell^2)]`.
 
     Parameters
     ----------
@@ -118,9 +116,9 @@ def gaussian_kernel(x1, x2, length_scale=1, signal_variance=1):
     x2 : array_like
         Second set of input points.
     length_scale : float, optional
-        Characteristic length scale of the kernel. (Default: 1)
+        Characteristic length scale :math:`\ell` of the kernel. (Default: 1)
     signal_variance : float, optional
-        Signal variance (amplitude). (Default: 1)
+        Signal variance (amplitude) :math:`\sigma^2`. (Default: 1)
 
     Returns
     -------
@@ -131,8 +129,10 @@ def gaussian_kernel(x1, x2, length_scale=1, signal_variance=1):
 
 
 def gaussian_log_kernel(x1, x2, length_scale=1, signal_variance=1):
-    """
-    Gaussian kernel operating in log-space, suitable for power-law data.
+    r"""
+    Gaussian kernel operating in log-space, suitable for power-law data,
+    :math:`k(x_1, x_2) = \sigma^2
+    \exp[-(\log_{10} x_1 - \log_{10} x_2)^2/(2\ell^2)]`.
 
     Parameters
     ----------
@@ -141,9 +141,10 @@ def gaussian_log_kernel(x1, x2, length_scale=1, signal_variance=1):
     x2 : array_like
         Second set of input points.
     length_scale : float, optional
-        Characteristic length scale of the kernel in log-space. (Default: 1)
+        Characteristic length scale :math:`\ell` of the kernel in decades.
+        (Default: 1)
     signal_variance : float, optional
-        Signal variance (amplitude). (Default: 1)
+        Signal variance (amplitude) :math:`\sigma^2`. (Default: 1)
 
     Returns
     -------
@@ -162,18 +163,15 @@ def suggest_kernel_for_grid(collocation, nb_collocation_points, min_value, max_v
 
     Parameters
     ----------
-    collocation : {'log', 'quadratic', 'linear', array_like}
+    collocation : {'log', 'quadratic', 'linear'}
         Resampling grid. Specifying 'log' yields collocation points
-        equally spaced on a log scale, 'quadratic' yields bins with
-        similar number of data points and 'linear' yields linear bins.
-        Alternatively, it is possible to explicitly specify the bin edges.
-        If bin edges are explicitly specified, then the other arguments
-        to this function are ignored.
+        equally spaced on a log scale, 'quadratic' yields bin edges
+        equally spaced in the square of the value (similar number of data
+        points per bin on a 2D radial grid) and 'linear' yields linear bins.
     nb_collocation_points : int
         Number of collocation points.
     min_value : float
-        Minimum value. Note that for log-spaced collocation points, this
-        is the first value - the leftmost bin edge with always be zero.
+        Minimum value.
     max_value : float
         Maximum value.
 
@@ -192,7 +190,8 @@ def suggest_kernel_for_grid(collocation, nb_collocation_points, min_value, max_v
 
 def bin_average(collocation_points, bin_edges, x, values):
     """
-    Average values over bins. Returns masked arrays with bins without data masked.
+    Average values over bins. Returns masked arrays with bins without data
+    masked. Data points outside the outermost bin edges are discarded.
 
     Parameters
     ----------
@@ -213,7 +212,8 @@ def bin_average(collocation_points, bin_edges, x, values):
     resampled_values : np.ma.MaskedArray
         Resampled/averaged values. Bins without data are masked.
     resampled_variance : np.ma.MaskedArray
-        Variance of resampled data. Bins without data are masked.
+        Variance of the data within each bin (not the variance of the
+        mean). Bins without data are masked.
     """
     # Find bin index
     bin_index = np.searchsorted(bin_edges, x)
@@ -249,8 +249,16 @@ def bin_average(collocation_points, bin_edges, x, values):
 
 
 def gaussian_process_regression(output_x, x, values, kernel=gaussian_kernel, noise_variance=1e-6):
-    """
+    r"""
     Gaussian process regression for resampling a simple function.
+
+    With the observation covariance matrix
+    :math:`K_{ij} = k(x_i, x_j) + \sigma_n^2\delta_{ij}` and the
+    covariance :math:`K_{*i} = k(x^*, x_i)` between test and observation
+    points, the predictive mean is :math:`K_* K^{-1} \mathbf y` and the
+    predictive variance :math:`k(x^*, x^*) - K_* K^{-1} K_*^T` (diagonal
+    only). :math:`K` is Cholesky-factorized, which costs :math:`O(n^3)`
+    operations and :math:`O(n^2)` memory for :math:`n` observations.
 
     Parameters
     ----------
@@ -264,13 +272,15 @@ def gaussian_process_regression(output_x, x, values, kernel=gaussian_kernel, noi
         Kernel function/covariance model.
         (Default: gaussian_kernel)
     noise_variance : float, optional
-        Noise variance.
+        Noise variance :math:`\sigma_n^2`.
         (Default: 1e-6)
 
     Returns
     -------
     resampled_values : np.ndarray
-        Resampled/averaged values.
+        Predictive mean at `output_x`.
+    resampled_variance : np.ndarray
+        Predictive variance at `output_x`.
     """
     # Covariance between observations
     obs_cov = kernel(x.reshape(-1, 1), x.reshape(1, -1))
@@ -305,7 +315,7 @@ def gaussian_process_regression(output_x, x, values, kernel=gaussian_kernel, noi
 
 def resample(x, values, collocation='log', nb_points=None, min_value=None, max_value=None, nb_points_per_decade=10,
              method='bin-average'):
-    """
+    r"""
     Resample noisy function data set onto a specific grid.
 
     Parameters
@@ -314,16 +324,17 @@ def resample(x, values, collocation='log', nb_points=None, min_value=None, max_v
         Evaluation points.
     values : array_like
         Function values.
-    collocation : {'log', 'quadratic', 'linear', array_like}, optional
+    collocation : {'log', 'quadratic', 'linear'}, optional
         Resampling grid. Specifying 'log' yields collocation points
-        equally spaced on a log scale, 'quadratic' yields bins with
-        similar number of data points and 'linear' yields linear bins.
-        Alternatively, it is possible to explicitly specify the bin edges.
-        If bin_edges are explicitly specified, then `rmax` and `nbins` is
-        ignored. (Default: 'log')
+        equally spaced on a log scale, 'quadratic' yields bin edges
+        equally spaced in the square of the value (similar number of data
+        points per bin on a 2D radial grid) and 'linear' yields linear bins.
+        (Default: 'log')
     nb_points : int, optional
-        Number of bins for averaging. Bins are automatically determined if set
-        to None. (Default: None)
+        Number of bins for averaging, see `make_grid`. For 'log'
+        collocation, it is determined from `nb_points_per_decade` if set to
+        None; 'linear' and 'quadratic' collocation require it.
+        (Default: None)
     min_value : float, optional
         Minimum value, is automatically determined from the range of the data
         if not provided. (Default: None)
@@ -335,14 +346,20 @@ def resample(x, values, collocation='log', nb_points=None, min_value=None, max_v
         (Default: 10)
     method : str, optional
         Method can be 'bin-average' for simple bin averaging and
-        'gaussian-process' for Gaussian process regression.
+        'gaussian-process' for Gaussian process regression. For 'log'
+        collocation, the Gaussian process regression fits
+        :math:`\ln y` as a function of :math:`\ln x` (all values must be
+        positive) with a squared exponential kernel of unit length scale
+        and noise variance :math:`10^{-6}`; for other collocations, it fits
+        :math:`y(x)` with the same kernel in the units of :math:`x`.
         (Default: 'bin-average')
 
     Returns
     -------
     collocation_points : np.ndarray or np.ma.MaskedArray
-        Points where the data has been collected. Returns masked array for
-        'bin-average' method with bins without data masked.
+        Points where the data has been collected. For 'bin-average', this
+        is the mean of the data points in each bin; bins without data are
+        masked.
     bin_edges : np.ndarray
         Bin edges.
     resampled_values : np.ndarray or np.ma.MaskedArray
@@ -396,9 +413,12 @@ def resample(x, values, collocation='log', nb_points=None, min_value=None, max_v
 
 def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None, min_radius=0, max_radius=None,
                     nb_points_per_decade=5, full=True, method='bin-average'):
-    """
+    r"""
     Compute radial average of quantities reported on a 2D grid and collect
-    results of collocation points.
+    results at collocation points. The radius of grid point :math:`(i, j)`
+    is :math:`\sqrt{(i L_x/N_x)^2 + (j L_y/N_y)^2}`; for `full=True`,
+    indices beyond the middle of the grid are wrapped to
+    :math:`N - i` (the layout of FFT output).
 
     Parameters
     ----------
@@ -407,18 +427,20 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
     physical_sizes : (float, float), optional
         Physical size of the 2D grid. (Default: Size is equal to number of
         grid points.)
-    collocation : {'log', 'quadratic', 'linear', array_like}, optional
+    collocation : {'log', 'quadratic', 'linear'}, optional
         Resampling grid. Specifying 'log' yields collocation points
-        equally spaced on a log scale, 'quadratic' yields bins with
-        similar number of data points and 'linear' yields linear bins.
-        Alternatively, it is possible to explicitly specify the bin edges.
-        If bin_edges are explicitly specified, then `rmax` and `nbins` is
-        ignored. (Default: 'log')
+        equally spaced on a log scale, 'quadratic' yields bin edges
+        equally spaced in the square of the value (similar number of data
+        points per bin on a 2D radial grid) and 'linear' yields linear bins.
+        (Default: 'log')
     nb_points : int, optional
-        Number of bins for averaging. Bins are automatically determined if set
-        to None. (Default: None)
+        Number of bins for averaging, see `make_grid`. For 'log'
+        collocation, it is determined from `nb_points_per_decade` if set to
+        None; 'linear' and 'quadratic' collocation require it.
+        (Default: None)
     min_radius : float, optional
-        Minimum radius. (Default: 0)
+        Minimum radius. It is raised to at least the smaller grid spacing.
+        (Default: 0)
     max_radius : float, optional
         Maximum radius, is automatically determined from the range of the data
         if not provided. (Default: None)
@@ -427,9 +449,10 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
         (Default: 5)
     full : bool, optional
         Number of quadrants contained in data.
-        True: Full radial average from 0 to 2*pi.
-        False: Only the one quarter of the full circle is present. Radial
-        average from 0 to pi/2.
+        True: Full radial average from 0 to 2*pi; the data is in the
+        wrap-around layout of FFT output.
+        False: Only one quarter of the full circle is present, with the
+        origin at index (0, 0). Radial average from 0 to pi/2.
         (Default: True)
     method : str, optional
         Method can be 'bin-average' for simple bin averaging and

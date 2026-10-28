@@ -31,34 +31,44 @@ from ..HeightContainer import UniformTopographyInterface
 
 def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
     r"""
+    Integral of the PSD weighted by a function of the wavevector,
 
     .. math::
 
-        m_\alpha = \frac{1}{(2 \pi)^2} \int_{-\infty}^\infty dq_x dq_y factor(q_x, q_y) C^{2D}(q_x, q_y)
+        I = \frac{1}{(2\pi)^2} \int d^2q\, f(\mathbf q)\, C^\text{2D}(\mathbf q)
+        \approx \frac{1}{L_x L_y} \sum_{\mathbf q} f(\mathbf q)\,
+        C^\text{2D}(\mathbf q),
 
-    Discrete
+    where the sum runs over all wavevectors of the 2D FFT (the full
+    rectangular Brillouin zone, including :math:`\mathbf q = 0`). For line
+    scans, the 1D expression
+    :math:`I = \frac{1}{L}\sum_q f(|q|)\, C^\text{1D}(q)` is evaluated. The
+    PSD is not resampled, which avoids the error of integrating a binned
+    PSD. By Parseval's theorem, :math:`f = 1` yields
+    :math:`\langle h^2\rangle`.
 
-          m_\alpha = \frac{1}{L_x L_y} \sum_{q_x, q_y} factor(q_x, q_y) C^{2D}_{q_x, q_y}
-
-    Parameters:
-    -----------
-    factor: function
-        Function taking as argument the 2 norm of the wavevector (if it accepts only one argument)
-
-            ``func(np.ndarray: q) -> np.ndarray``
-
-        or the two components of the wavevector qx and qy
-
-            ``func(np.ndarray: qx, np.ndarray:qy) -> np.ndarray``
-
+    Parameters
+    ----------
+    factor : callable, optional
+        Weight function :math:`f`. If it accepts a single argument, it is
+        called with the norm :math:`|\mathbf q|` of the wavevectors,
+        ``factor(q: np.ndarray) -> np.ndarray``. If it accepts two
+        arguments (topography maps only), it is called with the components,
+        ``factor(qx: np.ndarray, qy: np.ndarray) -> np.ndarray``.
+        (Default: ``lambda q: 1``)
     window : str, optional
-        Window for eliminating edge effect. See scipy.signal.get_window.
-        (Default: None)
+        Window for eliminating edge effects, see scipy.signal.get_window.
+        (Default: no window for periodic topographies, 'hann' window for
+        nonperiodic topographies)
     reliable : bool, optional
-        Only return data deemed reliable. (Default: True)
-    Returns:
-    --------
-        weighted_integral: float
+        Only include wavevectors :math:`|\mathbf q| < 2\pi/\lambda_c`,
+        where :math:`\lambda_c` is the short reliability cutoff.
+        (Default: True)
+
+    Returns
+    -------
+    weighted_integral : float
+        Value of the integral :math:`I`.
     """
     if self.has_undefined_data:
         raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
@@ -96,37 +106,37 @@ def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
 
 def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=True, ):
     r"""
-
-    Computes the integral of the 1D PSD weighted by "factor"
-
-    Continuum:
+    Integral of the 1D PSD of the profiles along :math:`x`, weighted by a
+    function of the wavevector,
 
     .. math::
 
-        \frac{1}{2 \pi} \int_{-\infty}^\infty dq_x factor(q_x) C^{1D}(q_x)
+        I = \frac{1}{2\pi} \int_{-\infty}^{\infty} dq_x\, f(q_x)\,
+        C^\text{1D}(q_x)
+        \approx \frac{1}{L_x} \sum_{q_x} f(q_x)\, C^\text{1D}(q_x),
 
-    Discrete
+    where the sum runs over all (positive and negative) wavevectors of the
+    FFT. For topography maps, the result is averaged over all profiles.
 
-    .. math::
+    Parameters
+    ----------
+    factor : callable, optional
+        Weight function :math:`f`, called with the (signed) wavevectors
+        :math:`q_x`, ``factor(qx: np.ndarray) -> np.ndarray``.
+        (Default: ``lambda qx: 1``)
+    window : str, optional
+        Window for eliminating edge effects, see scipy.signal.get_window.
+        (Default: no window for periodic topographies, 'hann' window for
+        nonperiodic topographies)
+    reliable : bool, optional
+        Only include wavevectors :math:`|\mathbf q| < 2\pi/\lambda_c`,
+        where :math:`\lambda_c` is the short reliability cutoff.
+        (Default: True)
 
-         m_\alpha = \frac{1}{L_x} \sum_{q_x} factor(q_x) C^{1D}_{q_x}
-
-
-    Parameters:
-    -----------
-        factor: callable
-            Function taking as argument the wavevector in the fast scan direction qx
-
-                ``func(np.ndarray: qx) -> np.ndarray``
-        window : str, optional
-            Window for eliminating edge effect. See scipy.signal.get_window.
-            (Default: None)
-        reliable : bool, optional
-            Only return data deemed reliable. (Default: True)
-
-    Returns:
-    --------
-        weighted_integral: float
+    Returns
+    -------
+    weighted_integral : float
+        Value of the integral :math:`I`.
     """
     if self.has_undefined_data:
         raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
@@ -165,41 +175,45 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
 
 def moment_power_spectrum(self, order=0, window=None, reliable=True, ):
     r"""
-
-    Computes
-
-    For 2D Topographies, continuum:
+    Moment of order :math:`\alpha` of the PSD. For topography maps,
 
     .. math::
 
-        m_\alpha = \frac{1}{(2 \pi)^2} \int_{-\infty}^\infty dq_x dq_y |q|^{\alpha} C^{2D}(q_x, q_y)
+        m_\alpha = \frac{1}{(2\pi)^2} \int d^2q\, |\mathbf q|^\alpha\,
+        C^\text{2D}(\mathbf q)
+        \approx \frac{1}{L_x L_y} \sum_{\mathbf q} |\mathbf q|^\alpha\,
+        C^\text{2D}(\mathbf q),
 
-    Discrete
-
-          m_\alpha = \frac{1}{L_x L_y} \sum_{q_x, q_y} |q|^{\alpha} C^{2D}_{q_x, q_y}
-
-    For line scans, continuum:
-
-    .. math::
-
-        \frac{1}{2 \pi} \int_{-\infty}^\infty dq_x |q|^{\alpha} C^{1D}(q_x)
-
-    Discrete
+    for line scans,
 
     .. math::
 
-         m_\alpha = \frac{1}{L_x} \sum_{q_x} |q|^{\alpha} C^{1D}_{q_x}
+        m_\alpha = \frac{1}{2\pi} \int_{-\infty}^\infty dq\, |q|^\alpha\,
+        C^\text{1D}(q)
+        \approx \frac{1}{L} \sum_q |q|^\alpha\, C^\text{1D}(q).
 
-    Parameters:
-    -----------
-        order: int
-            order of the moment to compute
-        window : str, optional
-            Window for eliminating edge effect. See scipy.signal.get_window.
-            (Default: None)
-        reliable : bool, optional
-            Only return data deemed reliable. (Default: True)
+    :math:`m_0 = \langle h^2\rangle`, :math:`m_2` is the mean square slope
+    (gradient for maps) and :math:`m_4` the mean square Laplacian (second
+    derivative for line scans), all evaluated with spectral derivatives.
+    See :func:`integrate_psd`.
 
+    Parameters
+    ----------
+    order : float, optional
+        Order :math:`\alpha` of the moment. (Default: 0)
+    window : str, optional
+        Window for eliminating edge effects, see scipy.signal.get_window.
+        (Default: no window for periodic topographies, 'hann' window for
+        nonperiodic topographies)
+    reliable : bool, optional
+        Only include wavevectors :math:`|\mathbf q| < 2\pi/\lambda_c`,
+        where :math:`\lambda_c` is the short reliability cutoff.
+        (Default: True)
+
+    Returns
+    -------
+    moment : float
+        Moment :math:`m_\alpha`.
     """
     return integrate_psd(self, lambda q: q ** order, window=window, reliable=reliable, )
 
@@ -211,17 +225,19 @@ def variance_half_derivative(self, window=None, reliable=True):
     .. math::
 
         \langle |\nabla^{1/2} h|^2 \rangle
-        = \frac{1}{(2 \pi)^2} \int d^2q\, |q|\, C^{2D}(q),
+        = \frac{1}{(2 \pi)^2} \int d^2q\, |\mathbf q|\, C^\text{2D}(\mathbf q),
 
-    computed from the full power spectral density (of a periodic
-    topography). For line scans, the surface is assumed to be invariant
-    perpendicular to the scan.
+    computed from the full power spectral density, see
+    :func:`integrate_psd`. For line scans, the surface is assumed to be
+    invariant perpendicular to the scan, which gives
+    :math:`\frac{1}{2\pi}\int dq\, |q|\, C^\text{1D}(q)`.
 
     Parameters
     ----------
     window : str, optional
-        Window for eliminating edge effects of nonperiodic data. See
-        scipy.signal.get_window. (Default: None)
+        Window for eliminating edge effects, see scipy.signal.get_window.
+        (Default: no window for periodic topographies, 'hann' window for
+        nonperiodic topographies)
     reliable : bool, optional
         Only include data deemed reliable. (Default: True)
 
@@ -242,22 +258,25 @@ def elastic_energy(self, contact_modulus, window=None, reliable=True):
 
         \frac{U}{A} = \frac{E^*}{4} \langle |\nabla^{1/2} h|^2 \rangle,
 
-    where :math:`E^*` is the contact modulus. See `variance_half_derivative`.
+    where :math:`E^*` is the contact modulus. See
+    :func:`variance_half_derivative`.
 
     Parameters
     ----------
     contact_modulus : float
         Contact modulus :math:`E^*`.
     window : str, optional
-        Window for eliminating edge effects of nonperiodic data. See
-        scipy.signal.get_window. (Default: None)
+        Window for eliminating edge effects, see scipy.signal.get_window.
+        (Default: no window for periodic topographies, 'hann' window for
+        nonperiodic topographies)
     reliable : bool, optional
         Only include data deemed reliable. (Default: True)
 
     Returns
     -------
     energy : float
-        Elastic energy per unit area.
+        Elastic energy per unit area. (Units: those of `contact_modulus`
+        times length)
     """
     return contact_modulus / 4 * variance_half_derivative(self, window=window, reliable=reliable)
 

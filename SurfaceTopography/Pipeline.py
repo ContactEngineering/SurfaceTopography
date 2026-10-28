@@ -22,11 +22,45 @@
 # SOFTWARE.
 #
 
+"""
+Decorator for defining pipeline functions.
+"""
+
 
 def pipeline_function(parent):
     """
-    Simple convenience decorator that turns a function into a pipeline
-    function with delayed (lazy) execution of the pipeline.
+    Decorator that turns a function into a pipeline class with delayed
+    (lazy) execution.
+
+    The decorated function `func(topography, *args, **kwargs)` must return
+    the heights computed from the parent topography. The decorator returns
+    a class derived from `parent` (e.g. `DecoratedUniformTopography`) whose
+    constructor stores the parent topography and the arguments; `heights()`
+    calls `func` on every invocation. Keyword arguments are accessible as
+    attributes of the pipeline object; the special keyword arguments
+    `unit` and `info` are passed to the base class. The class must be
+    registered with `register_function` to be available as a method.
+
+    Parameters
+    ----------
+    parent : type
+        Base class of the pipeline step, typically
+        `DecoratedUniformTopography` or `DecoratedNonuniformTopography`.
+
+    Returns
+    -------
+    decorator : callable
+        Decorator that maps a function onto the pipeline class.
+
+    Examples
+    --------
+    ::
+
+        @pipeline_function(DecoratedUniformTopography)
+        def scale_by(topography, factor):
+            return topography.heights() * factor
+
+        UniformTopographyInterface.register_function("scale_by", scale_by)
     """
 
     def _pipeline_function(func):

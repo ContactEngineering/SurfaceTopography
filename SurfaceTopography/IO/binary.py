@@ -63,8 +63,8 @@ class AttrDict(dict):
 
 def decode(stream_obj, structure_format, byte_order='@', return_size=False, context={}):
     """
-    Decode a binary stream given the sequence of binary entries. Strings are
-    stripped of zeros and white spaces.
+    Decode a binary stream given the sequence of binary entries. Scalar
+    NaN values are stored as None.
 
     Parameters
     ----------
@@ -75,9 +75,19 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False, cont
         stream. Each tuple consists of two entries
             (name, format)
         that give the name of the entry and the format. We support the format
-        defined in the `struct` module, plus 'u' for UTF-8, 'U' for UTF-16,
-        't' for a Pascal string with 16-bit length and 'T' for a Pascal string
-        with 32-bit length. Decoder also supports per-entry endianness.
+        defined in the `struct` module, with the following exceptions and
+        extensions: 'b' denotes raw bytes (e.g. '4b' are four bytes returned
+        as a `bytes` object, not signed chars), 's' is a latin-1 string,
+        'u' a UTF-8 string, 'U' a UTF-16 string (the count is the number
+        of 16-bit code units), 't' a Pascal string with 16-bit length and
+        'T' a Pascal string with 32-bit length (ASCII; the length uses the
+        structure's byte order). 's', 'u' and 'U' strings are stripped of
+        leading and trailing NUL characters, then of leading and trailing
+        spaces; Pascal strings only of NUL characters. A '<' or '>'
+        prefix sets the byte order of an individual entry. Further entries
+        of the tuple are hooks (`Validate`, `Convert` or expressions)
+        applied in order to the decoded value; a name of None discards the
+        value after the hooks ran.
     byte_order : str, optional
         Byte order (see `struct.unpack`). (Default: '@')
     return_size : bool, optional
@@ -178,6 +188,18 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False, cont
 
 
 class Convert:
+    """
+    Field hook of a `BinaryStructure` that converts the decoded value.
+
+    Parameters
+    ----------
+    fun : callable
+        Called with the decoded value; returns the converted value.
+    exception : Exception, optional
+        If given, a failing conversion raises this exception class.
+        (Default: None, the original exception propagates)
+    """
+
     def __init__(self, fun, exception=None):
         self._fun = fun
         self._exception = exception
@@ -194,6 +216,19 @@ class Convert:
 
 
 class Validate:
+    """
+    Field hook of a `BinaryStructure` that validates the decoded value.
+
+    Parameters
+    ----------
+    value : object, callable or expression
+        Expected value (equality check), or a callable/expression taking
+        `(value, context)` that returns whether the value is valid. None
+        disables the check.
+    exception : Exception, optional
+        Exception class raised on failure. (Default: ValidationError)
+    """
+
     def __init__(self, value, exception=ValidationError):
         self._value = value
         self._exception = exception
@@ -214,6 +249,8 @@ class Validate:
 
 
 class DebugOutput:
+    """Field hook that prints the decoded value (for debugging layouts)."""
+
     def __init__(self, prefix='', context=False):
         self._prefix = prefix
         self._context = context
@@ -250,7 +287,7 @@ class LayoutWithNameBase:
 class BinaryStructure(LayoutWithNameBase):
     def __init__(self, structure_format, byte_order='@', name=None):
         """
-        Define a binary stream given the sequence of binary entries.
+        Define a sequence of scalar fields in a binary stream.
 
         Parameters
         ----------
@@ -258,14 +295,16 @@ class BinaryStructure(LayoutWithNameBase):
             List of tuples describing the sequence of entries in the binary
             stream. Each tuple consists of two entries
                 (name, format)
-            that give the name of the entry and the format. We support the format
-            defined in the `struct` module, plus 'u' for UTF-8, 'U' for UTF-16,
-            't' for a Pascal string with 16-bit length and 'T' for a Pascal string
-            with 32-bit length. Decoder also supports per-entry endianness.
+            that give the name of the entry and the format, optionally
+            followed by hooks (`Validate`, `Convert` or expressions). See
+            :func:`decode` for the supported formats.
         byte_order : str, optional
-            Byte order (see `struct.unpack`). (Default: '@')
+            Byte order (see `struct.unpack`). Fields are unpacked
+            individually, so '@' never inserts alignment padding.
+            (Default: '@')
         name : str, optional
-            Name of this structure. (Default: None)
+            Name of this structure. If None, the fields are merged into the
+            enclosing context. (Default: None)
         """
         self._structure_format = structure_format
         self._byte_order = byte_order
@@ -279,7 +318,7 @@ class BinaryStructure(LayoutWithNameBase):
         ----------
         stream_obj : stream-like object
             Binary stream to decode.
-        data : dict
+        context : dict
             Dictionary with data that has been decoded at this point.
 
         Returns
@@ -298,25 +337,32 @@ class BinaryStructure(LayoutWithNameBase):
 class BinaryArray:
     def __init__(self, name, shape, dtype, conversion_fun=_identity, mask_fun=None):
         """
-        Defines flat binary data to be read into a numpy array.
+        Defines flat binary data to be read into a numpy array. Parsing the
+        layout only records the position of the data and skips over it;
+        the result is a lazy reader that reads the array when called with
+        the stream.
 
         Parameters
         ----------
         name : str
             Name of the array.
-        shape : function or tuple
-            Function that returns the shape and takes a input the current data
-            dictionary.
-        dtype : function or dtype
-            Function that returns the dtype and takes a input the current data
-            dictionary.
-        conversion_fun : function
-            Function that converts the array after reading. This can be useful
-            for example to change the data format or transpose the array. The
-            function receives the array as its first argument and can
-            optionally accept the context dictionary as a second argument.
-        mask_fun : function
-            Function that returns a mask with undefined data points.
+        shape : tuple, callable or expression
+            Shape of the array, or a callable/expression that takes the
+            current context and returns it.
+        dtype : numpy.dtype, callable or expression
+            Data type of the array, or a callable/expression that takes the
+            current context and returns it.
+        conversion_fun : callable or expression, optional
+            Converts the array after reading. This can be useful for example
+            to change the data format or transpose the array. A callable
+            receives the array as its first argument and can optionally
+            accept the context dictionary as a second argument; an
+            expression sees the array as `V` and the context as `C`.
+            (Default: identity)
+        mask_fun : callable, optional
+            Called as `mask_fun(array, context)` before the conversion;
+            returns a boolean mask that is true for undefined data points.
+            (Default: None)
         """
         self._name = name
         self._shape = shape
@@ -383,7 +429,7 @@ class BinaryArray:
         Returns
         -------
         data : numpy.ndarray
-            Nunpy array containing the data from the file.
+            Numpy array containing the data from the file.
         """
         if callable(self._shape):
             shape = self._shape(context)
@@ -431,8 +477,9 @@ class RawBuffer:
             - A callable that takes context and returns size
             - None to read size from context['_block_size'] (for TLV parsing)
         lazy : bool, optional
-            If True, return a ReaderProxy for deferred reading.
-            If False, read data immediately. Default: True.
+            If True, skip the data and return a lazy reader for deferred
+            reading. If False, read the data immediately and store it as
+            `{'_raw': <bytes>, '_size': <size>}`. (Default: True)
         """
         self._name = name
         self._size = size
@@ -523,7 +570,8 @@ class TextBuffer(LayoutWithNameBase):
         - A callable that takes context and returns size
         - None to read size from context['_block_size'] (for TLV parsing)
     encoding : str, optional
-        Text encoding. Default: 'ascii'.
+        Text encoding. Undecodable bytes are replaced; leading and trailing
+        NUL characters are stripped. (Default: 'ascii')
     """
 
     def __init__(self, name, size=None, encoding='ascii'):
@@ -560,7 +608,7 @@ class TextLine(LayoutWithNameBase):
     name : str
         Name of the entry in the result dictionary.
     encoding : str, optional
-        Text encoding of the line. Default: 'latin-1'.
+        Text encoding of the line. (Default: 'latin-1')
     """
 
     def __init__(self, name, encoding="latin-1"):
@@ -824,7 +872,8 @@ class TLVContainer(LayoutWithNameBase):
         Maps tag IDs to layout classes. Each layout class must have a
         `from_stream(stream_obj, context)` method. Special values:
         - None or missing: store raw bytes (but see `default`)
-        - 'text': treat as ASCII text
+        - 'text': decode as ASCII text (leading and trailing NUL
+          characters stripped)
         - Layout class instance: use that layout to parse
         The context passed to each entry's layout contains the previously
         parsed *named* entries of this container, so later entries can
@@ -1077,8 +1126,10 @@ class XMLStructure(LayoutWithNameBase):
         Name of this structure in the result dictionary. If None, the parsed
         dictionary is merged into the enclosing context. (Default: None)
     converters : dict, optional
-        Maps leaf tag names to callables that convert the element's text
-        content, e.g. `{'MeterPerPixel': float}`. (Default: None)
+        Maps leaf tag names to callables or expressions (with the text as
+        `V`) that convert the element's text content, e.g.
+        `{'MeterPerPixel': F.float(V)}`. Attributes are ignored.
+        (Default: None)
     """
 
     def __init__(self, name=None, converters=None):
@@ -1193,9 +1244,10 @@ class ZipContainer(LayoutWithNameBase):
         Name of this structure in the result dictionary. If None, the
         parsed members are merged into the enclosing context.
         (Default: None)
-    stream_filter : callable, optional
-        Callable with signature `stream_filter(stream_obj, context)` that
-        wraps the raw member stream, e.g. for decompression. Note that the
+    stream_filter : callable or expression, optional
+        Callable with signature `stream_filter(stream_obj, context)` (or
+        expression with the stream as `V`) that wraps the raw member
+        stream, e.g. `F.zstd_reader(V)` for decompression. Note that the
         returned stream only needs to support reading and forward seeking.
         (Default: None)
     mismatch_error : Exception, optional
@@ -1544,10 +1596,11 @@ class ZlibBlockChain(LayoutWithNameBase):
     """
     Reads a chain of sequential zlib-compressed blocks from a binary stream.
 
-    This class is designed for file formats like MNT that store height data
-    as a series of zlib-compressed blocks with a fixed prefix structure.
-    The blocks are stored sequentially in memory and can be chained together
-    using the compressed_size field in each prefix.
+    This class is designed for file formats that store height data as a
+    series of zlib-compressed blocks with a fixed prefix structure. The
+    blocks are stored sequentially in the file and can be chained together
+    using the compressed_size field in each prefix. The blocks are
+    decompressed when the layout is parsed (not lazily).
 
     Block structure:
     ```

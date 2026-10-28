@@ -23,8 +23,10 @@
 #
 
 """
-Bearing area curve, also known as Abbott-Firestone curve or cumulative
-distribution function of the surface heights.
+Bearing area curve, also known as Abbott-Firestone curve. The fractional
+bearing area at height h is the fraction of the projected area where the
+surface lies above h, i.e. the complementary cumulative distribution function
+of the heights of the piecewise-linear interpolation of the data.
 """
 
 from functools import cached_property
@@ -39,8 +41,10 @@ class UniformBearingArea:
     def bounds(self, heights):
         """
         Compute bounds on the bearing area for a specific height. These bounds
-        can be computed O(log(N)) time, where N is the number of elements in the
-        line scan.
+        can be computed in O(log(N)) time, where N is the number of elements
+        (segments or triangles). The lower bound is the fraction of elements
+        that lie entirely above the height, the upper bound the fraction of
+        elements that have at least one point above the height.
 
         Parameters
         ----------
@@ -90,11 +94,15 @@ class Uniform1DBearingArea(UniformBearingArea):
 
         The bearing area as a function of height is also known as the
         Abbott-Firestone curve. If expressed as a fractional area, it is the
-        cumulative distribution function of the surface heights. This function
-        returns this fractional area.
+        complementary cumulative distribution function of the surface heights.
+        This function returns this fractional area. The topography is
+        interpolated linearly between grid points (line scans: linear
+        segments; maps: two triangles per grid cell) and the area above the
+        threshold is computed exactly for this interpolation. Elements that
+        touch undefined (masked) data are ignored.
 
-        The function has complexity O(N) where N is the number of elements in
-
+        The function has complexity O(N) per height, where N is the number of
+        elements (segments or triangles).
 
         Parameters
         ----------
@@ -104,7 +112,7 @@ class Uniform1DBearingArea(UniformBearingArea):
         Returns
         -------
         fractional_area : float or np.ndarray
-            Fractional area above a the threshold height.
+            Fractional area above the threshold height.
         """
         if np.isscalar(heights):
             return _SurfaceTopography.uniform1d_bearing_area(self._h, self._is_periodic,
@@ -156,11 +164,15 @@ class Uniform2DBearingArea(UniformBearingArea):
 
         The bearing area as a function of height is also known as the
         Abbott-Firestone curve. If expressed as a fractional area, it is the
-        cumulative distribution function of the surface heights. This function
-        returns this fractional area.
+        complementary cumulative distribution function of the surface heights.
+        This function returns this fractional area. The topography is
+        interpolated linearly between grid points (line scans: linear
+        segments; maps: two triangles per grid cell) and the area above the
+        threshold is computed exactly for this interpolation. Elements that
+        touch undefined (masked) data are ignored.
 
-        The function has complexity O(N) where N is the number of elements in
-
+        The function has complexity O(N) per height, where N is the number of
+        elements (segments or triangles).
 
         Parameters
         ----------
@@ -170,7 +182,7 @@ class Uniform2DBearingArea(UniformBearingArea):
         Returns
         -------
         fractional_area : float or np.ndarray
-            Fractional area above a the threshold height.
+            Fractional area above the threshold height.
         """
         if np.isscalar(heights):
             return _SurfaceTopography.uniform2d_bearing_area(self._h, self._is_periodic,
@@ -186,8 +198,8 @@ def bearing_area(self, heights=None):
 
     The bearing area as a function of height is also known as the
     Abbott-Firestone curve. If expressed as a fractional area, it is the
-    cumulative distribution function of the surface heights. This function
-    returns this fractional area.
+    complementary cumulative distribution function of the surface heights.
+    This function returns this fractional area.
 
     Parameters
     ----------
@@ -199,9 +211,11 @@ def bearing_area(self, heights=None):
     Returns
     -------
     fractional_area : float or np.ndarray
-        Fractional area above the threshold height, if height is given.
+        Fractional area above the threshold height, if `heights` is given.
     bearing_area : :obj:`Uniform1DBearingArea` or :obj:`Uniform2DBearingArea`
-        Instance of a class that caches the bearing area calculation.
+        Instance of a class that caches the bearing area calculation, if
+        `heights` is None. The instance can be called with heights and
+        provides `bounds`, `min` and `max`.
     """
     if self.dim == 1:
         b = Uniform1DBearingArea(self.heights(), self.is_periodic)

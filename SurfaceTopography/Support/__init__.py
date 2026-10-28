@@ -23,6 +23,11 @@
 # SOFTWARE.
 #
 
+"""
+Support functionality: bibliography tracking, deprecation warnings,
+interpolation, regression, unit conversion and small helpers.
+"""
+
 from .Bibliography import doi  # noqa: F401
 from .Deprecation import deprecated  # noqa: F401
 from .Interpolation import Bicubic  # noqa: F401

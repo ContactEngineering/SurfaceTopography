@@ -67,8 +67,7 @@ The original contact mechanics challenge data can be downloaded
         def visit(name, node):
             # Note: this visits groups as well as datasets; only
             # two-dimensional datasets are candidate topographies. (Groups
-            # have no `shape`, and files containing them used to crash the
-            # reader.)
+            # have no `shape`.)
             # Only datasets with real numbers can be interpreted as heights;
             # strings, compound types (e.g. complex numbers) or references
             # are ignored, as are empty datasets.

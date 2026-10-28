@@ -35,16 +35,30 @@ from ..Support import doi
 
 @doi('10.1016/j.apsadv.2021.100190')
 def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2, xtol=2e-12, rtol=1e-8):
-    """
+    r"""
     Estimate a length scale below which tip radius artifacts affect the
-    measured data. See: 10.1016/j.apsadv.2021.100190
+    measured data.
+
+    A rigid spherical tip of radius :math:`R` cannot resolve features with
+    curvature :math:`h'' < -1/R` (sharper than the tip). The function
+    determines the stencil length :math:`\lambda_c` at which the minimum of
+    the scale-dependent second derivative :math:`h''(\lambda)` (computed with
+    `derivative(n=2, distance=lambda)`, along x for topography maps) equals
+    :math:`-f/R`, where :math:`f` is the `safety_factor`. The root is
+    bracketed in :math:`[2\lambda_\text{min}, \lambda_\text{max}/2]`, where
+    :math:`\lambda_\text{min}, \lambda_\text{max}` are the bounds of
+    `bandwidth()`, and found with Brent's method on distances normalized by
+    the geometric mean of the bandwidth.
+
+    See Sanner et al., Appl. Surf. Sci. Adv. 7, 100190 (2022),
+    https://doi.org/10.1016/j.apsadv.2021.100190.
 
     Parameters
     ----------
-    self : Topography or UniformLineScan
-        Topogaphy or line scan.
+    self : Topography or UniformLineScan or NonuniformLineScan
+        Topography or line scan.
     tip_radius : float
-        Tip radius.
+        Tip radius. (Units: length)
     safety_factor : float, optional
         Tip radius artifacts are expected to play a role for scales below
         which the minimum scale-dependent curvature drops below
@@ -58,10 +72,13 @@ def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2, xto
 
     Returns
     -------
-    reliability_cutoff : float
+    reliability_cutoff : float or None
         Length scale below which data is affected by tip radius artifacts.
         Note that this is the length of the stencil for the second derivative
-        used to compute the reliability cutoff.
+        used to compute the reliability cutoff. None if the curvature criterion
+        is fulfilled at the smallest scale (no tip artifacts detected); the
+        upper bound of the bandwidth if it is violated at the largest scale
+        (no reliable data). (Units: length)
     """
     lower, upper = self.bandwidth()
     # We need to normalize the bracket search to avoid numerical issues;

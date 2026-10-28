@@ -26,7 +26,8 @@
 #
 
 """
-Functions computing scalar roughness parameters
+Scalar roughness parameters (rms height, slope, curvature) of uniformly
+sampled line scans and topography maps.
 """
 
 import numpy as np
@@ -39,20 +40,36 @@ _mad_to_rms = 1 / scipy.stats.norm.ppf(3 / 4)
 
 
 def Rq(topography):
-    """
+    r"""
     Compute the root mean square height amplitude of a topography or
     line scan stored on a uniform grid from individual profiles.
     (This is the Rq value.)
 
+    Each profile (line along x at fixed y) is referenced to its own mean,
+    and the squared deviations of all profiles are averaged:
+
+    .. math::
+
+        R_q = \left[\frac{1}{N} \sum_{ij} \left(h_{ij} - \bar h_j\right)^2\right]^{1/2},
+        \quad \bar h_j = \frac{1}{N_x} \sum_i h_{ij},
+
+    where :math:`N` is the number of defined (unmasked) data points. For a
+    line scan, this is the rms height about the mean.
+
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
-        SurfaceTopography object containing height information.
+    topography : :obj:`Topography` or :obj:`UniformLineScan`
+        Topography or line scan containing height information.
 
     Returns
     -------
     rms_height : float
-        Root mean square height value.
+        Root mean square height value. (Units: length)
+
+    Raises
+    ------
+    NotImplementedError
+        For domain-decomposed (MPI-parallel) topographies.
     """
     if topography.is_domain_decomposed:
         raise NotImplementedError("`Rq` does not support MPI-decomposed topographies.")
@@ -66,20 +83,28 @@ def Rq(topography):
 
 
 def Sq(topography):
-    """
-    Compute the root mean square height amplitude of a topography or
-    line scan stored on a uniform grid from the whole areal data.
+    r"""
+    Compute the root mean square height amplitude of a topography map
+    stored on a uniform grid from the whole areal data.
     (This is the Sq value.)
+
+    .. math::
+
+        S_q = \left[\frac{1}{N} \sum_{ij} \left(h_{ij} - \langle h \rangle\right)^2\right]^{1/2}
+
+    where :math:`N` is the number of defined (unmasked) data points and
+    :math:`\langle h \rangle` their mean. Sums are reduced over all MPI
+    processes, i.e. this function supports domain-decomposed topographies.
 
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
-        SurfaceTopography object containing height information.
+    topography : :obj:`Topography`
+        Topography map containing height information.
 
     Returns
     -------
     rms_height : float
-        Root mean square height value.
+        Root mean square height value. (Units: length)
     """
     if topography.dim <= 1:
         raise ValueError(
@@ -98,17 +123,30 @@ def Sq(topography):
 
 
 def rms_gradient(topography, short_wavelength_cutoff=None, window=None, direction=None):
-    """
+    r"""
     Compute the root mean square amplitude of the height gradient of a
     topography stored on a uniform grid. The topography must be
     two-dimensional (i.e. a topography map).
 
+    .. math::
+
+        h^\prime_\text{rms} = \left\langle \left(\frac{\partial h}{\partial x}\right)^2
+        + \left(\frac{\partial h}{\partial y}\right)^2 \right\rangle^{1/2}
+
+    The derivatives are computed with the default (upwind) finite-differences
+    stencils of :func:`derivative`. For an isotropic surface, this is
+    :math:`\sqrt{2}` times the rms slope :func:`Rdq` along a single direction.
+
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
-        SurfaceTopography object containing height information.
-    short_wavelength_cutoff : float
+    topography : :obj:`Topography`
+        Topography map containing height information.
+    short_wavelength_cutoff : float, optional
         All wavelengths below this cutoff will be set to zero amplitude.
+        If given, the topography is windowed, the derivative is computed in
+        Fourier space and Fourier components with
+        :math:`|\mathbf{q}| \geq 2\pi/\text{cutoff}` are discarded.
+        (Units: length, Default: None)
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         Only used if short wavelength cutoff is set.
@@ -122,8 +160,8 @@ def rms_gradient(topography, short_wavelength_cutoff=None, window=None, directio
 
     Returns
     -------
-    rms_slope : float
-        Root mean square slope value.
+    rms_gradient : float
+        Root mean square gradient value. (Units: dimensionless)
     """
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
@@ -150,18 +188,29 @@ def rms_gradient(topography, short_wavelength_cutoff=None, window=None, directio
 
 
 def Rdq(topography, short_wavelength_cutoff=None, window=None, direction=None):
-    """
+    r"""
     Compute the root mean square amplitude of the height derivative of a
     topography or line scan stored on a uniform grid. If the topography is two
     dimensional (i.e. a topography map), the derivative is computed in the
     x-direction.
 
+    .. math::
+
+        R_{\Delta q} = \left\langle \left(\frac{h_{i+1,j} - h_{ij}}{\Delta x}\right)^2 \right\rangle^{1/2}
+
+    The average runs over all pairs of neighboring points along x; for
+    periodic data, this includes the pair that wraps around the boundary.
+
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
-        SurfaceTopography object containing height information.
-    short_wavelength_cutoff : float
+    topography : :obj:`Topography` or :obj:`UniformLineScan`
+        Topography or line scan containing height information.
+    short_wavelength_cutoff : float, optional
         All wavelengths below this cutoff will be set to zero amplitude.
+        If given, the topography is windowed, the derivative is computed in
+        Fourier space and Fourier components with
+        :math:`|\mathbf{q}| \geq 2\pi/\text{cutoff}` are discarded.
+        (Units: length, Default: None)
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         Only used if short wavelength cutoff is set.
@@ -176,7 +225,7 @@ def Rdq(topography, short_wavelength_cutoff=None, window=None, direction=None):
     Returns
     -------
     rms_slope : float
-        Root mean square slope value.
+        Root mean square slope value. (Units: dimensionless)
     """
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
@@ -204,18 +253,27 @@ def Rdq(topography, short_wavelength_cutoff=None, window=None, direction=None):
 
 
 def Rddq(topography, short_wavelength_cutoff=None, window=None, direction=None):
-    """
+    r"""
     Compute the root mean square amplitude of the second derivative (i.e. the
     curvature) of a topography or line scan stored on a uniform grid. If the
     topography is two-dimensional (i.e. a topography map), then the rms curvature
     is computed only along the x-direction.
 
+    .. math::
+
+        R_{\Delta\Delta q} = \left\langle \left(
+        \frac{h_{i+1,j} - 2h_{ij} + h_{i-1,j}}{\Delta x^2}\right)^2 \right\rangle^{1/2}
+
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
-        SurfaceTopography object containing height information.
-    short_wavelength_cutoff : float
+    topography : :obj:`Topography` or :obj:`UniformLineScan`
+        Topography or line scan containing height information.
+    short_wavelength_cutoff : float, optional
         All wavelengths below this cutoff will be set to zero amplitude.
+        If given, the topography is windowed, the derivative is computed in
+        Fourier space and Fourier components with
+        :math:`|\mathbf{q}| \geq 2\pi/\text{cutoff}` are discarded.
+        (Units: length, Default: None)
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         Only used if short wavelength cutoff is set.
@@ -230,7 +288,7 @@ def Rddq(topography, short_wavelength_cutoff=None, window=None, direction=None):
     Returns
     -------
     rms_curvature : float
-        Root mean square curvature value.
+        Root mean square curvature value. (Units: 1/length)
     """
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
@@ -260,17 +318,27 @@ def Rddq(topography, short_wavelength_cutoff=None, window=None, direction=None):
 def rms_laplacian(
     topography, short_wavelength_cutoff=None, window=None, direction=None
 ):
-    """
+    r"""
     Compute the root mean square amplitude of the Laplacian (i.e. the sum of
     second derivatives in x- and y-directions) of a topography on a uniform
     grid. The topography must be two-dimensional (i.e. a topography map).
 
+    .. math::
+
+        \left\langle \left(\nabla^2 h\right)^2 \right\rangle^{1/2}, \quad
+        \nabla^2 h \approx \frac{h_{i+1,j} - 2h_{ij} + h_{i-1,j}}{\Delta x^2}
+        + \frac{h_{i,j+1} - 2h_{ij} + h_{i,j-1}}{\Delta y^2}
+
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
-        SurfaceTopography object containing height information.
-    short_wavelength_cutoff : float
+    topography : :obj:`Topography`
+        Topography map containing height information.
+    short_wavelength_cutoff : float, optional
         All wavelengths below this cutoff will be set to zero amplitude.
+        If given, the topography is windowed, the derivative is computed in
+        Fourier space and Fourier components with
+        :math:`|\mathbf{q}| \geq 2\pi/\text{cutoff}` are discarded.
+        (Units: length, Default: None)
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         Only used if short wavelength cutoff is set.
@@ -285,7 +353,14 @@ def rms_laplacian(
     Returns
     -------
     rms_laplacian : float
-        Root mean square Laplacian value.
+        Root mean square Laplacian value. (Units: 1/length)
+
+    Raises
+    ------
+    NotImplementedError
+        If the topography lives on a communicator with more than one MPI
+        process (domain-decomposed topographies and pipeline steps on top
+        of them).
     """
     # The derivatives are not computed correctly in parallel. Check the
     # communicator rather than `is_domain_decomposed`: pipeline steps on a
@@ -322,18 +397,24 @@ def rms_laplacian(
 def rms_curvature_from_area(
     topography, short_wavelength_cutoff=None, window=None, direction=None
 ):
-    """
+    r"""
     Compute the root mean square amplitude of the curvature of a
     topography stored on a uniform grid. The topography must be
     two-dimensional (i.e. a topography map). This function returns
-    half the Laplacian.
+    half the rms Laplacian, i.e. the rms of the mean curvature
+    :math:`\kappa = (\kappa_1 + \kappa_2)/2 \approx \nabla^2 h / 2`
+    in the small-slope approximation (see :func:`rms_laplacian`).
 
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
-        SurfaceTopography object containing height information.
-    short_wavelength_cutoff : float
+    topography : :obj:`Topography`
+        Topography map containing height information.
+    short_wavelength_cutoff : float, optional
         All wavelengths below this cutoff will be set to zero amplitude.
+        If given, the topography is windowed, the derivative is computed in
+        Fourier space and Fourier components with
+        :math:`|\mathbf{q}| \geq 2\pi/\text{cutoff}` are discarded.
+        (Units: length, Default: None)
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         Only used if short wavelength cutoff is set.
@@ -348,7 +429,13 @@ def rms_curvature_from_area(
     Returns
     -------
     rms_curvature : float
-        Root mean square curvature value.
+        Root mean square curvature value. (Units: 1/length)
+
+    Raises
+    ------
+    NotImplementedError
+        If the topography lives on a communicator with more than one MPI
+        process.
     """
     return (
         rms_laplacian(

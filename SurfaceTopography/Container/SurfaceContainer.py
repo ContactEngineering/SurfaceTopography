@@ -30,7 +30,16 @@ from ..Support.Deprecation import deprecated as deprecation_warning
 
 
 class SurfaceContainer(metaclass=abc.ABCMeta):
-    """A list of topographies"""
+    """
+    Abstract base class for a collection of topographies (maps and/or line
+    scans) that describe the same surface, typically measured with different
+    instruments or at different resolutions.
+
+    A container behaves like a read-only sequence of topographies
+    (`len(container)`, `container[i]`, iteration). Analysis functions are
+    registered on the class with `register_function` and become available as
+    methods of all containers, e.g. `container.power_spectrum(unit='µm')`.
+    """
 
     _functions = {}
 
@@ -53,6 +62,10 @@ class SurfaceContainer(metaclass=abc.ABCMeta):
         return functions
 
     def apply(self, name, *args, **kwargs):
+        """
+        Call the registered analysis function `name` on this container.
+        Equivalent to `getattr(self, name)(*args, **kwargs)`.
+        """
         return self._function_registry()[name](self, *args, **kwargs)
 
     def __getattr__(self, name):
@@ -77,6 +90,20 @@ class SurfaceContainer(metaclass=abc.ABCMeta):
 
     @classmethod
     def register_function(cls, name, function, deprecated=False):
+        """
+        Register an analysis function that becomes available as a method
+        `name` of all instances of this class and its subclasses.
+
+        Parameters
+        ----------
+        name : str
+            Name of the method.
+        function : callable
+            Function taking the container as first argument.
+        deprecated : bool, optional
+            Emit a deprecation warning when the function is called.
+            (Default: False)
+        """
         if deprecated:
             function = deprecation_warning()(function)
         if '_functions' not in cls.__dict__:
@@ -87,7 +114,15 @@ class SurfaceContainer(metaclass=abc.ABCMeta):
 
 
 class InMemorySurfaceContainer(SurfaceContainer):
-    """A list of topographies that whose data is stored in memory"""
+    """
+    A container that holds a list of topography objects in memory.
+
+    Parameters
+    ----------
+    topographies : list of topographies, optional
+        The topographies (maps and/or line scans) of this container.
+        (Default: [])
+    """
 
     def __init__(self, topographies=[]):
         self._topographies = topographies
@@ -100,7 +135,21 @@ class InMemorySurfaceContainer(SurfaceContainer):
 
 
 class LazySurfaceContainer(SurfaceContainer):
-    """A list of readers with lazy loading of topography data"""
+    """
+    A container that holds callables that construct the topographies on
+    demand. Each element access (`container[i]`, iteration) calls the
+    respective callable and therefore reads the topography again; use
+    `read_all` to load all topographies into memory once.
+
+    Parameters
+    ----------
+    readers : list of callables, optional
+        Each callable takes no arguments and returns a topography.
+        (Default: [])
+    info : dict, optional
+        Metadata of the surface, e.g. the surface entry of the container
+        metadata file. (Default: {})
+    """
 
     def __init__(self, readers=[], info={}):
         self._readers = readers
@@ -124,4 +173,5 @@ class LazySurfaceContainer(SurfaceContainer):
 
     @property
     def info(self):
+        """Metadata dictionary of the surface."""
         return self._info

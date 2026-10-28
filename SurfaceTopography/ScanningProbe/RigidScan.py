@@ -31,21 +31,35 @@ from ..UniformLineScanAndTopography import UniformLineScan
 
 
 def scan_with_rigid_sphere(topography, radius):
-    """
-    Scan a topography with a rigid, spherical tip. This emulated scanning of
-    a physical topography in an scanning probe instrument.
+    r"""
+    Scan a topography with a rigid, spherical tip. This emulates scanning of
+    a physical topography in a scanning probe instrument.
 
-    Paramaters
+    The scanned height at position :math:`x_i` is the lowest height of the tip
+    apex at which the sphere touches but does not penetrate the data points,
+
+    .. math::
+
+        \tilde h_i = \max_{j:\, |x_j - x_i| \leq R}
+        \left[ h_j + \sqrt{R^2 - (x_j - x_i)^2} - R \right].
+
+    Only data points are tested for contact, not the linear interpolation
+    between them. The line scan is treated as nonperiodic. The cost is
+    :math:`O(N w)`, where :math:`w` is the number of data points within
+    :math:`2R`; the evaluation is carried out in blocks so that memory
+    use stays bounded.
+
+    Parameters
     ----------
     topography : :obj:`SurfaceTopography.UniformLineScan` or :obj:`SurfaceTopography.NonuniformLineScan`
         Topography to be scanned.
     radius : float
-        Tip radius.
+        Tip radius. (Units: length)
 
     Returns
     -------
     scanned_heights : np.ndarray
-         Scannned heights of topography on the same grid as the topography.
+         Scanned heights of topography on the same grid as the topography.
     """
     if topography.dim != 1:
         raise ValueError("Only one-dimensional scans are supported at present.")
@@ -94,11 +108,17 @@ def scan_with_rigid_sphere(topography, radius):
 
 def pipeline_scan_with_rigid_sphere(self, radius):
     r"""
-    Scan the topography with a rigid, spherical tip. This emulated scanning of
-    a physical topography in a scanning probe instrument.
+    Scan the topography with a rigid, spherical tip. This emulates scanning of
+    a physical topography in a scanning probe instrument. See
+    :func:`scan_with_rigid_sphere` for the algorithm. Periodic line scans are
+    scanned as three periodic repetitions, of which the central one is
+    returned.
 
+    The returned line scan carries the tip radius in its instrument metadata
+    (`info['instrument']['parameters']['tip_radius']`), such that
+    `short_reliability_cutoff` reports the corresponding reliability cutoff.
 
-    Paramaters
+    Parameters
     ----------
     radius : float
         Tip radius, in the same units as the topography
@@ -106,7 +126,7 @@ def pipeline_scan_with_rigid_sphere(self, radius):
     Returns
     -------
     topography : :obj:`SurfaceTopography.UniformLineScan` or :obj:`SurfaceTopography.NonuniformLineScan`
-         Topography with scannned heights on the same grid as the topography.
+         Topography with scanned heights on the same grid as the topography.
     """
     if self.dim != 1:
         raise ValueError(

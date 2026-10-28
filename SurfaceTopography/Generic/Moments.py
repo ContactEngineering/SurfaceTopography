@@ -23,22 +23,26 @@
 #
 """
 
-Computation of moments of a discrete curve, e.g. the PSD
+Moments of a function sampled at discrete points, e.g. of a resampled PSD.
 
-The example below computes the PSD of a surface topography and integrates it to obtain the RMS height.
+The example below computes the (unbinned) 1D PSD of a surface topography and
+integrates it to obtain the root mean square of the heights. (The zeroth moment
+contains the :math:`q = 0` term, i.e. the mean of the heights is not
+subtracted.)
 
 >>> import numpy as np
 >>> from SurfaceTopography.Generation import fourier_synthesis
 >>> from SurfaceTopography.Generic.Moments import compute_1d_moment
 >>> t = fourier_synthesis((256, 256), (256, 256), hurst=0.8, rms_height=1, short_cutoff=4, long_cutoff=64)
->>> hrms = t.rms_height_from_profile()
->>> q, C = t.power_spectrum_from_profile(reliable=False)
+>>> hrms = np.sqrt(np.mean(t.heights() ** 2))
+>>> q, C = t.power_spectrum_from_profile(reliable=False, resampling_method=None)
 >>> hrms_from_psd = np.sqrt(compute_1d_moment(q, C, order=0))
->>> assert abs(hrms_from_psd / hrms - 1) < 0.1
+>>> assert abs(hrms_from_psd / hrms - 1) < 1e-6
 
-However, because the averaging of the PSD before integration introduces errors,
-it is better to sum directly the raw spectum,
-see the methods `integrate_psd` of the topographies and the container.
+Averaging the PSD within bins before integrating introduces errors; summing
+the unbinned spectrum is more accurate, see the methods `integrate_psd` and
+`moment_power_spectrum` of the topographies and `integrate_psd` of the
+containers.
 
 """
 import numpy as np
@@ -59,23 +63,24 @@ def compute_1d_moment(x, y, order=1, cumulative=False):
     :math:`y(|x|)` with the :math:`1/(2\pi)` Fourier-transform convention
     used for power spectra in this package.)
 
-    Parameters:
-    -----------
-    x: np.ndarray
-        sample points
-    y: np.ndarray
-        values of the function sampled at x
-    order: float, default=1
-        order of the moment
-    cumulative: bool, default=True
-        if True returns the cumulative value of this integral for each x
-        (uses cumulative_trapezoid instead of trapezoid)
+    Parameters
+    ----------
+    x : np.ndarray
+        Sample points.
+    y : np.ndarray
+        Values of the function sampled at `x`.
+    order : float, optional
+        Order of the moment. (Default: 1)
+    cumulative : bool, optional
+        If True, return the cumulative value of the integral from `x[0]` to
+        each `x[i]` (uses `scipy.integrate.cumulative_trapezoid`).
+        (Default: False)
+
     Returns
     -------
-    If `cumulative` is `False` (Default)
-    integral: float
-    If `cumulative` is `True`
-    integral: np.ndarray of length
+    integral : float or np.ndarray
+        Value of the integral if `cumulative` is False; otherwise array of
+        length `len(x) - 1` with the cumulative integral up to `x[1:]`.
 
     """
     power = order
@@ -89,7 +94,7 @@ def compute_1d_moment(x, y, order=1, cumulative=False):
 
 def compute_iso_moment(x, y, order=1, cumulative=False):
     r"""
-    Computes the moment of order :math:`\alpha` of the 2D isotropic funtion :math:`y_{2D}(x)`
+    Computes the moment of order :math:`\alpha` of the 2D isotropic function :math:`y_{2D}(x)`
 
     :math:`y` is the 1D representation of the isotropic function :math:`y_{2D}(x_1, x_2) = y(|\vec x|)`
 
@@ -102,23 +107,24 @@ def compute_iso_moment(x, y, order=1, cumulative=False):
     corresponds to the :math:`1/(2\pi)^2` Fourier-transform convention used
     for power spectra in this package.)
 
-    Parameters:
-    -----------
-    x: np.ndarray
-        sample points
-    y: np.ndarray
-        values of the function sampled at x
-    order: float, default=1
-        order of the moment
-    cumulative: bool, default=True
-        if True returns the cumulative value of this integral for each x
-        (uses cumulative_trapezoid instead of trapezoid)
+    Parameters
+    ----------
+    x : np.ndarray
+        Sample points.
+    y : np.ndarray
+        Values of the function sampled at `x`.
+    order : float, optional
+        Order of the moment. (Default: 1)
+    cumulative : bool, optional
+        If True, return the cumulative value of the integral from `x[0]` to
+        each `x[i]` (uses `scipy.integrate.cumulative_trapezoid`).
+        (Default: False)
+
     Returns
     -------
-    If `cumulative` is `False` (Default)
-    integral: float
-    If `cumulative` is `True`
-    integral: np.ndarray of length
+    integral : float or np.ndarray
+        Value of the integral if `cumulative` is False; otherwise array of
+        length `len(x) - 1` with the cumulative integral up to `x[1:]`.
     """
     power = order + 1
     integ = (

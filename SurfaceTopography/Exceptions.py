@@ -23,7 +23,7 @@
 #
 
 """
-This module contains most exceptions used in SurfaceTopography.
+Exceptions raised by analysis functions and file readers.
 """
 
 
@@ -69,6 +69,9 @@ class UnknownFileFormat(Exception):
 
 
 class ReadFileError(Exception):
+    """
+    Base class of all errors raised when reading a file.
+    """
     pass
 
 
@@ -108,13 +111,13 @@ class UnsupportedSchema(ReadFileError):
     Raised when a format description document cannot be executed: its
     schema version is newer than this engine implements, or it contains
     unknown node or function kinds. (See
-    docs/format_description_contract.rst.)
+    docs/format-description-contract.md.)
     """
     pass
 
 
 # Error taxonomy of the format description contract
-# (docs/format_description_contract.rst): maps the taxonomy names used in
+# (docs/format-description-contract.md): maps the taxonomy names used in
 # serialized format descriptions to reader exception classes.
 ERROR_CLASSES = {
     "format_mismatch": FileFormatMismatch,

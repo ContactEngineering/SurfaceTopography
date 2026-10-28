@@ -23,7 +23,7 @@
 #
 
 """
-Automatic determination of the reliability of the underyling data
+Automatic determination of the reliability of the underlying data
 """
 
 from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
@@ -33,15 +33,33 @@ from ..Support.UnitConversion import get_unit_conversion_factor
 def short_reliability_cutoff(self, other_cutoff=None):
     """
     Determine down to which distance scale the data is reliable, i.e. below
-    which distance it may be affected by instrumental artifacts. Currently
-    supported are tip radius artifacts and a user specified resolution.
+    which distance it may be affected by instrumental artifacts. Supported
+    are tip radius artifacts and a user specified resolution.
+
+    The cutoff is determined from the instrument parameters in
+    `info['instrument']['parameters']`:
+
+    - `tip_radius`: the cutoff is obtained from
+      `scanning_probe_reliability_cutoff` with this radius.
+    - `resolution`: the cutoff is the resolution.
+
+    Both values are dictionaries with `value` and `unit` keys and are
+    converted to the unit of the topography.
+
+    Parameters
+    ----------
+    other_cutoff : float, optional
+        Additional cutoff, e.g. specified by the user. If given, the larger
+        of this value and the cutoff determined from the instrument
+        parameters is returned. (Units: length, Default: None)
 
     Returns
     -------
-    short_cutoff : float
+    short_cutoff : float or None
         All data below this length scale is unreliable. For tip radius
         analysis, this is the length of the stencil for the second derivative
-        used to compute the reliability cutoff.
+        used to compute the reliability cutoff. None if no cutoff can be
+        determined. (Units: length)
     """
     info = self.info
     if 'instrument' in info:

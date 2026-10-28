@@ -56,11 +56,17 @@ for reader in readers:
 
 def detect_format(fobj):
     """
-    Detect file format based on its content.
+    Detect the container format based on the file content.
 
-    Arguments
-    ---------
-    fobj : filename or file object
+    Parameters
+    ----------
+    fobj : str or file-like object
+        File name or file-like object.
+
+    Returns
+    -------
+    format : str
+        Short format identifier, e.g. 'ce' or 'zag'.
     """
     msg = ""
     for reader in readers:
@@ -139,8 +145,10 @@ def read_container(fn, format=None, **kwargs):
 
     Returns
     -------
-    container : list of subclasses of :obj:`SurfaceContainer`
-        A list of container objects.
+    containers : list of :obj:`SurfaceContainer`
+        One container per surface stored in the file. For the formats
+        supported here, these are :obj:`LazySurfaceContainer` instances that
+        read the individual topographies on access.
     """
     containers = []
     with open_container(fn, format=format, **kwargs) as reader:
@@ -151,19 +159,27 @@ def read_container(fn, format=None, **kwargs):
 
 def read_published_container(publication_url, **request_args):
     """
-    Download a container from a URL.
+    Download a published container from contact.engineering.
+
+    The publication URL (e.g. `https://contact.engineering/go/<id>/` or the
+    DOI URL `https://doi.org/10.57703/ce-<id>`) is
+    requested with the header `Accept: application/json`; the JSON response
+    contains a `download_url` from which the container ZIP file is
+    downloaded and read with `read_container`.
 
     Parameters
     ----------
     publication_url : str
-        Full URL of container location.
-    request_args : dict
-        Additional dictionary passed to `request.get`.
+        Full URL of the publication.
+    **request_args
+        Additional keyword arguments passed to `requests.get` (for both
+        requests). A `headers` dictionary is merged with the `Accept`
+        header. (Default timeout: 60 seconds)
 
     Returns
     -------
-    container : SurfaceContainer
-        Surface container object read from URL.
+    containers : list of :obj:`SurfaceContainer`
+        Surface containers read from the downloaded file.
     """
     # Default to a finite timeout so a stale server cannot hang the caller
     # indefinitely; can be overridden through `request_args`

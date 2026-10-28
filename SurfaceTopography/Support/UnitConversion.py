@@ -22,6 +22,11 @@
 # SOFTWARE.
 #
 
+"""
+Length (and voltage) units, conversion factors between them and
+normalization of unit strings found in data files.
+"""
+
 import re
 
 import numpy as np
@@ -84,7 +89,7 @@ def get_unit_conversion_factor(from_unit, to_unit):
     from_unit : str
         Name of source unit
     to_unit : str
-        Name of targe unit
+        Name of target unit
 
     Returns
     -------

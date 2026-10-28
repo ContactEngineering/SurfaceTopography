@@ -30,12 +30,12 @@ A surface container is a ZIP archive bundling one or more digital surface twins
 their data files and a single metadata file.
 
 There is exactly one source of truth for that metadata: ``index.json``. This
-module holds the canonical schema; TopoBank re-exports it (as
+module holds the schema; TopoBank re-exports it (as
 ``topobank.manager.container_schema``) and uses it for both export and import,
 and :class:`SurfaceTopography.Container.IO.CE.CEReader` validates ``index.json``
-against it when reading a container. Archives produced by older versions of
-TopoBank stored a similar structure as a YAML file named ``meta.yml``; those
-are still accepted on import (see :func:`load_container_metadata`).
+against it when reading a container. Archives that contain only a YAML file
+``meta.yml`` with the same structure are also accepted (see
+:func:`load_container_metadata`).
 
 Serialization rule
 -------------------
@@ -50,12 +50,13 @@ from typing import Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-#: Canonical name of the metadata file inside a container archive.
+#: Name of the metadata file inside a container archive.
 CONTAINER_METADATA_FILENAME = "index.json"
-#: Name of the legacy YAML metadata file written by older TopoBank versions.
+#: Name of the YAML metadata file, read if `index.json` is absent and written
+#: alongside `index.json` for YAML-only readers.
 LEGACY_METADATA_FILENAME = "meta.yml"
 
-# Defaults applied when importing older or partial containers. These mirror the
+# Defaults applied when importing partial containers. These mirror the
 # database defaults of the corresponding TopoBank model fields, so a container
 # that omits an optional attribute imports the same way it would have been
 # created.
@@ -126,8 +127,8 @@ class TopographyMeta(BaseModel):
     name: str
     datafile: DatafileMeta
     size: list[float]
-    # The lateral unit is normally always set, but older archives occasionally
-    # omit it; keep it optional so they still import (as the legacy code did).
+    # The lateral unit is normally always set, but some archives omit it;
+    # it is optional so that they still import.
     unit: Optional[str] = None
     data_source: int = 0
     has_undefined_data: Optional[bool] = None
@@ -135,8 +136,8 @@ class TopographyMeta(BaseModel):
     detrend_mode: str = DEFAULT_DETREND_MODE
     is_periodic: bool = False
     created_by: Optional[CreatedBy] = None
-    # Absent -> default; explicit null is kept (older measurements may lack a
-    # date), matching the previous import behavior.
+    # Absent -> default; explicit null is kept (measurements may lack a
+    # date).
     measurement_date: Optional[date] = DEFAULT_MEASUREMENT_DATE
     description: str = ""
     tags: list[str] = Field(default_factory=list)
@@ -161,7 +162,7 @@ class SurfaceMeta(BaseModel):
 
 
 class ContainerMeta(BaseModel):
-    """Top-level schema of a container's ``index.json`` (or legacy ``meta.yml``)."""
+    """Top-level schema of a container's ``index.json`` (or ``meta.yml``)."""
 
     versions: dict[str, str] = Field(default_factory=dict)
     surfaces: list[SurfaceMeta] = Field(default_factory=list)
@@ -183,17 +184,16 @@ def load_container_metadata(surface_zip, unsafe_yaml_loader=False) -> ContainerM
     """
     Load and validate the metadata of a surface container.
 
-    The canonical metadata file is ``index.json``. For backward compatibility
-    with archives produced by older versions of TopoBank, a legacy ``meta.yml``
-    file is accepted as a fallback. In both cases the metadata is validated
-    against (and returned as) a :class:`ContainerMeta` instance.
+    The metadata file is ``index.json``; if it is absent, a ``meta.yml`` file
+    is read instead. In both cases the metadata is validated against (and
+    returned as) a :class:`ContainerMeta` instance.
 
     Parameters
     ----------
     surface_zip : zipfile.ZipFile
         The container archive.
     unsafe_yaml_loader : bool, optional
-        If True, use an unsafe YAML loader when reading the legacy ``meta.yml``.
+        If True, use an unsafe YAML loader when reading ``meta.yml``.
         This can execute malicious code contained in the YAML file and should be
         used with caution. (Default: False)
 

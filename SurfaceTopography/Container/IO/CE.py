@@ -187,10 +187,11 @@ class CEReader(ContainerReaderBase):
         """
         Read all surfaces in a contact.engineering container file and associated
         metadata. The container is a ZIP file with raw data files and a single
-        metadata file: canonically `index.json` (validated against
-        :class:`SurfaceTopography.Container.IO.Schema.ContainerMeta`), with a
-        legacy `meta.yml` accepted as fallback for archives written by older
-        versions of TopoBank or SurfaceTopography.
+        metadata file: `index.json` (validated against
+        :class:`SurfaceTopography.Container.IO.Schema.ContainerMeta`), or, if
+        `index.json` is absent, a YAML file `meta.yml` with the same structure
+        (read without schema validation, so that archives lacking required
+        fields can still be read).
 
         Opening a container parses only the metadata; the data files themselves
         are opened when the individual topographies are accessed.
@@ -208,11 +209,6 @@ class CEReader(ContainerReaderBase):
         ignore_filters : bool, optional
             If True, the filter pipeline is not (re-)constructed from the metadata.
             (Default: False)
-
-        Returns
-        -------
-        surface_containers : list of :obj:`SurfaceContainer`s
-            List of all surfaces contained in this container file.
         """
         self._fn = fn
 
@@ -222,10 +218,9 @@ class CEReader(ContainerReaderBase):
         with ZipFile(self._fn, "r") as z:
             names = set(z.namelist())
             if CONTAINER_METADATA_FILENAME in names:
-                # Canonical metadata: strictly validated `index.json`. We
-                # convert the validated model back into the dictionary shape
-                # of the legacy YAML metadata, so that both paths below are
-                # identical.
+                # Strictly validated `index.json`. We convert the validated
+                # model back into the dictionary shape of the YAML metadata,
+                # so that both paths below are identical.
                 with z.open(CONTAINER_METADATA_FILENAME, mode="r") as f:
                     try:
                         meta = ContainerMeta.model_validate_json(
@@ -237,12 +232,11 @@ class CEReader(ContainerReaderBase):
                             f"conform to the container metadata schema: {exc}"
                         ) from exc
             elif LEGACY_METADATA_FILENAME in names:
-                # Legacy metadata: lenient. Old archives (including those
-                # written by older versions of this library) may lack fields
-                # that the schema requires, such as measurement names or
-                # sizes; they are still read on a best-effort basis. The full
-                # loader is required because old contact.engineering archives
-                # contain YAML-serialized Python tuples.
+                # YAML metadata: lenient. Archives with only `meta.yml` may
+                # lack fields that the schema requires, such as measurement
+                # names or sizes; they are read on a best-effort basis. The
+                # full loader is required because some contact.engineering
+                # archives contain YAML-serialized Python tuples.
                 with z.open(LEGACY_METADATA_FILENAME, mode="r") as f:
                     meta = yaml.load(f, Loader=yaml.FullLoader)
             else:
@@ -290,7 +284,7 @@ class CEReader(ContainerReaderBase):
                 try:
                     member_metadata = TopographyMeta.model_validate(topo_meta)
                 except ValidationError:
-                    # Legacy metadata may not fit the schema; the member is
+                    # YAML metadata may not fit the schema; the member is
                     # still enumerated, just without validated metadata.
                     member_metadata = None
                 members += [
@@ -340,10 +334,16 @@ def write_containers(containers, fn):
     """
     Write multiple surface containers into a ZIP file.
 
-    The container metadata is written twice, with identical content: as the
-    canonical `index.json` (validated against
-    :class:`SurfaceTopography.Container.IO.Schema.ContainerMeta`) and as the
-    legacy `meta.yml`, which older readers understand.
+    The container metadata is written twice, with identical content: as
+    `index.json` (validated against
+    :class:`SurfaceTopography.Container.IO.Schema.ContainerMeta`) and as
+    `meta.yml`, so that readers that only understand the YAML file can read
+    the archive. Each topography is stored as a NetCDF file
+    `topography<n>.nc` containing the heights after the pipeline has been
+    applied (key `squeezed-netcdf`), so that no pipeline is reconstructed on
+    reading. The archive also contains a `README.txt`.
+
+    A single container can be written with `container.to_zip(fn)`.
 
     Parameters
     ----------
@@ -352,8 +352,6 @@ def write_containers(containers, fn):
     fn : str or stream
         File or stream to write the ZIP-container to.
     """
-
-    # This is adapted from TopoBank
 
     surface_metas = []
     counter = 0
@@ -399,7 +397,7 @@ def write_containers(containers, fn):
 
         #
         # Add metadata files. `index.json` is the schema-validated source of
-        # truth; `meta.yml` carries the same content for older readers.
+        # truth; `meta.yml` carries the same content for YAML-only readers.
         #
         metadata = ContainerMeta(
             versions={"SurfaceTopography": __version__},

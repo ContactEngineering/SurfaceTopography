@@ -37,28 +37,32 @@ from ..HeightContainer import NonuniformLineScanInterface
 
 def height_height_autocorrelation(self, distances=None):
     r"""
-    Compute the one-dimensional height-height autocorrelation function
-    (ACF).
+    Compute the unnormalized height-height correlation
 
-    This function treats the nonuniform line scan as a piece-wise function of
-    straight lines between the data points. The ACF is computed exactly for
-    this piece-wise linear interpolation of the data.
+    .. math::
+
+        \int dx\, h(x)\, h(x + r)
+
+    of a nonuniform line scan, where the integral runs over the overlap of
+    the scan with its shifted copy. The line scan is treated as a piecewise
+    linear function and the integral is computed exactly. Scales as
+    :math:`O(N^2 M)`, where :math:`M` is the number of distances.
 
     Parameters
     ----------
     self : :obj:`NonuniformLineScan`
         Container storing the nonuniform line scan.
-    r : array_like
-        Array containing distances for which to compute the ACF. If no array
-        is given, the function will automatically construct an array with
-        equally spaced distances. (Default: None)
+    distances : array_like, optional
+        Array containing distances for which to compute the correlation. If
+        no array is given, :math:`N` equally spaced distances between
+        :math:`0` and :math:`L` are used. (Default: None)
 
     Returns
     -------
-    distances : array
+    distances : np.ndarray
         Distances. (Units: length)
-    A : array
-        Autocorrelation function. (Units: length**2)
+    A : np.ndarray
+        Height-height correlation integral. (Units: length³)
     """
     if self.is_reentrant:
         raise ReentrantDataError('This topography is reentrant (i.e. it contains overhangs). The autocorrelation '
@@ -83,65 +87,86 @@ def height_difference_autocorrelation(self, reliable=True, algorithm='fft', dist
                                       nb_points=None, nb_points_per_decade=10):
     r"""
     Compute the one-dimensional height-difference autocorrelation function
-    (ACF).
+    (ACF), :math:`A(r) = \frac{1}{2}\langle[h(x+r) - h(x)]^2\rangle`, of a
+    nonuniform line scan. The line scan is treated as a piecewise linear
+    function, i.e. the data points are connected by straight lines.
 
-    This function treats the nonuniform line scan as a piece-wise function of
-    straight lines between the data points. The ACF is computed exactly for
-    this piece-wise linear interpolation of the data.
+    The 'fft' algorithm interpolates this function linearly onto a uniform
+    grid whose spacing is the smallest distance between data points divided
+    by `nb_interpolate` and computes the ACF of the resulting (nonperiodic)
+    uniform line scan, see
+    :func:`SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_profile`.
+
+    The 'brute-force' algorithm computes
+
+    .. math::
+
+        A(r) = \frac{1}{2(L - r)} \int_{x_0}^{x_{N-1} - r} dx\,
+        \left[h(x+r) - h(x)\right]^2
+
+    exactly: for each pair of segments, the integrand is a quadratic
+    polynomial on the overlap of the first segment with the shifted second
+    segment and is integrated analytically.
 
     Parameters
     ----------
     self : :obj:`NonuniformLineScan`
         Container storing the nonuniform line scan.
     reliable : bool, optional
-        Only return data deemed reliable. (Default: True)
-    algorithm : str
-        Algorithm to compute autocorrelation.
-        * 'fft': Interpolates the nonuniform line scan on a grid and then uses
-        the FFT to compute the autocorrelation. Scales O(N log N)
-        * 'brute-force': Brute-force computation using between line segements.
-        Scale O(N^2 M) where M is the number of distance point.
+        Only return data deemed reliable. Only supported by the 'fft'
+        algorithm. (Default: True)
+    algorithm : {'fft', 'brute-force'}, optional
+        Algorithm to compute the autocorrelation.
+
+        * 'fft': Interpolates the nonuniform line scan on a uniform grid
+          and then uses the FFT to compute the autocorrelation. Scales as
+          :math:`O(N_\text{int}\log N_\text{int})`, where :math:`N_\text{int}`
+          is the number of interpolation points.
+        * 'brute-force': Exact computation from pairs of line segments.
+          Scales as :math:`O(N^2 M)`, where :math:`M` is the number of
+          distances.
+
         (Default: 'fft')
-    distances : array_like
-        Array containing distances for which to compute the ACF. If no array
-        is given, the function will automatically construct an array with
-        equally spaced distances. Can be used only if 'brute-force'
-        algorithm is used. (Default: None)
-    nb_interpolate : int
-        Number of grid points to put between closest points on surface. Only
-        used for 'fft' algorithm. (Default: 5)
-    short_cutoff : function, optional
-        Function that determines how the short cutoff for the returned PSD is
-        computed. If set to None, the full PSD of the interpolated data is
-        returned. If the user passes a function, that function is called with
-        an array that contains the distances between the points of the uniform
-        line scan. Pass `np.max`, `np.mean` or `np.min` to use the maximum,
-        mean or minimum of that distance as the cutoff.
-    resampling_method : str, optional
-        Method can be None for no resampling (return on the grid of the
-        data) 'bin-average' for simple bin averaging and 'gaussian-process'
-        for Gaussian process regression.
-        (Default: None)
-    collocation : {'log', 'quadratic', 'linear', array_like}, optional
-        Resampling grid. Specifying 'log' yields collocation points
-        equally spaced on a log scale, 'quadratic' yields bins with
-        similar number of data points and 'linear' yields linear bins.
-        Alternatively, it is possible to explicitly specify the bin edges.
-        If bin_edges are explicitly specified, then `rmax` and `nbins` is
-        ignored. (Default: 'log')
+    distances : array_like, optional
+        Distances at which to compute the ACF; all must be smaller than
+        :math:`L`. Required for, and only accepted by, the 'brute-force'
+        algorithm. (Default: None)
+    nb_interpolate : int, optional
+        Number of grid points to put between the closest pair of data
+        points. Only used for the 'fft' algorithm. (Default: 5)
+    short_cutoff : callable, optional
+        Function that determines the short-distance cutoff of the returned
+        ACF. It is called with the array of distances :math:`\Delta x_i`
+        between neighboring data points; distances
+        :math:`r > \text{short\_cutoff}(\Delta x_i)/2` are returned. Pass
+        `np.max`, `np.mean` or `np.min` to use the maximum, mean or minimum
+        of the distances. If set to None, the full ACF is returned. This
+        cutoff is applied in addition to the reliability cutoff.
+        (Default: np.mean)
+    resampling_method : {None, 'bin-average', 'gaussian-process'}, optional
+        None returns the ACF on the distances of the interpolation grid (or
+        the requested distances), 'bin-average' averages it within bins,
+        'gaussian-process' resamples it by Gaussian process regression.
+        The 'brute-force' algorithm requires None. (Default: 'bin-average')
+    collocation : {'log', 'quadratic', 'linear'}, optional
+        Resampling grid. 'log' yields collocation points equally spaced on
+        a log scale, 'quadratic' yields bins equally spaced in :math:`r^2`
+        and 'linear' yields linear bins. (Default: 'log')
     nb_points : int, optional
-        Number of bins for averaging. Bins are automatically determined if set
-        to None. (Default: None)
+        Number of bins for averaging. For 'log' collocation, the number of
+        bins is determined from `nb_points_per_decade` if set to None;
+        'linear' and 'quadratic' collocation require this argument.
+        (Default: None)
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
-        (Default: None)
+        (Default: 10)
 
     Returns
     -------
-    distances : array
+    distances : np.ndarray or np.ma.MaskedArray
         Distances. (Units: length)
-    acf : array
-        Autocorrelation function. (Units: length**2)
+    acf : np.ndarray or np.ma.MaskedArray
+        Height-difference autocorrelation function. (Units: length²)
     """
     if self.is_reentrant:
         raise ReentrantDataError('This topography is reentrant (i.e. it contains overhangs). The autocorrelation '

@@ -36,11 +36,20 @@ def interpolate_linear(self):
     Returns a linear interpolation function based on the topography's heights.
     For (2D) topographies, the interpolation is not unique. Each rectangle is
     split into two triangles that side in the lower left and upper right part
-    of the rectangle.
+    of the rectangle, and the heights are interpolated linearly on each
+    triangle.
 
     Note that for nonperiodic line scans/topographies, interpolation only
     works for positions between 0 and sx - sx/nx - i.e. the interpolated
     physical domain of the topography is smaller than the nominal domain.
+    Undefined (masked) data points yield NaN in their neighborhood.
+
+    Returns
+    -------
+    interpolator : callable
+        `interpolator(x, periodic=None)` for line scans,
+        `interpolator(x, y, periodic=None)` for topographies. `periodic`
+        overrides the periodicity of the topography if not None.
     """
 
     def linear_interpolator_line_scan(x, periodic=None):
@@ -109,9 +118,29 @@ def interpolate_bicubic(self, derivative='fourier'):
     and slopes as obtained using finite-differences (derivative='fd') or Fourier
     derivative (derivative='fourier').
 
-    Note that for nonperiodic line scans/topographies, interpolation only
-    works for positions between 0 and sx - sx/nx - i.e. the interpolated
-    physical domain of the topography is smaller than the nominal domain.
+    On each grid cell, the interpolant is a polynomial
+    :math:`\sum_{a,b=0}^3 c_{ab} \xi^a \eta^b` in the local coordinates
+    :math:`\xi, \eta \in [0, 1)`. Its 16 coefficients are fixed by the
+    heights, the two slopes and the mixed derivative (set to zero) at the four
+    corners of the cell. The interpolant is continuous with continuous first
+    derivatives; second derivatives are discontinuous across cell
+    boundaries. Only periodic topographies are supported.
+
+    Parameters
+    ----------
+    derivative : {'fourier', 'fd'}, optional
+        Source of the slopes at the grid points: spectral (Fourier)
+        derivative or central differences. (Default: 'fourier')
+
+    Returns
+    -------
+    interpolator : callable
+        `interpolator(x, y, derivative=0)`. Returns the interpolated heights
+        for `derivative=0`; for `derivative=1` additionally the slopes
+        :math:`\partial h/\partial x, \partial h/\partial y`; for
+        `derivative=2` additionally the second derivatives
+        :math:`\partial^2 h/\partial x^2, \partial^2 h/\partial y^2,
+        \partial^2 h/\partial x \partial y`.
     """
     if not self.is_periodic:
         raise ValueError('Bicubic interpolation is only implemented for periodic surfaces.')
@@ -182,7 +211,7 @@ def interpolate_fourier(self, nb_grid_pts):
     Interpolates the heights of `topography` on a finer grid given by
     `nb_grid_pts` by padding the fourier spectrum with zeros.
 
-    Only 2D implemented.
+    Only 2D implemented. The topography is treated as periodic.
 
     Note: at the nyquist frequency we use the "minimal-oscillation"
     interpolation, i.e. we assume a cosine wave
@@ -190,12 +219,17 @@ def interpolate_fourier(self, nb_grid_pts):
 
     Parameters
     ----------
-    self: Topography
-    nb_grid_pts: tuple
+    self : :obj:`Topography`
+        Topography to interpolate.
+    nb_grid_pts : tuple of ints
+        Number of grid points of the interpolated topography. Must not be
+        smaller than the number of grid points of `self` in any direction.
 
     Returns
     -------
-    SurfaceTopography with interolated values
+    topography : :obj:`Topography`
+        Periodic topography with the interpolated heights and the physical
+        sizes of `self`. Unit and info dictionary are not carried over.
 
     """
     bigspectrum = np.zeros((nb_grid_pts[0], nb_grid_pts[1] // 2 + 1),
@@ -244,9 +278,11 @@ def interpolate_fourier(self, nb_grid_pts):
 
 class MirrorStichedTopography(DecoratedUniformTopography):
     """
-    adds mirror images at the top (big y) and at the right (big x) of the
-    topography, making it kind of periodic
-
+    Adds mirror images at the top (big y) and at the right (big x) of the
+    topography. The result has twice the number of grid points and twice the
+    physical size in each direction, is continuous across the boundaries of
+    the doubled domain and is reported as periodic. Serial (non-MPI) 2D
+    topographies only.
     """
 
     def __init__(self, parent_topography, info={}):

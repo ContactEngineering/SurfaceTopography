@@ -477,7 +477,7 @@ def _read_unit(stream):
 
     Parameters
     ----------
-    f : bytes
+    stream : file-like stream object
         The input buffer
 
     Returns
@@ -521,16 +521,16 @@ def _read_unit_data(stream):
 
 def _read_quantity(stream):
     """
-    Reads in a quantity unit: Value, name and symbol.
+    Reads in a quantity: Value, name and symbol of its unit.
 
     Parameters
     ----------
-    stream : bytes
+    stream : file-like stream object
         The input buffer
 
     Returns
     -------
-    unit : DektakUnit
+    quantity : DektakUnit
         A unit item, filled with value, name and symbol
     """
     length = _read_varlen(stream)

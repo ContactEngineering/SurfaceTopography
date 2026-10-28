@@ -34,16 +34,19 @@ from SurfaceTopography.NonuniformLineScan import NonuniformLineScan, DecoratedNo
 
 
 class WrapAsNonuniformLineScan(DecoratedNonuniformTopography):
-    """
-    Wrap a uniform topography into a nonuniform one.
+    r"""
+    Wrap a uniform line scan into a nonuniform one. The positions are the
+    grid positions :math:`x_i = i \Delta x`, :math:`i = 0, \dots, N-1`; the
+    physical size of the nonuniform line scan is their span
+    :math:`(N-1) \Delta x`.
     """
 
     def __init__(self, topography, info={}):
         """
         Parameters
         ----------
-        topography : :obj:`NonuniformLineScan`
-            SurfaceTopography to wrap.
+        topography : :obj:`UniformLineScan`
+            Nonperiodic line scan to wrap.
         info : dict
             Additional entries for the info dictionary.
         """

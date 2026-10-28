@@ -1,3 +1,8 @@
+"""
+Command-line tool `show-topography`: read a topography file and plot its
+default channel.
+"""
+
 import argparse
 
 from matplotlib import pyplot as plt
@@ -6,6 +11,7 @@ from SurfaceTopography.IO import read_topography
 
 
 def main():
+    """Entry point of the `show-topography` command."""
     parser = argparse.ArgumentParser(
         prog="show-topography", description="Visualize a surface topography"
     )

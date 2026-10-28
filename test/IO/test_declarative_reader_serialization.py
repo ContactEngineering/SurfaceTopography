@@ -24,7 +24,7 @@
 
 """
 Tests for layout serialization per the format description contract
-(docs/format_description_contract.rst): contract-style JSON documents,
+(docs/format-description-contract.md): contract-style JSON documents,
 opaque markers for non-expression callables, and rehydration via
 `layout_from_dict`.
 """

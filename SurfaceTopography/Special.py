@@ -24,7 +24,8 @@
 #
 
 """
-Special topographies
+Special (deterministic) geometries: topographies from analytic functions,
+spheres and paraboloids, and topographies with a plastic displacement field.
 """
 
 import numpy as np
@@ -44,47 +45,35 @@ def make_topography_from_function(fun, physical_sizes,
                                   **kwargs
                                   ):
     """
+    Create a topography map by evaluating a function on the grid,
+    :math:`h(x, y) = f(x - c_x, y - c_y)`.
+
     Parameters
     ----------
-    fun: callable(X, Y)
-    centre: tuple or "middle"
-        (cx, cy)
-        h(X,Y) =  fun(X-cx, Y-cy)
-        default (0,0)
+    fun : callable(x, y)
+        Function that returns the heights for arrays of positions.
     physical_sizes : tuple of floats
-        Physical physical_sizes of the topography map
-    periodic : bool
-        The topography is periodic. (Default: False)
-    decomposition : str
-        Specification of the data decomposition of the heights array. If
-        set to 'subdomain', the heights array contains only the part of
-        the full topography local to the present MPI process. If set to
-        'domain', the heights array contains the global array.
-        Default: 'serial', which fails for parallel runs.
+        Physical size :math:`(L_x, L_y)` of the topography map.
     nb_grid_pts : tuple of ints
-        Number of grid points for the full topography. This is only
-        required if decomposition is set to 'subdomain'.
-    subdomain_locations : tuple of ints
+        Number of grid points of the full topography.
+    subdomain_locations : tuple of ints, optional
         Origin (location) of the subdomain handled by the present MPI
-        process.
-    nb_subdomain_grid_pts : tuple of ints
+        process. (Default: None, i.e. the origin)
+    nb_subdomain_grid_pts : tuple of ints, optional
         Number of grid points within the subdomain handled by the present
-        MPI process. This is only required if decomposition is set to
-        'domain'.
-    communicator : mpi4py communicator or NuMPI stub communicator
-        The MPI communicator object.
-        default value is COMM_SELF because sometimes NON-MPI readers that
-        do not set the communicator value are used in MPI Programs.
-        See discussion in issue #166
-    info : dict
-        The info dictionary containing auxiliary data. This data is never
-        used by PyCo but can be used by third-party codes.
+        MPI process. If None, the full grid is evaluated (serial
+        topography). (Default: None)
+    centre : tuple or "middle", optional
+        Position :math:`(c_x, c_y)` of the origin of `fun`. "middle"
+        places it at the centre of the topography. (Default: (0, 0))
+    **kwargs
+        Further keyword arguments passed to `Topography`, e.g. `periodic`,
+        `unit`, `info` and `communicator`.
 
     Returns
     -------
-
-    SurfaceTopography.Topography instance
-
+    topography : Topography
+        The topography map.
     """
     if isinstance(centre, str) and centre == "middle":
         centre = tuple([s / 2 for s in physical_sizes])
@@ -124,49 +113,62 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None,
                 nb_subdomain_grid_pts=None, subdomain_locations=None,
                 communicator=MPI.COMM_WORLD):
     r"""
-    Simple sphere geometry.
+    Spherical cap or paraboloid with its apex (maximum) at height `offset`.
 
-    If kind="sphere" (Default)
+    For kind="sphere" (default)
 
-    .. math:: h = \left\{ \begin{array}{ll} \sqrt{\text{radius}^2 - r^2} -
-                  \text{radius} & \text{  for  } r < \text{radius} \\ - \text{standoff}
-                   & \text{else} \end{array} \right.
+    .. math:: h = \left\{ \begin{array}{ll} \sqrt{R^2 - r^2} - R
+                  & \text{for } r \le R \\ -R - \text{standoff}
+                  & \text{else} \end{array} \right.
 
-    If kind="paraboloid" the sphere is approximated by a paraboloid
+    For kind="paraboloid", the sphere is approximated by a paraboloid
 
-    .. math:: h = \frac{r^2}{2 \cdot \text{radius}}
+    .. math:: h = -\frac{r^2}{2R}
 
-    :math:`r^2 = x^2 + y^2`
+    Here :math:`R` is the radius and :math:`r^2 = (x - c_x)^2 + (y - c_y)^2`
+    the squared distance from the centre (:math:`r^2 = (x - c_x)^2` for line
+    scans). `offset` is added to :math:`h`.
 
     Parameters
     ----------
     radius : float
-        self-explanatory
-    nb_grid_pts : float
-        self-explanatory
-    physical_sizes : float
-        self-explanatory
-    centre : float
-         specifies the coordinates (in length units, not pixels).
-         by default, the sphere is centred in the topography
-    kind: str
-        Options are "sphere" or "paraboloid". Default is "sphere".
-    standoff : float or "undefined"
-         when using interaction forces with ranges of the order
-         the radius, you might want to set the topography outside of
-         the sphere to far away, maybe even pay the price of inf,
-         if your interaction has no cutoff
+        Radius :math:`R` of the sphere.
+    nb_grid_pts : int or tuple of ints
+        Number of grid points. A single value (or one-element tuple) yields
+        a `UniformLineScan`, two values a `Topography`.
+    physical_sizes : float or tuple of floats
+        Physical size of the line scan or topography map.
+    centre : float or tuple of floats, optional
+        Position of the centre (in length units, not pixels).
+        (Default: None, i.e. the centre of the domain)
+    standoff : float or "undefined", optional
+        Height outside the sphere (:math:`r > R`), measured downwards from
+        the lowest point of the sphere, :math:`h = -R - \text{standoff}`.
+        For "undefined", these points are masked and `has_undefined_data`
+        is True. Not used for kind="paraboloid". (Default: "undefined")
+    offset : float, optional
+        Constant added to all heights. (Default: 0)
+    periodic : bool, optional
+        Distances are computed with the minimum image convention, i.e. the
+        sphere wraps around the periodic boundaries. The result is only
+        meaningful if the sphere fits into the domain. (Default: False)
+    kind : str, optional
+        "sphere" or "paraboloid". (Default: "sphere")
+    nb_subdomain_grid_pts : tuple of ints, optional
+        Number of grid points of the local subdomain (MPI-parallel runs).
+        (Default: None, i.e. the full grid)
+    subdomain_locations : tuple of ints, optional
+        Location of the local subdomain (MPI-parallel runs).
+        (Default: None, i.e. the origin)
+    communicator : mpi4py communicator or NuMPI stub communicator, optional
+        MPI communicator object, only used for topography maps.
+        (Default: MPI.COMM_WORLD)
 
-         For `standoff="undefined"`, the entries will be masked in the 
-         topography and topography.has_undefined_data will be true
-
-         If `kind="paraboloid"` the paraboloid approximation is used
-            and the standoff is not applied
-    periodic : bool
-         whether the sphere can wrap around. tricky for large spheres
-    communicator : mpi4py communicator NuMPI stub communicator
-         MPI communicator object.
-    """  # noqa: E501, W291
+    Returns
+    -------
+    topography : UniformLineScan or Topography
+        The sphere.
+    """
     if not hasattr(nb_grid_pts, "__iter__"):
         nb_grid_pts = (nb_grid_pts,)
     dim = len(nb_grid_pts)
@@ -241,16 +243,26 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None,
 
 
 class PlasticTopography(DecoratedUniformTopography):
-    """ SurfaceTopography with an additional plastic deformation field.
+    r"""
+    Topography with an additional plastic displacement field,
+    :math:`h = h_0 + u_\text{pl}`, where :math:`h_0` are the heights of the
+    parent topography. The field is stored per grid point of the local
+    subdomain and is updated by the user, e.g. by a contact mechanics code
+    that limits the contact pressure to the hardness.
     """
     name = 'plastic_topography'
 
     def __init__(self, topography, hardness, plastic_displ=None):
         """
-        Keyword Arguments:
-        topography -- topography profile
-        hardness -- penetration hardness
-        plastic_displ -- initial plastic displacements
+        Parameters
+        ----------
+        topography : :obj:`UniformTopographyInterface`
+            Undeformed topography.
+        hardness : float
+            Penetration hardness (units of pressure); must not be negative.
+        plastic_displ : np.ndarray, optional
+            Initial plastic displacements, same shape as the local
+            subdomain. (Default: None, i.e. zero)
         """
         super().__init__(topography)
         self.hardness = hardness
@@ -295,16 +307,15 @@ class PlasticTopography(DecoratedUniformTopography):
         self.__h_pl = plastic_displ
 
     def undeformed_profile(self):
-        """ Returns the undeformed profile of the topography.
-        """
+        """Return the heights of the undeformed (parent) topography."""
         return self.parent_topography.heights()
 
     def heights(self):
-        """ Computes the combined profile.
-        """
+        """Return undeformed heights plus plastic displacements."""
         return self.undeformed_profile() + self.plastic_displ
 
     @property
     def plastic_area(self):
+        """Area of the grid points with nonzero plastic displacement."""
         pnp = Reduction(self._communicator)
         return pnp.sum(np.count_nonzero(self.__h_pl)) * self.area_per_pt

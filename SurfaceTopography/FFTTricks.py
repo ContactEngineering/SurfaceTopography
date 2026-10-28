@@ -84,17 +84,23 @@ def make_fft(topography, communicator=None):
 
 
 def get_window_2D(window, nx, ny, physical_sizes=None):
-    """
+    r"""
     Construct a rotationally symmetric window for windowing two-dimensional
     signals (fields).
+
+    The 'hann' window is :math:`w(r) = [1 + \cos(\pi r/r_\text{max})]/2`
+    for :math:`r < r_\text{max} = \min(L_x, L_y)/2` and zero otherwise,
+    where :math:`r` is the distance from the grid point
+    :math:`(N_x/2, N_y/2)` (integer division) in physical units. The window
+    is not normalized.
 
     Parameters
     ----------
     window : str or np.ndarray
         If window is an np.ndarray, it is just passed through (i.e.
         immediately returned) from this function. If window is a string,
-        then a corresponding window will be constructed. Currently the only
-        support window is 'hann'.
+        then a corresponding window will be constructed. The only supported
+        window is 'hann'.
     nx : int
         Number of grid points of the signal in x-direction
     ny : int

@@ -1,3 +1,7 @@
+"""
+JSON encoding of numpy arrays, masked arrays, non-finite numbers and dates.
+"""
+
 import datetime
 import decimal
 import uuid
@@ -13,6 +17,10 @@ except ModuleNotFoundError:
 
 
 def nan_to_none(obj):
+    """
+    Recursively convert `obj` into JSON-compatible Python objects: arrays
+    become lists, and NaN, infinite and masked values become None.
+    """
     if isinstance(obj, dict):
         return {k: nan_to_none(v) for k, v in obj.items()}
     elif isinstance(obj, list) or isinstance(obj, set):
@@ -60,6 +68,7 @@ def _get_duration_components(duration):
 # From Django:
 # https://github.com/django/django/blob/main/django/utils/duration.py
 def duration_iso_string(duration):
+    """Format a `datetime.timedelta` as an ISO 8601 duration string."""
     if duration < datetime.timedelta(0):
         sign = "-"
         duration *= -1

@@ -34,26 +34,25 @@ _default_dois = set()
 
 class doi(object):
     """
-    To add bibliographic information, simply decorate the function:
+    Decorator that records bibliographic references (DOIs) of a function.
+    To add bibliographic information, decorate the function::
 
-    ```
-    @doi('10.1088/2051-672X/aa51f8')
-    def power_spectrum(topography):
-        ...
-    ```
+        @doi('10.1088/2051-672X/aa51f8')
+        def power_spectrum(topography):
+            ...
 
-    The DOIs can be requested by passing a `doi` argument with an empty set to
-    the function:
+    The DOIs can be requested by passing a `dois` argument with an empty set
+    to the function::
 
-    ```
-    dois = set()
-    power_spectrum(topography, dois=dois)
-    print(dois)  # Prints the relevant bibliographic information
-    ```
+        dois = set()
+        power_spectrum(topography, dois=dois)
+        print(dois)  # Prints the relevant bibliographic information
 
-    Note that the dois need to be evaluated directly after the function call.
-    Any additional function calls will continue to populate the set with
-    bibliography information.
+    The set collects the DOIs of the called function, of all decorated
+    functions called by it (e.g. further analysis or pipeline functions)
+    and the default DOIs of the package. Collection stops when the outermost
+    call that received `dois` returns. The bookkeeping uses class-level
+    state and is therefore not thread-safe.
     """
 
     dois = set()

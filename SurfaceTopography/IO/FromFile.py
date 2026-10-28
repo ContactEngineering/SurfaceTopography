@@ -63,7 +63,9 @@ def make_wrapped_reader(
 ):
     class WrappedReader(ReaderBase):
         """
-        emulates the new implementation of the readers
+        Reader that wraps a function returning a single topography. The
+        whole file is parsed when the reader is opened; the file holds a
+        single channel.
         """
 
         _format = format
@@ -177,11 +179,29 @@ def read_hgt(
     periodic=False,
 ):
     """
-    Read Shuttle Radar SurfaceTopography Mission (SRTM) topography data
-    (.hgt extension).
+    Read Shuttle Radar Topography Mission (SRTM) topography data
+    (.hgt extension). The file holds a square map of big-endian 16-bit
+    integers; the value -32768 marks voids, which are returned as undefined
+    data.
 
-    Keyword Arguments:
-    fobj -- filename or file object
+    Parameters
+    ----------
+    fobj : str or file object
+        File name or binary stream.
+    physical_sizes : tuple of floats, optional
+        Physical sizes of the map; not stored in the file. (Default: None)
+    height_scale_factor : float, optional
+        Factor by which the heights are multiplied. (Default: None)
+    unit : str, optional
+        Length unit; not stored in the file. (Default: None)
+    info : dict, optional
+        Metadata attached to the topography. (Default: {})
+    periodic : bool, optional
+        Whether the map is periodic. (Default: False)
+
+    Returns
+    -------
+    topography : :obj:`Topography`
     """
     fobj.seek(0, 2)
     fsize = fobj.tell()

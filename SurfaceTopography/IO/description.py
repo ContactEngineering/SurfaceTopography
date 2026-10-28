@@ -25,7 +25,7 @@
 """
 Serialization of declarative file layouts to and from the JSON documents
 defined by the format description contract
-(`docs/format_description_contract.rst`).
+(`docs/format-description-contract.md`).
 
 `layout_to_dict` turns a layout tree (built from the classes in `binary.py`
 and `Reader.py`) into a JSON-compatible dictionary; `layout_from_dict`

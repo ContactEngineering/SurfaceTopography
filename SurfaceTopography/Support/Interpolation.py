@@ -24,7 +24,15 @@
 #
 
 """
-Interpolation classes
+Interpolation classes.
+
+`Bicubic` (implemented in C++) constructs a piecewise bicubic interpolant on
+a periodic grid with unit grid spacing from the values and, optionally, the
+first derivatives at the grid points. If no derivatives are given, they are
+computed from central differences. Mixed derivatives at the grid points are
+set to zero. The 16 spline coefficients of a cell are computed on demand;
+only the coefficients of the most recently evaluated cell are cached, so
+memory beyond the input arrays is constant.
 """
 
 from _SurfaceTopography import Bicubic  # noqa: F401

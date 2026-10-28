@@ -25,7 +25,8 @@
 #
 
 """
-Base class for geometric topogography descriptions
+Base classes for topographies (height containers) and the registry of
+analysis and pipeline functions.
 """
 
 import abc
@@ -44,8 +45,9 @@ class AbstractTopography(object):
     """
     Base class for all classes storing height information.
 
-    The member dictionary `_functions` contains a list of functions that
-    can be executed on this specific class.
+    The member dictionary `_functions` contains the analysis and pipeline
+    functions that can be executed on this specific class. They are called
+    as methods of the topography object, see `__getattr__`.
 
     The dictionary itself is owned by the interface,
     `UniformTopographyInterface` and `NonuniformLineScanInterface`. This is
@@ -84,6 +86,11 @@ class AbstractTopography(object):
             return functions
 
     def apply(self, name, *args, **kwargs):
+        """
+        Execute the registered analysis or pipeline function `name` on this
+        topography. `topography.apply('detrend', ...)` is equivalent to
+        `topography.detrend(...)`.
+        """
         return self._function_registry()[name](self, *args, **kwargs)
 
     def __getattr__(self, name):
@@ -152,7 +159,10 @@ class AbstractTopography(object):
     def info(self) -> dict:
         """
         Return the info dictionary. The info dictionary contains auxiliary data
-        found in the topography data file but not directly used by SurfaceTopogoraphy.
+        found in the topography data file but not directly used by
+        SurfaceTopography. It is validated against
+        :class:`SurfaceTopography.Metadata.InfoModel`; entries that are
+        `None` are omitted.
         """
         return self._info.model_dump(exclude_none=True)
 
@@ -162,6 +172,11 @@ class AbstractTopography(object):
         return self._communicator
 
     def pipeline(self):
+        """
+        Return the list of topography objects that make up the processing
+        pipeline, starting with the object that owns the data and ending
+        with this object.
+        """
         return [self]
 
 
@@ -216,12 +231,40 @@ class DecoratedTopography(AbstractTopography):
         return self.parent_topography.nb_subdomain_grid_pts
 
     def pipeline(self):
+        """
+        Return the list of topography objects that make up the processing
+        pipeline, starting with the object that owns the data and ending
+        with this object.
+        """
         return self.parent_topography.pipeline() + [self]
 
 
 class TopographyInterface(object):
+    """
+    Registry of analysis and pipeline functions shared by all topographies
+    of one kind (uniform or nonuniform).
+    """
+
     @classmethod
     def register_function(cls, name, function, deprecated=False):  # noqa: N805
+        """
+        Register `function` under `name` for this class and its subclasses.
+        The function is afterwards callable as a method
+        `topography.name(*args, **kwargs)` and receives the topography as
+        first argument. Pipeline functions are classes derived from
+        `DecoratedTopography` whose constructor takes the parent topography
+        as first argument.
+
+        Parameters
+        ----------
+        name : str
+            Name of the method.
+        function : callable
+            Analysis function or pipeline class.
+        deprecated : bool, optional
+            Emit a `DeprecationWarning` whenever the function is called.
+            (Default: False)
+        """
         if deprecated:
             function = deprecation_warning()(function)
         if not getattr(function, '__has_doi__', False):
@@ -252,6 +295,11 @@ class TopographyInterface(object):
 
 
 class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
+    """
+    Interface of topographies on a uniform grid: line scans
+    (`UniformLineScan`) and topography maps (`Topography`).
+    """
+
     _functions = {}
 
     @property
@@ -264,6 +312,7 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
 
     @property
     def is_domain_decomposed(self):
+        """True if this MPI process holds only part of the grid."""
         return self.nb_grid_pts != self.nb_subdomain_grid_pts
 
     @property
@@ -349,6 +398,11 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
 
 
 class NonuniformLineScanInterface(TopographyInterface, metaclass=abc.ABCMeta):
+    """
+    Interface of line scans with arbitrary, nonuniform positions. Heights
+    between data points are obtained by linear interpolation.
+    """
+
     _functions = {}
 
     @property
@@ -357,6 +411,10 @@ class NonuniformLineScanInterface(TopographyInterface, metaclass=abc.ABCMeta):
 
     @property
     def is_reentrant(self):
+        """
+        True if the positions are not strictly increasing, i.e. the profile
+        has overhangs and is not a single-valued function :math:`h(x)`.
+        """
         positions = self.positions()
         if len(positions) < 2:
             # A line scan with less than two points cannot be reentrant
@@ -371,6 +429,7 @@ class NonuniformLineScanInterface(TopographyInterface, metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def x_range(self):
+        """Return the first and last position, :math:`(x_0, x_{N-1})`."""
         raise NotImplementedError
 
     @abc.abstractmethod

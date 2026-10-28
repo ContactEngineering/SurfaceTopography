@@ -23,8 +23,10 @@
 #
 
 """
-Bearing area curve, also known as Abbott-Firestone curve or cumulative
-distribution function of the surface heights.
+Bearing area curve, also known as Abbott-Firestone curve. The fractional
+bearing area at height h is the fraction of the projected area where the
+surface lies above h, i.e. the complementary cumulative distribution function
+of the heights of the piecewise-linear interpolation of the data.
 """
 
 from functools import cached_property
@@ -61,11 +63,14 @@ class NonuniformBearingArea:
 
         The bearing area as a function of height is also known as the
         Abbott-Firestone curve. If expressed as a fractional area, it is the
-        cumulative distribution function of the surface heights. This function
-        returns this fractional area.
+        complementary cumulative distribution function of the surface heights.
+        This function returns this fractional area. The line scan is
+        interpolated linearly between data points and the length above the
+        threshold is computed exactly for this interpolation.
 
-        The function has complexity O(N) where N is the number of elements in
-
+        The function has complexity O(N) per height, where N is the number of
+        segments; segments lying entirely below the threshold are skipped
+        using a list of segments sorted by their maximum height.
 
         Parameters
         ----------
@@ -75,7 +80,7 @@ class NonuniformBearingArea:
         Returns
         -------
         fractional_area : float or np.ndarray
-            Fractional area above a the threshold height.
+            Fractional area above the threshold height.
         """
         if np.isscalar(heights):
             return _SurfaceTopography.nonuniform_bearing_area(self._x, self._h, self._el_sort_by_max,
@@ -87,8 +92,10 @@ class NonuniformBearingArea:
     def bounds(self, heights):
         """
         Compute bounds on the bearing area for a specific height. These bounds
-        can be computed O(log(N)) time, where N is the number of elements in the
-        line scan.
+        can be computed in O(log(N)) time, where N is the number of elements
+        (segments). The lower bound is the length fraction of segments that
+        lie entirely above the height, the upper bound the length fraction of
+        segments that have at least one point above the height.
 
         Parameters
         ----------
@@ -123,8 +130,8 @@ def bearing_area(self, heights=None):
 
     The bearing area as a function of height is also known as the
     Abbott-Firestone curve. If expressed as a fractional area, it is the
-    cumulative distribution function of the surface heights. This function
-    returns this fractional area.
+    complementary cumulative distribution function of the surface heights.
+    This function returns this fractional area.
 
     Parameters
     ----------
@@ -136,10 +143,10 @@ def bearing_area(self, heights=None):
     Returns
     -------
     fractional_area : float or np.ndarray
-        Fractional area above the threshold height, if height is given.
+        Fractional area above the threshold height, if `heights` is given.
     bearing_area : :obj:`NonuniformBearingArea`
         Instance of :obj:`NonuniformBearingArea` class that caches the bearing area
-        calculation.
+        calculation, if `heights` is None.
     """
     b = NonuniformBearingArea(*self.positions_and_heights())
     if heights is None:

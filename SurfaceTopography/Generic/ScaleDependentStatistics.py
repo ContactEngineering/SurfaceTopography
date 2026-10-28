@@ -36,11 +36,13 @@ from ..Support.Regression import make_grid
 def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, distance=None, reliable=True,
                                          interpolation='linear', progress_callback=None,
                                          collocation='log', nb_points=None, nb_points_per_decade=10, threshold=4):
-    """
-    Compute statistical properties of a uniform topography at specific scales.
-    The scale is specified either by `scale_factors` or `distance`. These
+    r"""
+    Compute statistical properties of a topography at specific scales.
+    The scale is specified either by `scale_factor` or `distance`. These
     properties are statistics of derivatives carried out at specific scales,
-    as computed using the `derivative` pipeline function.
+    as computed using the `derivative` analysis function. See
+    Sanner et al., Appl. Surf. Sci. Adv. 7, 100190 (2022),
+    https://doi.org/10.1016/j.apsadv.2021.100190.
 
     The specific statistical properties is computed by the `func` argument.
     The output of `func` needs to be homogeneous, i.e. if an array is returned,
@@ -49,8 +51,8 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
 
     Parameters
     ----------
-    self : Topography or UniformLineScan
-        Topogaphy or line scan.
+    self : Topography or UniformLineScan or NonuniformLineScan
+        Topography or line scan.
     func : callable
         The function that computes the statistical properties:
 
@@ -63,24 +65,34 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
         return a scalar value or an array, but the array size must be fixed.
     n : int, optional
         Order of derivative. (Default: 1)
-    scale_factor : float or np.ndarray
+    scale_factor : float or np.ndarray, optional
         Scale factor for rescaling the finite differences stencil. A scale
         factor of unity means the derivative is computed at the size of the
-        individual pixel.
-    distance : float or np.ndarray
+        individual pixel. Only supported for uniform topographies.
+        (Default: None)
+    distance : float or np.ndarray, optional
         Characteristic distances at which the derivatives are computed. This
         is the overall length of the underlying stencil of lowest truncation
         order, not the effective grid spacing used by this stencil. (The
         corresponding scale factor is then given by distance / (n * px) where
         n is the order of the derivative and px the grid spacing.)
         If this is an array, then the statistical property is computed at each
-        of these distances.
+        of these distances. If neither `scale_factor` nor `distance` is
+        given, distances are generated automatically between `n` times the
+        lower and the upper bound of `bandwidth()` (see `collocation`).
+        (Default: None)
     reliable : bool, optional
-        Only incorporate data deemed reliable. (Default: True)
+        Only incorporate data deemed reliable. If true and the topography
+        reports a `short_reliability_cutoff` :math:`\lambda_c`, only
+        distances larger than :math:`n\lambda_c/2` are returned. (The cutoff
+        is the length of the second-derivative stencil, i.e. :math:`\lambda_c/2`
+        is its grid spacing.) This filter is only applied if `scale_factor`
+        or `distance` is an array or is generated automatically.
+        (Default: True)
     interpolation : str, optional
         Interpolation method to use for computing derivatives at distances
         that do not equal an integer multiple of the grid spacing. Use
-        'linear' for a local liner interpolation or 'fourier' for global
+        'linear' for a local linear interpolation or 'fourier' for global
         Fourier interpolation. Note that Fourier interpolation carries large
         errors for nonperiodic topographies and should be used with care.
         (Default: 'linear')
@@ -88,7 +100,7 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
         Function taking iteration and the total number of iterations as
         arguments for progress reporting. (Default: None)
     collocation : {'log', 'quadratic', 'linear', array_like}, optional
-        Automatic computation of sampling grid if neigther `scale_factor` nor
+        Automatic computation of sampling grid if neither `scale_factor` nor
         `distance` is specified. Specifying 'log' yields collocation points
         equally spaced on a log scale, 'quadratic' yields bins with
         similar number of data points and 'linear' yields linear bins.
@@ -98,27 +110,34 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
         determined if set to None. (Default: None)
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
-        (Default: None)
+        (Default: 10)
     threshold : int, optional
-        Defines the minimal amount of data points of the probability distribution
-        to calculate the statistical properties with func and returns a np.nan if
-        the value is below the threshold.
-        E.g. the scipy.stats.kstat function needs at least 4 data points to
-        calculate the 4th cumulant function, otherwise it returns nan or inf
-        (Default: 4)
+        Minimum number of derivative values required to evaluate `func`;
+        derivative arrays with fewer values are replaced by np.nan before
+        `func` is called. E.g. the scipy.stats.kstat function needs at least
+        4 data points to calculate the 4th cumulant function, otherwise it
+        returns nan or inf. (Default: 4)
 
     Returns
     -------
-    statistical_fingerprint : np.ndarray or list of np.ndarray
-        Array containing the result of `func`
+    distance : float or np.ndarray
+        Distances at which the property was evaluated. (Units: length)
+    statistical_fingerprint : np.ndarray
+        Result of `func` for each distance.
+
+    Raises
+    ------
+    NoReliableDataError
+        If no distance lies above the reliability cutoff.
 
     Examples
     --------
-    This example yields the the scale-dependent derivative (equivalent to
-    the autocorrelation function divided by the distance) in the x-direction:
+    This example yields the variance of the scale-dependent slope in the
+    x-direction, which equals :math:`2A(\lambda)/\lambda^2` (up to the
+    squared mean slope) with the autocorrelation function :math:`A`:
 
     >>> distances, A = t.autocorrelation_from_profile(resampling_method=None)
-    >>> s = t.scale_dependent_statistical_property(lambda x, y=None: np.var(x), distance=distances[1::20])
+    >>> d, s = t.scale_dependent_statistical_property(lambda x, y=None: np.var(x), distance=distances[1::20])
     >>> np.testing.assert_allclose(2 * A[1::20] / distances[1::20] ** 2, s)
     """
     if scale_factor is None and distance is None:
