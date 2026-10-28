@@ -32,7 +32,7 @@ from datetime import datetime
 import numpy as np
 import pytest
 import yaml
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 from numpy.testing import assert_allclose
 
 import SurfaceTopography
@@ -47,10 +47,7 @@ from SurfaceTopography.Container.SurfaceContainer import InMemorySurfaceContaine
 
 from .test_io import binary_example_file_list, text_example_file_list
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+pytestmark = serial_only
 
 
 def test_read_just_uniform(file_format_examples):
@@ -306,10 +303,7 @@ def test_invalid_index_json_raises(file_format_examples, tmp_path):
 
 def test_missing_metadata_raises_format_mismatch(file_format_examples, tmp_path):
     from SurfaceTopography.Container.IO import detect_format
-    from SurfaceTopography.Exceptions import (
-        CannotDetectFileFormat,
-        FileFormatMismatch,
-    )
+    from SurfaceTopography.Exceptions import CannotDetectFileFormat, FileFormatMismatch
 
     fn = str(tmp_path / "batch.zip")
     with zipfile.ZipFile(fn, "w") as z:

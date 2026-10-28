@@ -27,15 +27,13 @@ import struct
 
 import numpy as np
 import pytest
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography import read_topography
 from SurfaceTopography.Exceptions import UnsupportedFormatFeature
 from SurfaceTopography.IO import MetroProReader
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+pytestmark = serial_only
 
 
 def test_read_filestream(file_format_examples):

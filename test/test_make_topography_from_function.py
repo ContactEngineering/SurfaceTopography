@@ -22,7 +22,7 @@
 # SOFTWARE.
 #
 import numpy as np
-from muGrid.Wrappers import FFTEngine
+from NuMPI.FFT import make_fft_engine
 
 from SurfaceTopography.Special import make_topography_from_function
 
@@ -34,7 +34,7 @@ def test_sphere(comm):
     sy = 7.
     R = 20.
     center = (3., 3.)
-    fftengine = FFTEngine((nx, ny), communicator=comm)
+    fftengine = make_fft_engine((nx, ny), communicator=comm)
 
     topography = make_topography_from_function(
         lambda x, y: np.sqrt(R ** 2 - (x ** 2 + y ** 2)) - R, (sx, sy), nb_grid_pts=(nx, ny), centre=center,

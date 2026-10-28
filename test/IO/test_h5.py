@@ -27,15 +27,12 @@ import os
 import h5py
 import numpy as np
 import pytest
-
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 
 import SurfaceTopography
 from SurfaceTopography.IO import H5Reader
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+pytestmark = serial_only
 
 
 def test_detect_format(file_format_examples):

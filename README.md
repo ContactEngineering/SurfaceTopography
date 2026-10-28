@@ -107,9 +107,13 @@ If you need an editable install (e.g. for development purposes), make sure you d
 
     python3 -m pip install --no-build-isolation -e .
 
-You need to manually install `ninja`, `meson-python`, `pytest`, `runtests`, `DiscoverVersion` and `numpy` before:
+You need to manually install `ninja`, `meson-python`, `pytest`, `DiscoverVersion` and `numpy` before:
 
-    python3 -m pip install ninja meson-python pytest runtests DiscoverVersion numpy
+    python3 -m pip install ninja meson-python pytest DiscoverVersion numpy
+
+MPI-parallel (domain-decomposed) topographies need the `mpi` extra, with mpi4py and muGrid compiled against your MPI library:
+
+    CC=mpicc CXX=mpicxx python3 -m pip install --no-binary mpi4py --no-binary muGrid SurfaceTopography[mpi]
 
 Funding
 -------

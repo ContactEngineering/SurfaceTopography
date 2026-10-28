@@ -86,11 +86,13 @@ def Sq(topography):
             "Areal rms height can only be computed for topographies, not line scans."
         )
     elif topography.dim == 2:
-        # Normalize by the number of *defined* (unmasked) data points
-        profile = topography.heights()
-        return np.sqrt(
-            np.ma.sum((profile - np.ma.mean(profile)) ** 2) / np.ma.count(profile)
-        )
+        # Normalize by the number of *defined* (unmasked) data points; sums
+        # run over all subdomains of a domain-decomposed topography
+        reduction = Reduction(topography._communicator)
+        heights = np.ma.compressed(topography.heights())
+        n = reduction.sum(len(heights))
+        mean = reduction.sum(np.sum(heights)) / n
+        return np.sqrt(reduction.sum(np.sum((heights - mean) ** 2)) / n)
     else:
         raise ValueError(f"Cannot handle topographies of dimension {topography.dim}")
 
@@ -285,6 +287,14 @@ def rms_laplacian(
     rms_laplacian : float
         Root mean square Laplacian value.
     """
+    # The derivatives are not computed correctly in parallel. Check the
+    # communicator rather than `is_domain_decomposed`: pipeline steps on a
+    # decomposed topography report no decomposition but share its communicator.
+    if topography.communicator.Get_size() > 1:
+        raise NotImplementedError(
+            "`rms_laplacian` and `rms_curvature_from_area` do not support "
+            "MPI-parallel (domain-decomposed) topographies."
+        )
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
     if topography.dim == 1:

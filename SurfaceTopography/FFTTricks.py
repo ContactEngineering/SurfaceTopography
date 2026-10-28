@@ -22,8 +22,8 @@
 # SOFTWARE.
 #
 
-import muGrid
 import numpy as np
+from NuMPI.FFT import make_fft_engine
 
 
 def make_fft(topography, communicator=None):
@@ -35,9 +35,10 @@ def make_fft(topography, communicator=None):
     This function checks if the topography object already has an FFT engine object
     attached to it. If it does, it returns that object. If it doesn't, it
     creates a new FFT engine object and attaches it to the topography object.
-    If the topography object is domain decomposed, it checks if the muGrid FFTEngine
-    object's domain decomposition matches the topography's. If it doesn't,
-    it raises a RuntimeError.
+    Serial topographies use a numpy-based engine; domain-decomposed
+    topographies require muGrid (compiled with MPI support). If muGrid's
+    domain decomposition does not match the topography's, it raises a
+    RuntimeError.
 
     Parameters
     ----------
@@ -49,13 +50,14 @@ def make_fft(topography, communicator=None):
 
     Returns
     -------
-    fft : muGrid.FFTEngine
-        The FFT engine object that can compute the Fourier transform of the topography.
+    fft : NuMPI.FFT.NumpyFFTEngine or muGrid.FFTEngine
+        The FFT engine object that can compute the Fourier transform of the
+        topography. Both share muGrid's interface and conventions.
 
     Raises
     ------
     RuntimeError
-        If the muGrid FFTEngine object's domain decomposition does not match the topography's domain decomposition.
+        If muGrid's domain decomposition does not match the topography's domain decomposition.
     """
     if communicator is None:
         communicator = topography.communicator
@@ -68,13 +70,14 @@ def make_fft(topography, communicator=None):
         return topography._mufft
 
     if topography.is_domain_decomposed:
-        fft = muGrid.FFTEngine(topography.nb_grid_pts, communicator=communicator)
-        if fft.subdomain_locations != topography.subdomain_locations or \
-                fft.nb_subdomain_grid_pts != topography.nb_subdomain_grid_pts:
+        fft = make_fft_engine(topography.nb_grid_pts, communicator=communicator)
+        if tuple(fft.subdomain_locations) != tuple(topography.subdomain_locations) or \
+                tuple(fft.nb_subdomain_grid_pts) != tuple(topography.nb_subdomain_grid_pts):
             raise RuntimeError('muGrid suggested a domain decomposition that '
                                'differs from the decomposition of the topography.')
     else:
-        fft = muGrid.FFTEngine(topography.nb_grid_pts)
+        # Every process holds the full topography and transforms it by itself
+        fft = make_fft_engine(topography.nb_grid_pts)
     topography._mufft = fft
     topography._mufft_communicator = communicator
     return fft

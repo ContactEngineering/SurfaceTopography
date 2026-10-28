@@ -27,8 +27,9 @@ import tempfile
 
 import numpy as np
 import pytest
-from muGrid.Wrappers import FFTEngine
 from NuMPI import MPI
+from NuMPI.FFT import make_fft_engine
+from NuMPI.Testing.Fixtures import serial_only
 from scipy.io import netcdf_file
 
 from SurfaceTopography.Exceptions import FileFormatMismatch
@@ -50,7 +51,7 @@ def test_save_and_load(maxcomm):
     np.random.seed(1)
     t = fourier_synthesis(nb_grid_pts, size, 0.8, rms_slope=0.1, unit="µm")
 
-    fft = FFTEngine(nb_grid_pts, communicator=maxcomm)
+    fft = make_fft_engine(nb_grid_pts, communicator=maxcomm)
     dt = t.domain_decompose(
         fft.subdomain_locations, fft.nb_subdomain_grid_pts, communicator=maxcomm
     )
@@ -86,10 +87,7 @@ def test_save_and_load(maxcomm):
     assert t3.is_periodic
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 def test_save_and_load_no_unit():
     nb_grid_pts = (128, 128)
     size = (3, 3)
@@ -107,10 +105,7 @@ def test_save_and_load_no_unit():
     np.testing.assert_array_almost_equal(t.heights(), t2.heights())
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 def test_save_and_load_angstrom_unit():
     nb_grid_pts = (128, 128)
     size = (3, 3)
@@ -129,10 +124,7 @@ def test_save_and_load_angstrom_unit():
     np.testing.assert_array_almost_equal(t.heights(), t2.heights())
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 def test_load_no_physical_sizes():
     nb_grid_pts = (128, 128)
     size = (3, 3)
@@ -159,10 +151,7 @@ def test_load_no_physical_sizes():
     np.testing.assert_array_almost_equal(t.heights(), t2.heights())
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 def test_save_and_load_line_scan():
     nb_grid_pts = (128,)
     size = (3,)
@@ -182,10 +171,7 @@ def test_save_and_load_line_scan():
         assert t == t2
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 @pytest.mark.parametrize("fn", binary_example_file_list)
 def test_save_and_load_binary_files(fn):
     if fn in explicit_physical_sizes:
@@ -204,10 +190,7 @@ def test_save_and_load_binary_files(fn):
         assert t == t2
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest",
-)
+@serial_only
 def test_netcdf_without_heights(tmp_path):
     # NetCDF files following other conventions (here: the layout used by
     # GXSM) must be rejected cleanly such that format detection can continue

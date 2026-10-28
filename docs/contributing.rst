@@ -74,19 +74,20 @@ Writing tests
 =============
 
 Older tests are written using the `unittest` syntax. We now use `pytest` (that
-understands almost all unittest syntaxes), because it is compatible with the
-parallel test runner runtests_.
+understands almost all unittest syntaxes), which also runs the parallel tests
+under `mpirun`.
 
-If a whole test file should only be run in serial
-and/or is incompatible with `runtests` (`unittest`), include following line:
+If a whole test file should only be run in serial, include the following
+line:
 
 .. code-block:: python
 
-    pytestmark = pytest.mark.skipif(MPI.COMM_WORLD.Get_size()> 1,
-            reason="tests only serial funcionalities, please execute with pytest")
+    from NuMPI.Testing.Fixtures import serial_only
 
-The file will executed in a run with `pytest` and not with a (parallel) run with
-`python3 run-tests.py`
+    pytestmark = serial_only
+
+The file will be executed in a run with `pytest` and skipped in a (parallel)
+run with `mpirun -n 4 python3 -m pytest`.
 
 MPI Tests
 ---------
@@ -134,4 +135,3 @@ Compiling the documentation
 
 .. _PEP-8: https://www.python.org/dev/peps/pep-0008/
 .. _numpydoc: https://numpydoc.readthedocs.io/
-.. _runtests: https://github.com/bccp/runtests

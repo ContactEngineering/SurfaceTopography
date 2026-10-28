@@ -29,14 +29,12 @@ Tests for the bicubic interpolation module
 
 import numpy as np
 import pytest
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.Support.Interpolation import Bicubic
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+pytestmark = serial_only
 
 nx = 17
 ny = 22

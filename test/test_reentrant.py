@@ -25,15 +25,12 @@
 """Test for resampling of noisy data."""
 
 import pytest
-
-from NuMPI import MPI
+from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography import NonuniformLineScan
 from SurfaceTopography.Exceptions import ReentrantDataError
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+pytestmark = serial_only
 
 
 def test_rms_slope():

@@ -23,16 +23,13 @@
 # SOFTWARE.
 #
 
-import pytest
 import numpy as np
-
-from NuMPI import MPI
+import pytest
+from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography.Generation import fourier_synthesis
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+pytestmark = serial_only
 
 
 @pytest.mark.parametrize("n", [128, 129])

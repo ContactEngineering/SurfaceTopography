@@ -28,17 +28,13 @@ Tests for scale-dependent slope analysis
 """
 
 import numpy as np
-import pytest
+from NuMPI.Testing.Fixtures import serial_only
 from numpy.testing import assert_almost_equal, assert_array_almost_equal
-
-from NuMPI import MPI
 
 from SurfaceTopography import UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+pytestmark = serial_only
 
 
 def test_limiting_values():

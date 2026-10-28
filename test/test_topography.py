@@ -36,8 +36,8 @@ from tempfile import TemporaryDirectory as tmp_dir
 
 import numpy as np
 import pytest
-from muGrid.Wrappers import FFTEngine
-from NuMPI import MPI
+from NuMPI.FFT import make_fft_engine
+from NuMPI.Testing.Fixtures import serial_only
 from NuMPI.Tools import Reduction
 from numpy.random import rand
 from numpy.testing import assert_array_equal
@@ -55,9 +55,7 @@ from SurfaceTopography.IO import XYZReader
 from SurfaceTopography.IO.Text import read_matrix
 from SurfaceTopography.Support.UnitConversion import get_unit_conversion_factor
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+pytestmark = serial_only
 
 DATADIR = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), 'file_format_examples')
@@ -649,7 +647,7 @@ def test_positions(comm):
     nx, ny = (12 * comm.Get_size(), 10 * comm.Get_size() + 1)
     sx = 33.
     sy = 54.
-    fftengine = FFTEngine((nx, ny), communicator=comm)
+    fftengine = make_fft_engine((nx, ny), communicator=comm)
     nb_subdomain_grid_pts = fftengine.nb_subdomain_grid_pts
     subdomain_locations = fftengine.subdomain_locations
 
