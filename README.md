@@ -1,4 +1,4 @@
-[![Build Status](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/test-code-functionality.yml/badge.svg)](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/tests.yml)
+[![Build Status](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/test-code-functionality.yml/badge.svg)](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/test-code-functionality.yml)
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ContactEngineering/SurfaceTopography)
 
@@ -22,7 +22,7 @@ topography = read_topography('surface.opd')
 # Get basic properties
 print(f"Grid size: {topography.nb_grid_pts}")
 print(f"Physical size: {topography.physical_sizes}")
-print(f"RMS height: {topography.rms_height_from_area()}")
+print(f"RMS height: {topography.Sq()}")
 
 # Compute the power spectral density (PSD)
 q, psd = topography.power_spectrum_from_profile()
@@ -40,7 +40,7 @@ plt.show()
 Supported File Formats
 ----------------------
 
-SurfaceTopography supports over 35 file formats from commercial surface profilometers:
+SurfaceTopography reads more than 40 file formats of commercial surface profilometers and scanning probe microscopes (see the [full list](https://contactengineering.github.io/SurfaceTopography/formats/)):
 
 | Format | Description |
 |--------|-------------|
@@ -60,21 +60,22 @@ SurfaceTopography supports over 35 file formats from commercial surface profilom
 | `mat` | MATLAB .mat files |
 | `mdt` | NT-MDT (Solver, Ntegra) AFM files |
 | `metropro` | Zygo MetroPro files |
-| `mi` | Park Systems / Molecular Imaging files |
+| `mi` | Agilent / Molecular Imaging files |
 | `mitutoyo` | Mitutoyo surface roughness files |
 | `mnt` | Digital Surf Mountains MNT files |
 | `nc` | NetCDF files |
-| `nmm` | PTB NMM files |
+| `nmm` | Nanomeasuring machine (NMM) files |
 | `nms` | Nanofocus NMS files |
 | `npy` | NumPy binary files |
+| `npz` | NumPy array archives |
 | `oir` | Olympus OIR files |
 | `opd` | Wyko OPD files |
-| `opdx` | Wyko OPDx files |
+| `opdx` | Bruker Dektak OPDx files |
 | `os3d` | Digital Metrology OmniSurf3D files |
 | `plu` | Sensofar PLU files |
 | `plux` | Sensofar PLUX files |
 | `poir` | Olympus POIR (zip) files |
-| `ps` | Keyence profilometer files |
+| `ps` | Park Systems TIFF files |
 | `qep` | Mahr MarWin QEP profile archives |
 | `sdf` | ISO 25178-71 SDF files |
 | `sur` | Digital Surf SUR files |
@@ -87,8 +88,8 @@ SurfaceTopography supports over 35 file formats from commercial surface profilom
 | `zon` | Keyence ZON files |
 
 If you use this code, please cite:
-* [Jacobs, Junge, Pastewka, Surf. Topogr. Metrol. Prop. 1, 013001 (2017)](https://doi.org/10.1088/2051-672X/aa51f8)
-* [Röttger el al., Surf. Topogr. Metrol. Prop. 10, 035032 (2022)](https://doi.org/10.1088/2051-672X/ac860a) 
+* [Jacobs, Junge, Pastewka, Surf. Topogr. Metrol. Prop. 5, 013001 (2017)](https://doi.org/10.1088/2051-672X/aa51f8)
+* [Röttger et al., Surf. Topogr. Metrol. Prop. 10, 035032 (2022)](https://doi.org/10.1088/2051-672X/ac860a) 
 
 Documentation
 -------------
@@ -98,10 +99,9 @@ This README file contains a brief introduction into the code. The full documenta
 Installation
 ------------
 
-Detailed instruction for the installation are provided in the [documentation](https://contactengineering.github.io/SurfaceTopography/installation.html?highlight=installation). If you want to install from source
-you need to run `git submodule update --init` after a fresh checkout.
+Detailed instructions for the installation are provided in the [documentation](https://contactengineering.github.io/SurfaceTopography/installation/).
 
-The most basic configuration of SurfaceTopography installs all requirements autonomously `python3 -m pip install SurfaceTopgography`
+The most basic configuration of SurfaceTopography installs all requirements autonomously: `python3 -m pip install SurfaceTopography`
 
 If you need an editable install (e.g. for development purposes), make sure you disable build isolation:
 
