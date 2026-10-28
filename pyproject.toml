@@ -69,7 +69,7 @@ dependencies = [
 # MPI-parallel (domain-decomposed) topographies; mpi4py, muGrid and netCDF4
 # must be compiled against the same MPI library
 mpi = [
-    "NuMPI[mpi,fft]>=0.17.0",
+    "NuMPI[mpi,fft]>=0.17.1",
     "muGrid>=1.6.0",
     "netCDF4"
 ]
