@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Testing &mdash; SurfaceTopography 1.26.0.dev7+ga88a4340 documentation</title>
+  <title>Testing &mdash; SurfaceTopography 1.26.0.dev23+gd0947e5d documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=911af532"></script>
+      <script src="_static/documentation_options.js?v=c42ac45f"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -95,16 +95,14 @@
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest
 </pre></div>
 </div>
-<p>Tests that are parallelizable have to run with <a class="reference external" href="https://github.com/bccp/runtests">runtests</a>.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>run-tests.py<span class="w"> </span>--no-build
+<p>This runs serially and does not need MPI. Parallel tests require the <cite>mpi</cite>
+extra (see <a class="reference internal" href="installation.html"><span class="doc">Installation</span></a>) and are run with <cite>mpirun</cite>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpirun<span class="w"> </span>-n<span class="w"> </span><span class="m">4</span><span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pytest
 </pre></div>
 </div>
-<p>You can choose the number of processors with the option <cite>–mpirun=”mpirun -np 4”</cite>. For development purposes you can go beyond the number of processors of your computer using <cite>–mpirun=”mpirun -np 10 –oversubscribe”</cite></p>
-<p>Other usefull flags:</p>
-<ul class="simple">
-<li><p><cite>–xterm</cite>: one window per processor</p></li>
-<li><p><cite>–xterm –pdb</cite>: debugging</p></li>
-</ul>
+<p>The tests use communicators of size 1 and 4; tests for other sizes are
+skipped. For development purposes you can go beyond the number of processors
+of your computer using <cite>mpirun -n 10 –oversubscribe</cite>.</p>
 </section>
 
 

@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; SurfaceTopography 1.26.0.dev7+ga88a4340 documentation</title>
+  <title>Installation &mdash; SurfaceTopography 1.26.0.dev23+gd0947e5d documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=911af532"></script>
+      <script src="_static/documentation_options.js?v=c42ac45f"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -121,8 +121,14 @@ and our <a class="reference external" href="https://github.com/ContactEngineerin
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w">  </span>install<span class="w"> </span><span class="o">[</span>--user<span class="o">]</span><span class="w"> </span>git+https://github.com/ContactEngineering/SurfaceTopography.git
 </pre></div>
 </div>
-<p>The command will install other dependencies including <a class="reference external" href="https://github.com/muSpectre/muGrid.git">muGrid</a>, <a class="reference external" href="https://github.com/IMTEK-Simulation/NuMPI.git">NuMPI</a> and
-<a class="reference external" href="https://github.com/bccp/runtests">runtests</a>.</p>
+<p>The command will install other dependencies including <a class="reference external" href="https://github.com/IMTEK-Simulation/NuMPI.git">NuMPI</a>. This
+installation runs serially and does not need MPI.</p>
+<p>MPI-parallel (domain-decomposed) topographies require mpi4py, <a class="reference external" href="https://github.com/muSpectre/muGrid.git">muGrid</a> and
+netCDF4, which are installed with the <cite>mpi</cite> extra. They must be compiled
+against the MPI library of your system:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">CC</span><span class="o">=</span>mpicc<span class="w"> </span><span class="nv">CXX</span><span class="o">=</span>mpicxx<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="o">[</span>--user<span class="o">]</span><span class="w"> </span>--no-binary<span class="w"> </span>mpi4py<span class="w"> </span>--no-binary<span class="w"> </span>muGrid<span class="w"> </span>SurfaceTopography<span class="o">[</span>mpi<span class="o">]</span>
+</pre></div>
+</div>
 <p>If you want to install all optional dependencies for full functionality:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget<span class="w"> </span>https://raw.githubusercontent.com/ContactEngineering/SurfaceTopography/master/requirements.txt
 <span class="c1"># I found the url to the requirements files using</span>

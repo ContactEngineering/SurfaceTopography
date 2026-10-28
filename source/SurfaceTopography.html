@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography package &mdash; SurfaceTopography 1.26.0.dev7+ga88a4340 documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 1.26.0.dev23+gd0947e5d documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=911af532"></script>
+      <script src="../_static/documentation_options.js?v=c42ac45f"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
@@ -1732,9 +1732,10 @@ this is not the case).</p>
 <p>This function checks if the topography object already has an FFT engine object
 attached to it. If it does, it returns that object. If it doesn’t, it
 creates a new FFT engine object and attaches it to the topography object.
-If the topography object is domain decomposed, it checks if the muGrid FFTEngine
-object’s domain decomposition matches the topography’s. If it doesn’t,
-it raises a RuntimeError.</p>
+Serial topographies use a numpy-based engine; domain-decomposed
+topographies require muGrid (compiled with MPI support). If muGrid’s
+domain decomposition does not match the topography’s, it raises a
+RuntimeError.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1744,13 +1745,14 @@ present. (Default: None)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>fft</strong> – The FFT engine object that can compute the Fourier transform of the topography.</p>
+<dd class="field-even"><p><strong>fft</strong> – The FFT engine object that can compute the Fourier transform of the
+topography. Both share muGrid’s interface and conventions.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>muGrid.FFTEngine</p>
+<dd class="field-odd"><p>NuMPI.FFT.NumpyFFTEngine or muGrid.FFTEngine</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>RuntimeError</strong> – If the muGrid FFTEngine object’s domain decomposition does not match the topography’s domain decomposition.</p>
+<dd class="field-even"><p><strong>RuntimeError</strong> – If muGrid’s domain decomposition does not match the topography’s domain decomposition.</p>
 </dd>
 </dl>
 </dd></dl>

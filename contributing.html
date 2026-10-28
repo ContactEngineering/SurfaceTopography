@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contributing to SurfaceTopography &mdash; SurfaceTopography 1.26.0.dev7+ga88a4340 documentation</title>
+  <title>Contributing to SurfaceTopography &mdash; SurfaceTopography 1.26.0.dev23+gd0947e5d documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=911af532"></script>
+      <script src="_static/documentation_options.js?v=c42ac45f"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -166,16 +166,17 @@ all files from the commit log.</p>
 <section id="writing-tests">
 <h2>Writing tests<a class="headerlink" href="#writing-tests" title="Link to this heading"></a></h2>
 <p>Older tests are written using the <cite>unittest</cite> syntax. We now use <cite>pytest</cite> (that
-understands almost all unittest syntaxes), because it is compatible with the
-parallel test runner <a class="reference external" href="https://github.com/bccp/runtests">runtests</a>.</p>
-<p>If a whole test file should only be run in serial
-and/or is incompatible with <cite>runtests</cite> (<cite>unittest</cite>), include following line:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pytestmark</span> <span class="o">=</span> <span class="n">pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">skipif</span><span class="p">(</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span><span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="n">reason</span><span class="o">=</span><span class="s2">"tests only serial funcionalities, please execute with pytest"</span><span class="p">)</span>
+understands almost all unittest syntaxes), which also runs the parallel tests
+under <cite>mpirun</cite>.</p>
+<p>If a whole test file should only be run in serial, include the following
+line:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuMPI.Testing.Fixtures</span><span class="w"> </span><span class="kn">import</span> <span class="n">serial_only</span>
+
+<span class="n">pytestmark</span> <span class="o">=</span> <span class="n">serial_only</span>
 </pre></div>
 </div>
-<p>The file will executed in a run with <cite>pytest</cite> and not with a (parallel) run with
-<cite>python3 run-tests.py</cite></p>
+<p>The file will be executed in a run with <cite>pytest</cite> and skipped in a (parallel)
+run with <cite>mpirun -n 4 python3 -m pytest</cite>.</p>
 <section id="mpi-tests">
 <h3>MPI Tests<a class="headerlink" href="#mpi-tests" title="Link to this heading"></a></h3>
 <p>In order to vary the number of processors used in the tests, you should always
