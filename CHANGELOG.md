@@ -22,6 +22,8 @@ v1.27.0 (28Oct26)
 - BUILD: MPI and muGrid are optional; the default install runs serially, install the `mpi`
   extra for domain-decomposed topographies
 - BUG: Areal rms height of domain-decomposed (MPI-parallel) topographies was computed per process
+- API: The rms curvature of domain-decomposed (MPI-parallel) topographies raises an error
+  instead of failing with an index error; it is not supported in parallel
 - BUG: NPY files in big-endian byte order or half precision failed to load when mpi4py is
   installed
 - CI: Parallel tests run under MPI again; they had silently been skipped

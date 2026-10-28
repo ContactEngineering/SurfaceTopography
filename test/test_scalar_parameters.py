@@ -72,9 +72,15 @@ def sinewave2D(comm=None):
 
 
 def test_rms_curvature(comm):
-    if comm.Get_size() > 1:
-        pytest.xfail("Derivatives with linear interpolation do not support domain-decomposed topographies")
     L, hm, top = sinewave2D(comm)
+    if comm.Get_size() > 1:
+        # Not supported in parallel, also not through a pipeline step
+        for t in [top, top.detrend(detrend_mode="center")]:
+            with pytest.raises(NotImplementedError):
+                t.rms_curvature_from_area()
+            with pytest.raises(NotImplementedError):
+                t.rms_laplacian()
+        return
     numerical = top.rms_curvature_from_area()
     analytical = np.sqrt(4 * (16 * np.pi**4 / L**4) * hm**2 / 4 / 4)
     #                 rms(∆)^2 = (qx^2 + qy^2)^2 * hm^2 / 4

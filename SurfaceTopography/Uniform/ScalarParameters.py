@@ -287,6 +287,14 @@ def rms_laplacian(
     rms_laplacian : float
         Root mean square Laplacian value.
     """
+    # The derivatives are not computed correctly in parallel. Check the
+    # communicator rather than `is_domain_decomposed`: pipeline steps on a
+    # decomposed topography report no decomposition but share its communicator.
+    if topography.communicator.Get_size() > 1:
+        raise NotImplementedError(
+            "`rms_laplacian` and `rms_curvature_from_area` do not support "
+            "MPI-parallel (domain-decomposed) topographies."
+        )
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
     if topography.dim == 1:
