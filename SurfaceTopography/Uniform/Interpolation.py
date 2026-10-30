@@ -229,7 +229,7 @@ def interpolate_fourier(self, nb_grid_pts):
     -------
     topography : :obj:`Topography`
         Periodic topography with the interpolated heights and the physical
-        sizes of `self`. Unit and info dictionary are not carried over.
+        sizes, unit and info dictionary of `self`.
 
     """
     bigspectrum = np.zeros((nb_grid_pts[0], nb_grid_pts[1] // 2 + 1),
@@ -273,7 +273,7 @@ def interpolate_fourier(self, nb_grid_pts):
     return Topography(np.fft.irfft2(bigspectrum, s=nb_grid_pts)
                       * np.prod(nb_grid_pts) / np.prod(self.nb_grid_pts),
                       # normalization
-                      physical_sizes=self.physical_sizes, periodic=True)
+                      physical_sizes=self.physical_sizes, periodic=True, unit=self.unit, info=self.info)
 
 
 class MirrorStichedTopography(DecoratedUniformTopography):

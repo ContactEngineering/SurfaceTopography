@@ -51,6 +51,7 @@ v1.28.0 (not yet released)
   surface, like the estimate from the autocorrelation function; values increase by pi/2
 - BUG: Adding topographies in different units failed because converted physical sizes
   differed by rounding; unit conversion factors are exact powers of ten
+- BUG: Fourier interpolation of topographies dropped the unit and the metadata
 
 v1.27.0 (28Oct26)
 -----------------

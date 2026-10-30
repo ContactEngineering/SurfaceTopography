@@ -819,3 +819,15 @@ def test_power_spectrum_from_profile():
     t = Topography(h, (8, 6))
 
     q1, C1 = t.power_spectrum_from_profile(window='hann')
+
+
+def test_fourier_interpolate_keeps_unit_and_info():
+    t = fourier_synthesis((16, 12), (2., 1.5), 0.8, rms_height=1., rng=0, unit='µm', info={'note': 'abc'})
+    interpolated = t.interpolate_fourier((32, 24))
+    assert interpolated.unit == 'µm'
+    assert interpolated.info['note'] == 'abc'
+    np.testing.assert_allclose(interpolated.physical_sizes, t.physical_sizes)
+    # The interpolation passes through the original grid points
+    np.testing.assert_allclose(interpolated.heights()[::2, ::2], t.heights(), atol=1e-12)
+    # Unit conversion of the result works
+    np.testing.assert_allclose(interpolated.to_unit('mm').physical_sizes, (2e-3, 1.5e-3))

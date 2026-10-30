@@ -510,7 +510,7 @@ Nyquist frequency, the trigonometric interpolant with minimal oscillation
 ([S. G. Johnson, *Notes on FFT-based differentiation*](https://math.mit.edu/~stevenj/fft-deriv.pdf)).
 Cost is $O(M\log M)$ in the number $M$ of output points. Only 2D topographies
 are supported; the input is treated as periodic, so nonperiodic data shows
-ringing near the edges. The unit and info dictionary are not carried over.
+ringing near the edges. The unit and info dictionary are carried over.
 
 ```python
 fi = p.interpolate_fourier((1024, 1024))
