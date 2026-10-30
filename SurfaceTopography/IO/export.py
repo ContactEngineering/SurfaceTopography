@@ -27,8 +27,8 @@ Exporter for format description documents and conformance goldens, per the
 format description contract (docs/format-description-contract.md).
 
 SurfaceTopography is the reference implementation; the artifacts written
-here are vendored into consumers (e.g. SDSAlgorithms/libsdsio) and pinned
-by their CI.
+here can be vendored into other engines implementing the contract and
+pinned by their CI.
 
 Run as a script::
 

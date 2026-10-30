@@ -168,8 +168,8 @@ class ContainerMeta(BaseModel):
     surfaces: list[SurfaceMeta] = Field(default_factory=list)
     created_at: Optional[str] = None
     # Opaque, optional metadata that TopoBank carries through verbatim without
-    # interpreting it. It lets plugins (e.g. the SDS API, which owns training
-    # groups) attach extra container-level information; members referenced
+    # interpreting it. It lets plugins attach extra container-level
+    # information (e.g. groupings of surfaces); members referenced
     # therein are expected to be indices into ``surfaces``.
     extra: Optional[dict] = None
 

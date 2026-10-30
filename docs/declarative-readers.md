@@ -21,8 +21,8 @@ A generic engine, `DeclarativeReaderBase`, executes these declarations. All
 data-dependent quantities (array shapes, validation conditions, conversions)
 are written in a small expression language instead of Python code, so a
 complete reader serializes to a JSON *format description document*. The
-documents are the interface to a second engine written in C++ (`libsdsio` in
-SDSAlgorithms) that executes the same descriptions. The normative definition of
+documents are the interface to other engines, for example one written in C++,
+that execute the same descriptions. The normative definition of
 the documents is the [format description contract](format-description-contract.md).
 
 The format knowledge in a reader (byte offsets, masks, padding rules, magic
@@ -303,13 +303,12 @@ exploration against real files, tests against the example corpus) and the
 descriptions readable (operator overloading, helper functions, comments). The
 JSON document is generated, not edited by hand.
 
-The C++ engine is `DeclarativeReader` in `libsdsio` (SDSAlgorithms): an
-expression evaluator, a layout interpreter with lazy array handles, and a
-format registry keyed by magic bytes, with the description documents embedded
-at build time. The documents and goldens are vendored into SDSAlgorithms and
-regenerated from SurfaceTopography; adding a declarative format there requires
-no C++ code unless the format needs a new layout node, registry function or
-capability.
+An engine in another language consists of an expression evaluator, a layout
+interpreter with lazy array handles, and a format registry keyed by magic
+bytes, with the description documents embedded at build time. The documents
+and goldens are vendored into such an engine and regenerated from
+SurfaceTopography; adding a declarative format there requires no new code
+unless the format needs a new layout node, registry function or capability.
 
 ## Conformance
 
@@ -325,7 +324,7 @@ the authored readers:
 
 The list of exported readers and their fixtures (`_EXPORTED_READERS` in
 `SurfaceTopography/IO/export.py`) parametrizes `test_description.py`, so every
-exported reader is covered automatically. On the C++ side, a conformance runner
+exported reader is covered automatically. Other engines run a conformance runner that
 executes the same goldens; the goldens compare probe pixels and masked
 statistics over the full arrays (see the
 [contract](format-description-contract.md#conformance-goldens)), so
@@ -343,8 +342,8 @@ failures.
    `exported_reader_classes()` in `SurfaceTopography/IO/export.py`.
    `test_description.py` then checks that the description is complete and that
    the generic reader reproduces the authored one.
-3. In SDSAlgorithms, regenerate the vendored descriptions and goldens; the C++
-   conformance runner picks up the new goldens.
+3. In other engines, regenerate the vendored descriptions and goldens; their
+   conformance runners pick up the new goldens.
 4. If a new registry function, layout node or capability is unavoidable, revise
    the contract (incrementing the schema version per its change policy) and
    implement the primitive in both engines.

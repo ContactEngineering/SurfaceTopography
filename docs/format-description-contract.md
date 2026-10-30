@@ -5,7 +5,7 @@
 This page is the normative contract between producers of format description
 documents (the SurfaceTopography exporter, `SurfaceTopography.IO.export`) and
 the engines that execute them (SurfaceTopography's `DeclarativeReaderBase` and
-libsdsio's `DeclarativeReader` in SDSAlgorithms). Where behavior is not
+any other implementation of this contract). Where behavior is not
 specified here, engines must not rely on it agreeing across implementations.
 The architecture around the contract is described in
 [Declarative readers](declarative-readers.md).
