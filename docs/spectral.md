@@ -611,18 +611,35 @@ $$
 integral. Unlike the PSD of a nonperiodic line scan, $A(r)$ needs no window.
 
 **Finite data.** The autocorrelation and spectral routes agree in the
-continuum limit. On a finite measurement they differ because
+continuum limit. On a finite measurement, the autocorrelation route
 
-- the integral over $A(r)$ ends at the largest distance $r_\text{max}$, which
-  leaves out a contribution of order $\langle h^2\rangle/r_\text{max}$;
-- below the smallest distance $r_0$ the slope is assumed constant, which adds
-  $A(r_0)/r_0$, while the spectral route drops wavevectors above the
-  reliability cutoff;
-- the PSD of nonperiodic data is computed with a window.
+- assumes that the heights are uncorrelated beyond the largest distance
+  $r_\text{max}$, i.e. $A(r) = \langle h^2\rangle$ for $r > r_\text{max}$,
+  which adds $\langle h^2\rangle/r_\text{max}$ to the integral. $\langle
+  h^2\rangle$ is $R_q^2$ for profiles (relative to the mean of each profile),
+  $S_q^2$ for maps and, for containers, the mean $R_q^2$ of the topographies
+  that contribute at $r_\text{max}$;
+- assumes a constant slope below the smallest distance $r_0$, which adds
+  $A(r_0)/r_0$, while the spectral route ends at the Nyquist wavevector (or
+  the reliability cutoff).
 
-Periodic surfaces need no window, so comparing both routes on periodic
-surfaces isolates the first two effects. The autocorrelation functions raise `UndefinedDataError` for data
-with undefined (masked) points.
+On periodic surfaces neither route needs a window, and both agree to within
+3.5% (2% if the PSD has a short-wavelength cutoff well above the pixel size);
+the remaining difference comes from the lattice scale. The tests of
+SurfaceTopography check this agreement. For nonperiodic data, the spectral
+route needs a window, which attenuates the longest wavelengths, while the
+autocorrelation route retains them. For $H > \tfrac12$, where these
+wavelengths carry much of the half derivative, the two routes then differ by
+up to tens of percent for an individual measurement.
+
+On a single realization, the profile estimate of a map also differs from its
+areal value, because the profiles weight each Fourier mode with $\lvert
+q_x\rvert$ instead of $\lvert\mathbf q\rvert$ and a few long-wavelength modes
+dominate. The two agree in expectation (to within the anisotropy of the lattice
+of wavevectors) and for many line scans in different directions.
+
+The autocorrelation functions raise `UndefinedDataError` for data with
+undefined (masked) points.
 
 ```python
 print(topo.variance_half_derivative())                 # mm
