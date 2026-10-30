@@ -38,6 +38,8 @@ v1.28.0 (not yet released)
   extended beyond the Nyquist wavevector into the corners of the Fourier grid
 - API: Gaussian-process resampling of spectra and autocorrelation functions was removed; it
   was biased by about a factor of two for noisy spectra. Bin averaging remains
+- BUG: Explicit bin edges (arrays or lists) for spectra and autocorrelation functions failed
+  with an error about the truth value of an array
 
 v1.27.0 (28Oct26)
 -----------------

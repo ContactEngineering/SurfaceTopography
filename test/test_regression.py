@@ -90,3 +90,37 @@ def test_unknown_resampling_method():
         t.power_spectrum_from_profile(resampling_method='gaussian-process')
     with pytest.raises(ValueError, match="Unknown resampling method"):
         t.autocorrelation_from_profile(resampling_method='gaussian-process')
+
+
+def test_explicit_bin_edges():
+    # Bin edges given as list or array give the same result as the
+    # equivalent automatically generated grid
+    x = np.linspace(0, 1, 101)
+    y = np.sin(x)
+    x_auto, edges_auto, y_auto, _ = resample(x, y, collocation='linear', nb_points=10, min_value=0, max_value=1)
+    for edges in [edges_auto, list(edges_auto)]:
+        x_explicit, edges_explicit, y_explicit, _ = resample(x, y, collocation=edges)
+        np.testing.assert_allclose(edges_explicit, edges_auto)
+        np.testing.assert_allclose(x_explicit, x_auto)
+        np.testing.assert_allclose(y_explicit, y_auto)
+    with pytest.raises(ValueError):
+        resample(x, y, collocation=[0.5, 0.2, 1])
+    with pytest.raises(ValueError, match="Unknown collocation"):
+        resample(x, y, collocation='cubic', nb_points=3)
+
+
+@pytest.mark.parametrize("dim", [1, 2])
+def test_explicit_bin_edges_for_spectra(dim):
+    # PSD and ACF accept explicit bin edges as array or list
+    from SurfaceTopography.Generation import fourier_synthesis
+    t = fourier_synthesis((128,) * dim, (1.,) * dim, 0.8, rms_height=1, rng=0)
+    for analysis in ["power_spectrum_from_profile", "autocorrelation_from_profile"] + \
+            (["power_spectrum_from_area", "autocorrelation_from_area"] if dim == 2 else []):
+        x_log, y_log = getattr(t, analysis)(collocation='linear', nb_points=7, reliable=False)
+        edges = np.linspace(np.min(x_log) * 0.999, np.max(x_log) * 1.001, 5)
+        x_edges, y_edges = getattr(t, analysis)(collocation=edges, reliable=False)
+        x_list, y_list = getattr(t, analysis)(collocation=list(edges), reliable=False)
+        assert len(x_edges) == 4
+        np.testing.assert_allclose(x_list, x_edges)
+        np.testing.assert_allclose(y_list, y_edges)
+        assert np.all((x_edges.compressed() >= edges[0]) & (x_edges.compressed() <= edges[-1]))

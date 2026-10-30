@@ -38,11 +38,13 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
 
     Parameters
     ----------
-    collocation : {'log', 'quadratic', 'linear'}
+    collocation : {'log', 'quadratic', 'linear', array_like}
         Resampling grid. Specifying 'log' yields collocation points
         equally spaced on a log scale, 'quadratic' yields bin edges
         equally spaced in the square of the value (similar number of data
         points per bin on a 2D radial grid) and 'linear' yields linear bins.
+        An array specifies the bin edges explicitly; `min_value`,
+        `max_value`, `nb_points` and `nb_points_per_decade` are then ignored.
     min_value : float
         Minimum value. For log-spaced collocation points, bin edges extend
         `dectol` decades beyond `min_value` and `max_value`.
@@ -70,7 +72,14 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
         respective bin. This array contains one more data point than
         the `collocation_points` array.
     """
-    if collocation == 'log':
+    if not isinstance(collocation, str):
+        # Explicit bin edges
+        bin_edges = np.asarray(collocation, dtype=float)
+        if bin_edges.ndim != 1 or len(bin_edges) < 2 or np.any(np.diff(bin_edges) <= 0):
+            raise ValueError('Bin edges must be a one-dimensional, strictly increasing array with at least two '
+                             'entries.')
+        collocation_points = (bin_edges[1:] + bin_edges[:-1]) / 2
+    elif collocation == 'log':
         # Power law -> equally spaced on a log-log plot
         if nb_points is None:
             # The size of the first bin should be equal to min_radius,
@@ -94,8 +103,7 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
         bin_edges = np.linspace(min_value, max_value, nb_points + 1)
         collocation_points = (bin_edges[1:] + bin_edges[:-1]) / 2
     else:
-        bin_edges = collocation
-        collocation_points = (bin_edges[1:] + bin_edges[:-1]) / 2
+        raise ValueError(f"Unknown collocation '{collocation}'.")
     return collocation_points, bin_edges
 
 
@@ -170,11 +178,12 @@ def resample(x, values, collocation='log', nb_points=None, min_value=None, max_v
         Evaluation points.
     values : array_like
         Function values.
-    collocation : {'log', 'quadratic', 'linear'}, optional
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
         Resampling grid. Specifying 'log' yields collocation points
         equally spaced on a log scale, 'quadratic' yields bin edges
         equally spaced in the square of the value (similar number of data
         points per bin on a 2D radial grid) and 'linear' yields linear bins.
+        An array specifies the bin edges explicitly.
         (Default: 'log')
     nb_points : int, optional
         Number of bins for averaging, see `make_grid`. For 'log'
@@ -243,11 +252,12 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
     physical_sizes : (float, float), optional
         Physical size of the 2D grid. (Default: Size is equal to number of
         grid points.)
-    collocation : {'log', 'quadratic', 'linear'}, optional
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
         Resampling grid. Specifying 'log' yields collocation points
         equally spaced on a log scale, 'quadratic' yields bin edges
         equally spaced in the square of the value (similar number of data
         points per bin on a 2D radial grid) and 'linear' yields linear bins.
+        An array specifies the bin edges explicitly.
         (Default: 'log')
     nb_points : int, optional
         Number of bins for averaging, see `make_grid`. For 'log'

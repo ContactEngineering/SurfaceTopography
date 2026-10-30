@@ -74,10 +74,11 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
     resampling_method : {None, 'bin-average'}, optional
         None returns the PSD on the wavevectors of the FFT, 'bin-average'
         averages it within bins. (Default: 'bin-average')
-    collocation : {'log', 'quadratic', 'linear'}, optional
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
         Resampling grid. 'log' yields collocation points equally spaced on
         a log scale, 'quadratic' yields bins equally spaced in :math:`q^2`
-        and 'linear' yields linear bins. (Default: 'log')
+        and 'linear' yields linear bins. An array specifies the bin edges
+        explicitly. (Default: 'log')
     nb_points : int, optional
         Number of bins for averaging. For 'log' collocation, the number of
         bins is determined from `nb_points_per_decade` if set to None;
@@ -140,7 +141,7 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
             return q, C_all.mean(axis=1)
     else:
         short_cutoff = 2 * np.pi / self.short_reliability_cutoff(2 * sx / nx) if reliable else np.pi * nx / sx
-        if collocation == 'log':
+        if isinstance(collocation, str) and collocation == 'log':
             # Exclude zero distance because that does not work on a log-scale
             q = q[1:]
             C_all = C_all[1:]
@@ -191,11 +192,11 @@ def power_spectrum_from_area(self, window=None, reliable=True, collocation='log'
         nonperiodic topographies)
     reliable : bool, optional
         Only return data deemed reliable. (Default: True)
-    collocation : {'log', 'quadratic', 'linear'}, optional
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
         Resampling grid. 'log' yields collocation points equally spaced on
         a log scale, 'quadratic' yields bins equally spaced in :math:`q^2`
         (similar number of wavevectors per bin) and 'linear' yields linear
-        bins. (Default: 'log')
+        bins. An array specifies the bin edges explicitly. (Default: 'log')
     nb_points : int, optional
         Number of bins for averaging. For 'log' collocation, the number of
         bins is determined from `nb_points_per_decade` if set to None;

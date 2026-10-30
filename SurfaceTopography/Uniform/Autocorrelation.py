@@ -82,10 +82,11 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
     resampling_method : {None, 'bin-average'}, optional
         None returns the ACF on the distances of the grid, 'bin-average'
         averages it within bins. (Default: 'bin-average')
-    collocation : {'log', 'quadratic', 'linear'}, optional
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
         Resampling grid. 'log' yields collocation points equally spaced on
         a log scale, 'quadratic' yields bins equally spaced in :math:`r^2`
-        and 'linear' yields linear bins. (Default: 'log')
+        and 'linear' yields linear bins. An array specifies the bin edges
+        explicitly. (Default: 'log')
     nb_points : int, optional
         Number of bins for averaging. For 'log' collocation, the number of
         bins is determined from `nb_points_per_decade` if set to None;
@@ -179,7 +180,7 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
             return r, A
     else:
         short_cutoff = self.short_reliability_cutoff(2 * sx / nx) if reliable else 2 * sx / nx
-        if collocation == 'log':
+        if isinstance(collocation, str) and collocation == 'log':
             # Exclude zero distance because that does not work on a log-scale
             r = r[1:]
             A = A[1:]
@@ -215,11 +216,11 @@ def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=
         Container storing the (two-dimensional) topography map.
     reliable : bool, optional
         Only return data deemed reliable. (Default: True)
-    collocation : {'log', 'quadratic', 'linear'}, optional
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
         Resampling grid. 'log' yields collocation points equally spaced on
         a log scale, 'quadratic' yields bins equally spaced in :math:`r^2`
         (similar number of grid points per bin) and 'linear' yields linear
-        bins. (Default: 'log')
+        bins. An array specifies the bin edges explicitly. (Default: 'log')
     nb_points : int, optional
         Number of bins for averaging. For 'log' collocation, the number of
         bins is determined from `nb_points_per_decade` if set to None;
