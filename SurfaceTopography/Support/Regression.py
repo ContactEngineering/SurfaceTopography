@@ -248,7 +248,7 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
     Parameters
     ----------
     data : array_like
-        2D-array of values to be averaged.
+        2D-array of values to be averaged. Masked entries are excluded.
     physical_sizes : (float, float), optional
         Physical size of the 2D grid. (Default: Size is equal to number of
         grid points.)
@@ -316,6 +316,8 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
     if max_radius is None:
         max_radius = np.max(radius)
 
-    return resample(np.ravel(radius), np.ravel(data), collocation=collocation, nb_points=nb_points,
+    # Masked entries do not contribute to the average
+    defined = ~np.ma.getmaskarray(data)
+    return resample(radius[defined], np.ma.getdata(data)[defined], collocation=collocation, nb_points=nb_points,
                     min_value=min_radius, max_value=max_radius, nb_points_per_decade=nb_points_per_decade,
                     method=method)

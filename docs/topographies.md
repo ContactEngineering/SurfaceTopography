@@ -168,7 +168,9 @@ l = UniformLineScan([1.0, 2.0, np.nan, 4.0], 4.0)
 print(l.has_undefined_data, l.heights())  # True [1.0 2.0 -- 4.0]
 ```
 
-Functions that cannot handle undefined data raise `UndefinedDataError`. The
+Functions that cannot handle undefined data raise `UndefinedDataError`, e.g.
+the power spectral densities; the autocorrelation functions average over the
+defined points. The
 pipeline functions `fill_undefined_data` and
 `interpolate_undefined_data` remove the mask ([imputation](pipelines.md)).
 `NonuniformLineScan` cannot hold undefined data; its constructor rejects

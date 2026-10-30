@@ -46,9 +46,11 @@ self-affine topography has $C^\text{2D}(q) = C_0 q^{-2-2H}$ and
 $C^\text{1D}(q) \propto q^{-1-2H}$. The conventions follow
 Jacobs, Junge & Pastewka (2017).
 
-None of the functions on this page accept topographies with undefined data
+The power spectral densities do not accept topographies with undefined data
 (they raise `UndefinedDataError`); see [topographies](topographies.md) for how
-to fill in missing points.
+to fill in missing points. The
+[autocorrelation functions](#data-with-undefined-points) and the quantities
+derived from them average over the defined points.
 
 ## Power spectral density
 
@@ -294,6 +296,34 @@ $0 \le r_k < L$ are returned. In 2D, the map is padded to
 $(2N_x-1)\times(2N_y-1)$ points and normalized by $(N_x-k)(N_y-l)$; only
 distance vectors with nonnegative components are computed, and radial bins
 extend up to $(L_x+L_y)/2$ (periodic: $(L_x+L_y)/4$).
+
+### Data with undefined points
+
+For topographies with undefined (masked) points, the average at distance
+$\mathbf d$ runs over all pairs of defined points. With $w = 1$ at defined and
+$w = 0$ at undefined points, $g = wh$ and $s = wh^2$,
+
+$$
+A(\mathbf d) = \frac{\frac12\left[c_{ws}(\mathbf d) + c_{ws}(-\mathbf d)\right]
+- c_{gg}(\mathbf d)}{c_{ww}(\mathbf d)},
+\qquad
+c_{ab}(\mathbf d) = \sum_{\mathbf x} a(\mathbf x)\, b(\mathbf x + \mathbf d),
+$$
+
+where the numerator is half the sum of $[h(\mathbf x+\mathbf d) -
+h(\mathbf x)]^2$ over these pairs and the denominator their number. The
+correlations are computed with three forward and two inverse FFTs, circular
+for periodic and zero-padded for nonperiodic data; without undefined points,
+this reduces to the expressions above. For maps, `autocorrelation_from_profile`
+averages over the pairs of all profiles. Distances without pairs of defined
+points are masked (with `resampling_method=None`) or left out of the bins. The
+areal function costs about 2.5 times as much as for data without undefined
+points.
+
+Gaps reduce the number of pairs, mostly at large distances, so the ACF is
+noisier there. A large contiguous gap also removes the long-wavelength
+content of the missing region, which changes the ACF at large distances like
+any smaller measurement would.
 
 ```python
 r, A = line.autocorrelation_from_profile(resampling_method=None)
@@ -638,8 +668,9 @@ q_x\rvert$ instead of $\lvert\mathbf q\rvert$ and a few long-wavelength modes
 dominate. The two agree in expectation (to within the anisotropy of the lattice
 of wavevectors) and for many line scans in different directions.
 
-The autocorrelation functions raise `UndefinedDataError` for data with
-undefined (masked) points.
+The autocorrelation route also works for data with
+[undefined points](#data-with-undefined-points), for which no PSD can be
+computed.
 
 ```python
 print(topo.variance_half_derivative())                 # mm
