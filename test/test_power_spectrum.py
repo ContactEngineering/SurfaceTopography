@@ -477,3 +477,19 @@ def test_profile_psd_of_map_is_average_of_line_scans(window):
         UniformLineScan(heights[:, j], sx, periodic=False).integrate_psd_from_profile(
             lambda qx: qx ** 2, window=window, reliable=False) for j in range(ny)])
     assert_allclose(integral, integral_ref, rtol=1e-12)
+
+
+@pytest.mark.parametrize("resolution", [0.001, 0.05])
+def test_area_psd_reliability_cutoff_does_not_exceed_nyquist(resolution):
+    # A lateral resolution finer than the grid must not extend the radially
+    # averaged PSD beyond the Nyquist wavevector; a coarser one limits it
+    t = fourier_synthesis((64, 64), (1., 1.), 0.8, rms_height=1, rng=4, unit='m',
+                          info={'instrument': {'parameters': {'resolution': {'value': resolution, 'unit': 'm'}}}})
+    q_nyquist = np.pi * 64
+    q_reliable, C_reliable = t.power_spectrum_from_area(reliable=True, nb_points_per_decade=20)
+    q_all, C_all = t.power_spectrum_from_area(reliable=False, nb_points_per_decade=20)
+    q_max = min(q_nyquist, 2 * np.pi / resolution)
+    assert np.max(q_reliable.compressed() if np.ma.isMaskedArray(q_reliable) else q_reliable) <= q_max
+    if resolution < 1 / 64:
+        np.testing.assert_allclose(q_reliable, q_all)
+        np.testing.assert_allclose(C_reliable, C_all)

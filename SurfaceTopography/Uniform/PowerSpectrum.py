@@ -240,10 +240,11 @@ def power_spectrum_from_area(self, window=None, reliable=True, collocation='log'
     qmax = np.pi * min(nx / sx, ny / sy)
 
     if reliable:
-        # Update qmax
+        # The reliability cutoff can only lower qmax; a lateral resolution
+        # finer than the grid does not extend the spectrum beyond Nyquist
         short_cutoff = self.short_reliability_cutoff()
         if short_cutoff is not None:
-            qmax = 2 * np.pi / short_cutoff
+            qmax = min(qmax, 2 * np.pi / short_cutoff)
 
     h = self.window(window=window, direction='radial').heights()
 

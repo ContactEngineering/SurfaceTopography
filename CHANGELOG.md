@@ -34,6 +34,8 @@ v1.28.0 (not yet released)
   of grid points along y
 - BUG: Nonuniform line scans resampled on a uniform grid reported a physical size one pixel
   too short, which distorted their spectra and autocorrelation functions
+- BUG: The areal PSD of topographies with a lateral resolution finer than the pixel size
+  extended beyond the Nyquist wavevector into the corners of the Fourier grid
 
 v1.27.0 (28Oct26)
 -----------------
