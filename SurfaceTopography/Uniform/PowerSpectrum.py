@@ -39,45 +39,67 @@ from ..Support.Regression import resample, resample_radial
 @doi('10.1088/2051-672X/aa51f8')
 def power_spectrum_from_profile(self, window=None, reliable=True, resampling_method='bin-average',
                                 collocation='log', nb_points=None, nb_points_per_decade=10):
-    """
-    Compute power spectrum from 1D FFT(s) of a topography or line scan
-    stored on a uniform grid.
+    r"""
+    Compute the one-dimensional power spectral density (PSD) of a line scan,
+    or the average of the 1D PSDs of all profiles (along :math:`x`) of a
+    topography map, from the FFT of the heights on a uniform grid.
+
+    The PSD is
+
+    .. math::
+
+        C^\text{1D}(q_k) = \frac{1}{L}\,|\tilde h(q_k)|^2, \qquad
+        \tilde h(q_k) = \Delta x \sum_{i=0}^{N-1} h_i e^{-i q_k x_i},
+
+    with :math:`q_k = 2\pi k/L`. The values at :math:`+q_k` and
+    :math:`-q_k` are averaged; wavevectors :math:`0 \le q_k < \pi/\Delta x`
+    are returned. For topography maps, the PSDs of all profiles are averaged.
 
     Parameters
     ----------
-    self : SurfaceTopography or UniformLineScan
+    self : :obj:`Topography` or :obj:`UniformLineScan`
         Container with height information.
     window : str, optional
-        Window for eliminating edge effect. See scipy.signal.get_window.
-        (Default: no window for periodic Topographies, "hann" window for
-        nonperiodic Topographies)
+        Window for eliminating edge effects, see scipy.signal.get_window.
+        The window is normalized such that the mean of its square is one.
+        For line scans, it is applied along :math:`x`; for topography maps,
+        the rotationally symmetric 2D window of
+        :func:`SurfaceTopography.FFTTricks.get_window_2D` is applied.
+        (Default: no window for periodic topographies, 'hann' window for
+        nonperiodic topographies)
     reliable : bool, optional
-        Only return data deemed reliable. (Default: True)
-    resampling_method : str, optional
-        Method can be None for no resampling (return on the grid of the
-        data) 'bin-average' for simple bin averaging and 'gaussian-process'
-        for Gaussian process regression.
-        (Default: 'bin-average')
-    collocation : {'log', 'quadratic', 'linear', array_like}, optional
-        Resampling grid. Specifying 'log' yields collocation points
-        equally spaced on a log scale, 'quadratic' yields bins with
-        similar number of data points and 'linear' yields linear bins.
-        Alternatively, it is possible to explicitly specify the bin edges.
-        If bin_edges are explicitly specified, then `rmax` and `nbins` is
-        ignored. (Default: 'log')
+        Only return data deemed reliable, i.e. wavevectors
+        :math:`q < 2\pi/\lambda_c`, where :math:`\lambda_c` is the short
+        reliability cutoff. (Default: True)
+    resampling_method : {None, 'bin-average', 'gaussian-process'}, optional
+        None returns the PSD on the wavevectors of the FFT, 'bin-average'
+        averages it within bins, 'gaussian-process' resamples it by
+        Gaussian process regression. (Default: 'bin-average')
+    collocation : {'log', 'quadratic', 'linear'}, optional
+        Resampling grid. 'log' yields collocation points equally spaced on
+        a log scale, 'quadratic' yields bins equally spaced in :math:`q^2`
+        and 'linear' yields linear bins. (Default: 'log')
     nb_points : int, optional
-        Number of bins for averaging. Bins are automatically determined if set
-        to None. (Default: None)
+        Number of bins for averaging. For 'log' collocation, the number of
+        bins is determined from `nb_points_per_decade` if set to None;
+        'linear' and 'quadratic' collocation require this argument.
+        (Default: None)
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
         (Default: 10)
 
     Returns
     -------
-    q : array_like
-        Reciprocal space vectors. (Units: 1/length)
-    C_all : array_like
-        Power spectrum. (Units: length³)
+    q : np.ndarray or np.ma.MaskedArray
+        Wavevectors. Bins without data are masked for 'bin-average'.
+        (Units: 1/length)
+    C : np.ndarray or np.ma.MaskedArray
+        Power spectral density. (Units: length³)
+
+    References
+    ----------
+    T. D. B. Jacobs, T. Junge, L. Pastewka, Surf. Topogr. Metrol. Prop. 5,
+    013001 (2017), https://doi.org/10.1088/2051-672X/aa51f8
     """
     if self.has_undefined_data:
         raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
@@ -139,47 +161,71 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
 @doi('10.1088/2051-672X/aa51f8')
 def power_spectrum_from_area(self, window=None, reliable=True, collocation='log', nb_points=None,
                              nb_points_per_decade=10, return_map=False, resampling_method='bin-average'):
-    """
-    Compute power spectrum from 2D FFT and radial average of a topography
-    stored on a uniform grid.
+    r"""
+    Compute the two-dimensional power spectral density (PSD) of a
+    topography map from its 2D FFT and average it radially.
+
+    The PSD is
+
+    .. math::
+
+        C^\text{2D}(\mathbf q) = \frac{1}{L_x L_y}\,|\tilde h(\mathbf q)|^2,
+        \qquad
+        \tilde h(\mathbf q) = \Delta x \Delta y \sum_{i,j} h_{ij}
+        e^{-i(q_x x_i + q_y y_j)}.
+
+    The radial average :math:`C^\text{iso}(q)` is the average over all
+    wavevectors :math:`\mathbf q` whose magnitude falls into a bin. Bins
+    extend up to :math:`\pi\min(1/\Delta x, 1/\Delta y)`, or up to
+    :math:`2\pi/\lambda_c` if a short reliability cutoff :math:`\lambda_c`
+    is known and `reliable` is True.
 
     Parameters
     ----------
-    self : :obj:`SurfaceTopography`
+    self : :obj:`Topography`
         Container storing the (two-dimensional) topography map.
     window : str, optional
-        Window for eliminating edge effect. See scipy.signal.get_window.
-        (Default: None)
+        Window for eliminating edge effects. The rotationally symmetric 2D
+        window of :func:`SurfaceTopography.FFTTricks.get_window_2D` is
+        applied, normalized such that the mean of its square is one.
+        (Default: no window for periodic topographies, 'hann' window for
+        nonperiodic topographies)
     reliable : bool, optional
         Only return data deemed reliable. (Default: True)
-    collocation : {'log', 'quadratic', 'linear', array_like}, optional
-        Resampling grid. Specifying 'log' yields collocation points
-        equally spaced on a log scale, 'quadratic' yields bins with
-        similar number of data points and 'linear' yields linear bins.
-        Alternatively, it is possible to explicitly specify the bin edges.
-        If bin_edges are explicitly specified, then `rmax` and `nbins` is
-        ignored. (Default: 'log')
+    collocation : {'log', 'quadratic', 'linear'}, optional
+        Resampling grid. 'log' yields collocation points equally spaced on
+        a log scale, 'quadratic' yields bins equally spaced in :math:`q^2`
+        (similar number of wavevectors per bin) and 'linear' yields linear
+        bins. (Default: 'log')
     nb_points : int, optional
-        Number of bins for averaging. Bins are automatically determined if set
-        to None. (Default: None)
+        Number of bins for averaging. For 'log' collocation, the number of
+        bins is determined from `nb_points_per_decade` if set to None;
+        'linear' and 'quadratic' collocation require this argument.
+        (Default: None)
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
         (Default: 10)
     return_map : bool, optional
         Return full 2D power spectrum map. (Default: False)
-    resampling_method : str, optional
-        Method can be 'bin-average' for simple bin averaging and
-        'gaussian-process' for Gaussian process regression.
-        (Default: 'bin-average')
+    resampling_method : {'bin-average', 'gaussian-process'}, optional
+        'bin-average' for averaging within bins and 'gaussian-process' for
+        Gaussian process regression. (Default: 'bin-average')
 
     Returns
     -------
-    q : array_like
-        Reciprocal space vectors. (Units: 1/length)
-    C_all : array_like
-        Power spectrum. (Units: length⁴)
-    C_qk : array_like, optional
-        Full 2D power spectrum map, only returned if `return_map` is True.
+    q : np.ndarray or np.ma.MaskedArray
+        Wavevectors. Bins without data are masked for 'bin-average'.
+        (Units: 1/length)
+    C : np.ndarray or np.ma.MaskedArray
+        Radially averaged power spectral density. (Units: length⁴)
+    C_qk : np.ndarray, optional
+        Full 2D power spectral density in the layout of `np.fft.fft2`,
+        only returned if `return_map` is True. (Units: length⁴)
+
+    References
+    ----------
+    T. D. B. Jacobs, T. Junge, L. Pastewka, Surf. Topogr. Metrol. Prop. 5,
+    013001 (2017), https://doi.org/10.1088/2051-672X/aa51f8
     """
     if self.has_undefined_data:
         raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
@@ -218,8 +264,9 @@ def power_spectrum_from_area(self, window=None, reliable=True, collocation='log'
 
 
 def fftfreq(t, meshgrid=True):
-    """
-    Compute and return the grid of wavevectors corresponding to np.fft.fft.
+    r"""
+    Compute and return the grid of wavevectors :math:`q_k = 2\pi k/L`
+    corresponding to `np.fft.fft` (2D: `np.fft.fft2`).
 
     Parameters
     ----------
@@ -238,10 +285,6 @@ def fftfreq(t, meshgrid=True):
         (Units: 1/length)
     """
 
-    # if t.dim == 1:
-    #     nb_grid_pts = [t.nb_grid_pts]
-    #     physical_sizes = [t.physical_sizes]
-
     qx = 2 * np.pi * np.fft.fftfreq(
         t.nb_grid_pts[0],
         t.physical_sizes[0] / t.nb_grid_pts[0])
@@ -258,8 +301,10 @@ def fftfreq(t, meshgrid=True):
 
 
 def wavevectors_norm2(t, meshgrid=True):
-    """
-    Compute the norm (magnitude) of the wavevectors.
+    r"""
+    Compute the norm (magnitude) :math:`|\mathbf q|` of the wavevectors
+    returned by `fftfreq`. (Despite the name, this is the 2-norm, not its
+    square.)
 
     Parameters
     ----------

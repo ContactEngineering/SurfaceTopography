@@ -25,7 +25,9 @@
 #
 
 """
-Robust statistics (median, median absolute deviation, etc.) for topography data.
+Robust statistics (median, median absolute deviation, etc.) for topography
+data. All quantities are obtained by inverting the bearing area curve of the
+piecewise-linear interpolation of the data.
 """
 
 from functools import cached_property
@@ -40,7 +42,12 @@ _rms_percentile = scipy.stats.norm.cdf(-1)
 
 def bisect(bearing_area, target_area, rtol=1e-6):
     """
-    Find the root of a function using the bisection method.
+    Find the height at which the bearing area equals a target value using the
+    bisection method.
+
+    Each bisection step first evaluates the O(log(N)) bounds of the bearing
+    area and only evaluates the O(N) exact bearing area if the target lies
+    between these bounds.
 
     Parameters
     ----------
@@ -48,8 +55,9 @@ def bisect(bearing_area, target_area, rtol=1e-6):
         Instance of bearing area class.
     target_area : float
         Target bearing area.
-    rtol : float
-        Relative tolerance for the root with respect to the initial bounds.
+    rtol : float, optional
+        Relative tolerance for the root with respect to the initial bracket
+        (the height range of the data). (Default: 1e-6)
 
     Returns
     -------
@@ -78,7 +86,10 @@ def bisect(bearing_area, target_area, rtol=1e-6):
 
 def median(self):
     """
-    Compute the median height of the topography.
+    Compute the median height of the topography, i.e. the height at which
+    the fractional bearing area equals 1/2. The median is computed for the
+    piecewise-linear interpolation of the data (not as the median of the
+    data points).
 
     Parameters
     ----------
@@ -95,21 +106,39 @@ def median(self):
 
 
 def mad_height(self, percentile=_rms_percentile):
-    """
-    Compute the median-absolute-deviation of the height.
+    r"""
+    Compute a robust estimate of the rms height from the distribution of
+    absolute deviations from the median.
+
+    The function returns the deviation :math:`\delta` for which a fraction
+    :math:`2p` of the projected area deviates from the median height
+    :math:`h_\text{med}` by more than :math:`\delta`, i.e. it solves
+
+    .. math::
+
+        \Phi(h_\text{med} + \delta) + 1 - \Phi(h_\text{med} - \delta) = 2p,
+
+    where :math:`\Phi(h)` is the fractional bearing area (area above
+    :math:`h`) and :math:`p` is `percentile`. The default
+    :math:`p = \Phi_\mathcal{N}(-1) \approx 0.159` (with :math:`\Phi_\mathcal{N}`
+    the cumulative distribution function of the standard normal distribution)
+    makes :math:`\delta` equal to the standard deviation for Gaussian
+    distributed heights. Setting :math:`p = 1/4` yields the classical median
+    absolute deviation.
 
     Parameters
     ----------
     self : :obj:`HeightContainer`
         Topography or line scan container object.
-    percentile : float
-        Fraction of the bearing area that should be considered for the
-        deviation. (Default: One standard deviation)
+    percentile : float, optional
+        Fraction :math:`p` of the bearing area on each side of the median
+        that lies outside the deviation. (Default: scipy.stats.norm.cdf(-1),
+        i.e. one standard deviation)
 
     Returns
     -------
     mad_height : float
-        Median absolute deviation of the height.
+        Deviation from the median height. (Units: length)
     """
 
     class MAD:
@@ -143,14 +172,26 @@ def mad_height(self, percentile=_rms_percentile):
 
 def mad_polyfit(self, nb_coeffs):
     """
-    Find the polynomial that minimizes the median absolute deviation.
+    Find the polynomial that minimizes the median absolute deviation
+    (as computed by :func:`mad_height`) of the residual heights.
+
+    The non-constant coefficients are optimized with the Nelder-Mead method,
+    starting from the least-squares fit `polyfit`; the constant coefficient is
+    the median of the resulting residual.
 
     Parameters
     ----------
     self : :obj:`HeightContainer`
         Topography or line scan container object.
     nb_coeffs : int
-        Number of coefficients to be fitted.
+        Degree of the polynomial; this is passed as `deg` to `polyfit`. (For
+        a line scan, 1 fits a straight line, yielding two coefficients.)
+
+    Returns
+    -------
+    coeffs : list of float
+        Polynomial coefficients, in the order used by `polyfit` and
+        `detrend(coeffs=...)`.
     """
 
     def mad(coeffs):

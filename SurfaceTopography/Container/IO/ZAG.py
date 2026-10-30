@@ -158,19 +158,19 @@ class ZAGReader(ContainerReaderBase):
 
     def __init__(self, fobj):
         """
-        Read all surfaces in a contact.engineering container file and associated
-        metadata. The container is a ZIP file with raw data files and a YAML file
-        meta.yml that contains all metadata not contained in the raw data files.
+        Open a Keyence ZAG container. A ZAG file consists of a header (file
+        magic and size of a BMP thumbnail), the BMP thumbnail and a ZIP
+        archive. The archive contains an XML inventory of the measurements,
+        each of which is stored as a ZON file. All visible measurements are
+        exposed as a single surface container.
+
+        Opening the file parses only the inventory; the individual ZON
+        measurements are read when the topographies are accessed.
 
         Parameters
         ----------
-        fn : str or stream
-            File or stream that contains the ZIP-container.
-
-        Returns
-        -------
-        surface_containers : list of :obj:`SurfaceContainer`s
-            List of all surfaces contained in this container file.
+        fobj : str or stream
+            File name or stream that contains the ZAG container.
         """
         # Lazy import to avoid circular dependency during package initialization
         from ...IO.binary import decode

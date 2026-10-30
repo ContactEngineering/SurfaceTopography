@@ -46,7 +46,7 @@ def scale_dependent_statistical_property(
     progress_callback=None,
     **kwargs,
 ):
-    """
+    r"""
     Compute statistical properties of a topography container (i.e. of a set of
     topographies and line scans) at specific scales. These properties are
     statistics of derivatives carried out at specific scales, as computed
@@ -63,6 +63,15 @@ def scale_dependent_statistical_property(
 
     All topographies/line scans are converted to the same unit given by the
     `unit` argument before analysis.
+
+    A topography contributes at distance :math:`\lambda` only if
+    :math:`n\,\lambda_\text{min} < \lambda < \lambda_\text{max}`, where
+    :math:`\lambda_\text{max}` is the upper bound of its bandwidth and
+    :math:`\lambda_\text{min}` the lower bound of its bandwidth or, if
+    `reliable` is True, its short reliability cutoff :math:`\lambda_c` if that
+    is larger. The factor :math:`n` (the order of the derivative) accounts for
+    the stencil of an :math:`n`-th derivative spanning :math:`n` grid
+    intervals (see https://doi.org/10.1016/j.apsadv.2021.100190).
 
     Parameters
     ----------
@@ -103,25 +112,35 @@ def scale_dependent_statistical_property(
 
     Returns
     -------
+    distances : np.ndarray
+        Distances at which the statistical property is reported. If
+        `distances` was given, these are exactly the requested distances;
+        otherwise these are the points of the automatic logarithmic grid at
+        which at least one topography contributes data. (Units: `unit`)
     statistical_fingerprint : np.ndarray or np.ma.masked_array
-        Array containing the result of `func`, average over all topographies
-        and line scans. If multiple distances are provided, then this is a
-        masked array that contains results for each distance. If no data
-        exists for a certain distance, then the mask is set to true for that
-        distance.
+        Array containing the result of `func`, averaged over all topographies
+        and line scans that contribute at the respective distance (NaN
+        results are ignored). If `distances` was given, then this is a
+        masked array whose mask is True for distances without data.
+
+    Raises
+    ------
+    NoReliableDataError
+        If no topography contributes data.
 
     Examples
     --------
-    This example yields the the height-difference autocorrelation function in
-    the x-direction, i.e. it should give a result identical to the average of
-    `autocorrelation_from_profile` executed for all topographies/line scans in
-    the container.
+    This example yields the variance of the scale-dependent slope in the
+    x-direction at three distances. (The mean square of the slope,
+    `np.mean(x * x)`, at distance :math:`\lambda` is related to the
+    height-difference autocorrelation function through
+    :math:`2A(\lambda)/\lambda^2`.)
 
     Note that the statistics function (the lambda expression below) needs to be
     able to accept one argument (for line scans) and two arguments
     (for topographies).
 
-    >>> s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, distances=[0.1, 1.0, 10], unit='um')
+    >>> d, s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, distances=[0.1, 1.0, 10], unit='um')
     """  # noqa: E501
     results = defaultdict(list)
     empty = None

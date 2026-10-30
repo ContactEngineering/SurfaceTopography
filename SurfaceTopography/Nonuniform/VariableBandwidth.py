@@ -38,10 +38,10 @@ from ..Support import build_tuple
 
 def checkerboard_detrend_profile(self, subdivisions, tol=1e-6):
     """
-    Perform tilt correction (and substract mean value) in each individual
-    rectangle of a checkerboard decomposition of the surface. This is
-    identical to subdividing the surface into individual, nonoverlapping
-    rectangles and performing individual tilt corrections on them.
+    Divide a nonuniform line scan into `subdivisions` equally long,
+    nonoverlapping segments and subtract mean and tilt from each segment.
+    If no data point lies at a segment boundary, a point is inserted there
+    by linear interpolation, so that each segment covers its full length.
 
     The main application of this function is to carry out a variable
     bandwidth analysis of the surface.
@@ -49,7 +49,7 @@ def checkerboard_detrend_profile(self, subdivisions, tol=1e-6):
     Parameters
     ----------
     self : :obj:`NonuniformLineScan`
-        Container storing the uniform topography map
+        Container storing the nonuniform line scan.
     subdivisions : int
         Number of subdivisions.
     tol : float
@@ -114,15 +114,21 @@ def checkerboard_detrend_profile(self, subdivisions, tol=1e-6):
 
 def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resampling_method=None,
                                     nb_grid_pts_cutoff=4):
-    """
-    Perform a variable bandwidth analysis by computing the mean
-    root-mean-square height within increasingly finer subdivisions of the
-    line scan.
+    r"""
+    Variable bandwidth analysis: compute the rms height of the line scan
+    after detrending it in increasingly finer subdivisions.
+
+    At magnification :math:`M = 2^n` (:math:`n = 0, 1, \dots`), the line
+    scan is divided into :math:`M` segments of length (bandwidth)
+    :math:`L/M`, each segment is detrended (see
+    `checkerboard_detrend_profile`) and the rms heights of the segments
+    (of the piecewise linear function) are averaged. Subdivision stops when
+    a segment would contain fewer than `nb_grid_pts_cutoff` data points.
 
     Parameters
     ----------
-    self : obj:`NonuniformLineScan`
-        Container storing the uniform topography map
+    self : :obj:`NonuniformLineScan`
+        Container storing the nonuniform line scan.
     quantities : str, optional
         Specification of return tuple, where each string character
         stand for specific quantity. Possible quantities are
@@ -133,24 +139,24 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
         magnification, bandwidth, rms height.
         (Default: 'bh')
     reliable : bool, optional
-        Only return data deemed reliable. (Default: True)
+        Only return bandwidths larger than the short reliability cutoff.
+        (Default: True)
     resampling_method : str, optional
         Can only be None for the variable bandwidth analysis.
         (Default: None)
-    nb_grid_pts_cutoff : int
-        Minimum number of data points to allow for subdivision. The analysis
-        will automatically analyze subdivision down to this nb_grid_pts.
+    nb_grid_pts_cutoff : int, optional
+        Minimum number of data points per segment. The analysis subdivides
+        down to this number of data points. (Default: 4)
 
     Returns
     -------
-    magnifications : array
+    magnifications : np.ndarray
         Array containing the magnifications.
-    bandwidths : array
-        Array containing the bandwidths, here the physical_sizes of the
-        subdivided topography.
-    rms_heights : array
-        Array containing the rms height corresponding to the respective
-        magnification.
+    bandwidths : np.ndarray
+        Array containing the bandwidths, here the length of the segments.
+    rms_heights : np.ndarray
+        Array containing the mean rms height of the segments for the
+        respective magnification.
     """
     if resampling_method is not None:
         raise ValueError('`variable_bandwidth_from_profile` does not support resampling.')

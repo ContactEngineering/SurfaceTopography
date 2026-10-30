@@ -40,55 +40,74 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
                                  nb_points=None, nb_points_per_decade=10):
     r"""
     Compute the one-dimensional height-difference autocorrelation function
-    (ACF).
+    (ACF)
 
-    For non-periodic surfaces the ACF at distance d is given by:
+    .. math::
 
-       .. math::
-         :nowrap:
+        A(r) = \frac{1}{2}\left\langle \left[h(x+r) - h(x)\right]^2
+        \right\rangle
 
-         \begin{equation}
-         \begin{split}
+    of a line scan, or the average of the ACFs of all profiles (along
+    :math:`x`) of a topography map.
 
-          \text{ACF}(d) =& \sum_{i=0}^{n-d-1} \frac{1}{n-d} \frac{1}{2} \left( h_i - h_{i+d} \right)^2 \\
+    For periodic topographies, the average runs over all :math:`N` grid
+    points and the ACF is obtained from the circular height-height
+    correlation,
+    :math:`A(r_k) = \langle h^2\rangle - \langle h(x)\,h(x+r_k)\rangle`,
+    which is computed with the FFT. The values at :math:`r_k` and
+    :math:`L - r_k` are averaged and :math:`0 \le r_k < L/2` is returned.
 
-                        =& \frac{1}{2(n-d)} \sum_{i=0}^{n-d-1} \left( h_i^2 + h_{i+d}^2 \right)
-                         - \frac{1}{n-d} \sum_{i=0}^{n-d-1} h_i h_{i+d}
-          \end{split}
-          \end{equation}
+    For nonperiodic topographies, the average at distance
+    :math:`r_k = k\Delta x` runs over the :math:`N-k` pairs of points that
+    lie within the scan,
 
+    .. math::
+
+        A(r_k) = \frac{1}{2(N-k)} \sum_{i=0}^{N-k-1} \left(h_i - h_{i+k}\right)^2
+        = \frac{1}{2(N-k)} \sum_{i=0}^{N-k-1} \left(h_i^2 + h_{i+k}^2\right)
+        - \frac{1}{N-k} \sum_{i=0}^{N-k-1} h_i h_{i+k}.
+
+    The last sum is computed with an FFT of the heights zero-padded to
+    :math:`2N-1` points, the first from cumulative sums of :math:`h_i^2`.
+    Distances :math:`0 \le r_k < L` are returned.
 
     Parameters
     ----------
-    self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
-        Container storing the uniform topography map
+    self : :obj:`Topography` or :obj:`UniformLineScan`
+        Container storing the uniform topography map or line scan.
     reliable : bool, optional
-        Only return data deemed reliable. (Default: True)
-    resampling_method : str, optional
-        Method can be None for no resampling (return on the grid of the
-        data) 'bin-average' for simple bin averaging and 'gaussian-process'
-        for Gaussian process regression.
-        (Default: 'bin-average')
-    collocation : {'log', 'quadratic', 'linear', array_like}, optional
-        Resampling grid. Specifying 'log' yields collocation points
-        equally spaced on a log scale, 'quadratic' yields bins with
-        similar number of data points and 'linear' yields linear bins.
-        Alternatively, it is possible to explicitly specify the bin edges.
-        If bin_edges are explicitly specified, then `rmax` and `nbins` is
-        ignored. (Default: 'log')
+        Only return data deemed reliable, i.e. distances
+        :math:`r > \lambda_c/2`, where :math:`\lambda_c` is the short
+        reliability cutoff. (Default: True)
+    resampling_method : {None, 'bin-average', 'gaussian-process'}, optional
+        None returns the ACF on the distances of the grid, 'bin-average'
+        averages it within bins, 'gaussian-process' resamples it by
+        Gaussian process regression. (Default: 'bin-average')
+    collocation : {'log', 'quadratic', 'linear'}, optional
+        Resampling grid. 'log' yields collocation points equally spaced on
+        a log scale, 'quadratic' yields bins equally spaced in :math:`r^2`
+        and 'linear' yields linear bins. (Default: 'log')
     nb_points : int, optional
-        Number of bins for averaging. Bins are automatically determined if set
-        to None. (Default: None)
+        Number of bins for averaging. For 'log' collocation, the number of
+        bins is determined from `nb_points_per_decade` if set to None;
+        'linear' and 'quadratic' collocation require this argument.
+        (Default: None)
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
-        (Default: None)
+        (Default: 10)
 
     Returns
     -------
-    r : array
-        Distances. (Units: length)
-    A : array
-        Autocorrelation function. (Units: length**2)
+    r : np.ndarray or np.ma.MaskedArray
+        Distances. Bins without data are masked for 'bin-average'.
+        (Units: length)
+    A : np.ndarray or np.ma.MaskedArray
+        Height-difference autocorrelation function. (Units: length²)
+
+    References
+    ----------
+    A. Wang, M. H. Müser, Tribol. Int. 123, 224 (2018),
+    https://doi.org/10.1016/j.triboint.2018.02.002
     """  # noqa: E501
     if self.has_undefined_data:
         raise UndefinedDataError('This topography has undefined data (missing data points). Autocorrelation cannot be '
@@ -176,44 +195,61 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
 @doi('10.1016/j.triboint.2018.02.002')
 def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=None, nb_points_per_decade=5,
                               return_map=False, resampling_method='bin-average'):
-    """
-    Compute height-difference autocorrelation function and radial average.
+    r"""
+    Compute the two-dimensional height-difference autocorrelation function
+    :math:`A(\mathbf r) = \frac{1}{2}\langle[h(\mathbf x + \mathbf r) -
+    h(\mathbf x)]^2\rangle` of a topography map and average it radially.
+
+    The map :math:`A(\mathbf r)` is computed with 2D FFTs, as described
+    for :func:`autocorrelation_from_profile`: circular for periodic
+    topographies, and zero-padded to :math:`(2N_x-1)\times(2N_y-1)` points
+    with normalization by the number :math:`(N_x-k)(N_y-l)` of overlapping
+    pairs for nonperiodic topographies. Only distance vectors with
+    nonnegative components are available in the nonperiodic case. Radial
+    bins extend from half the short reliability cutoff (at least one pixel)
+    to :math:`(L_x+L_y)/4` (periodic) or :math:`(L_x+L_y)/2`
+    (nonperiodic).
 
     Parameters
     ----------
-    self : :obj:`SurfaceTopography`
+    self : :obj:`Topography`
         Container storing the (two-dimensional) topography map.
     reliable : bool, optional
         Only return data deemed reliable. (Default: True)
-    collocation : {'log', 'quadratic', 'linear', array_like}, optional
-        Resampling grid. Specifying 'log' yields collocation points
-        equally spaced on a log scale, 'quadratic' yields bins with
-        similar number of data points and 'linear' yields linear bins.
-        Alternatively, it is possible to explicitly specify the bin edges.
-        If bin_edges are explicitly specified, then `rmax` and `nbins` is
-        ignored. (Default: 'log')
+    collocation : {'log', 'quadratic', 'linear'}, optional
+        Resampling grid. 'log' yields collocation points equally spaced on
+        a log scale, 'quadratic' yields bins equally spaced in :math:`r^2`
+        (similar number of grid points per bin) and 'linear' yields linear
+        bins. (Default: 'log')
     nb_points : int, optional
-        Number of bins for averaging. Bins are automatically determined if set
-        to None. (Default: None)
+        Number of bins for averaging. For 'log' collocation, the number of
+        bins is determined from `nb_points_per_decade` if set to None;
+        'linear' and 'quadratic' collocation require this argument.
+        (Default: None)
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
-        (Default: None)
+        (Default: 5)
     return_map : bool, optional
         Return full 2D autocorrelation map. (Default: False)
-    resampling_method : str, optional
-        Method can be 'bin-average' for simple bin averaging and
-        'gaussian-process' for Gaussian process regression.
-        (Default: 'bin-average')
+    resampling_method : {'bin-average', 'gaussian-process'}, optional
+        'bin-average' for averaging within bins and 'gaussian-process' for
+        Gaussian process regression. (Default: 'bin-average')
 
     Returns
     -------
-    r : array
-        Distances. (Units: length)
-    A : array
-        Radially averaged autocorrelation function. (Units: length**2)
-    A_xy : array
-        2D autocorrelation function. Only returned if return_map=True.
-        (Units: length**2)
+    r : np.ndarray or np.ma.MaskedArray
+        Distances. Bins without data are masked for 'bin-average'.
+        (Units: length)
+    A : np.ndarray or np.ma.MaskedArray
+        Radially averaged autocorrelation function. (Units: length²)
+    A_xy : np.ndarray
+        2D autocorrelation function. Only returned if `return_map` is True.
+        (Units: length²)
+
+    References
+    ----------
+    A. Wang, M. H. Müser, Tribol. Int. 123, 224 (2018),
+    https://doi.org/10.1016/j.triboint.2018.02.002
     """
     if self.has_undefined_data:
         raise UndefinedDataError('This topography has undefined data (missing data points). Autocorrelation cannot be '

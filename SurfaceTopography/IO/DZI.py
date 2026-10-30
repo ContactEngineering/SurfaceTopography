@@ -74,8 +74,8 @@ def write_dzi(
     data : np.ndarray
         Two-dimensional array containing the data.
     name : str
-        Name of the exported file. This is used as a prefix. Output filter
-        create the file `name`.xml that contains the metadata and a directory
+        Name of the exported file. This is used as a prefix. The output filter
+        creates the file `name`.xml that contains the metadata and a directory
         `name`_files that contains the rendered image files at different levels.
     physical_sizes : tuple of floats
         Linear physical sizes of the two-dimensional array.
@@ -276,25 +276,29 @@ def write_topography_dzi(
     Parameters
     ----------
     self : :obj:`Topography`
-        Topogaphy to export
+        Topography to export.
     name : str
-        Name of the exported file. This is used as a prefix. Output filter
-        create the file `name`.xml that contains the metadata and a directory
+        Name of the exported file. This is used as a prefix. The output filter
+        creates the file `name`.xml that contains the metadata and a directory
         `name`_files that contains the rendered image files at different levels.
-    root_directory : str
+    root_directory : str, optional
         Root directory where to place `name`.xml and `name`_files.
+        (Default: '.')
     tile_size : int, optional
         Size of individual tiles. (Default: 256)
     overlap : int, optional
         Overlap of tiles. (Default: 1)
     format : str, optional
-        Image format. Note that PNG files have seems at the boundary between
-        tiles. (Default: jpg)
+        Data output format. Note that PNG files have seams at the boundary
+        between tiles. Use 'npy' to output raw data in the native numpy
+        format. Use 'nc' to output raw data as NetCDF files.
+        (Default: 'jpg')
     meta_format : str, optional
         Format for metadata information (the DZI file), can be 'xml' or
         'json'. (Default: 'xml')
     cmap : str or colormap, optional
-        Color map for rendering the topography. (Default: None)
+        Color map for rendering the topography. Ignored if format is 'npy' or
+        'nc'. (Default: None)
 
     Returns
     -------
@@ -337,8 +341,8 @@ def generate_manifest(
     Parameters
     ----------
     name : str
-        Name of the exported file. This is used as a prefix. Output filter
-        create the file `name`.xml that contains the metadata and a directory
+        Name of the exported file. This is used as a prefix. The output filter
+        creates the file `name`.xml that contains the metadata and a directory
         `name`_files that contains the rendered image files at different levels.
     nb_grid_pts : tuple of ints
         Number of grid points.

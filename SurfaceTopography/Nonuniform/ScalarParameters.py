@@ -25,7 +25,9 @@
 #
 
 """
-Functions computing scalar roughness parameters
+Scalar roughness parameters of nonuniform line scans. Heights are
+interpolated linearly between data points and all averages are integrals
+over this piecewise-linear function.
 """
 
 import _SurfaceTopography
@@ -37,12 +39,12 @@ from ..HeightContainer import NonuniformLineScanInterface
 
 def moment(topography, alpha):
     r"""
-    Computes the n-th moment of the height fluctuation of the line scan of
-    length :math:`L`:
+    Computes the moment of order :math:`\alpha` of the heights of the line
+    scan of length :math:`L = x_{N-1} - x_0`:
 
     .. math::
 
-        \langle h^\alpha \rangle = \frac{1}{L} \int_0^L dx\, h^\alpha(x)\right
+        \langle h^\alpha \rangle = \frac{1}{L} \int_{x_0}^{x_{N-1}} dx\, h^\alpha(x)
 
     This function approximates the topography between data points as
     piece-wise linear. The piece-wise linear section between point :math:`i`
@@ -83,15 +85,18 @@ def moment(topography, alpha):
 
 def rms_height(self):
     r"""
-    Computes root-mean square height fluctuation of the line scan:
+    Computes root-mean square height fluctuation of the line scan of length
+    :math:`L = x_{N-1} - x_0`:
 
     .. math::
 
-        h_\text{rms} = \left[\frac{1}{L} \int_0^L dx\, h^2(x)\right]^{1/2}
+        h_\text{rms} = \left[\frac{1}{L} \int_{x_0}^{x_{N-1}} dx\, \left(h(x) - \langle h \rangle\right)^2\right]^{1/2}
 
-    Function approximates topography between data points as piece-wise linear.
-    The piece-wise linear section between point :math:`i` and point
-    :math:`i+1` contributes
+    where :math:`\langle h \rangle` is the mean height (computed with the
+    same piecewise-linear integration). Function approximates topography
+    between data points as piece-wise linear. With heights :math:`h_i`
+    measured relative to the mean, the piece-wise linear section between
+    point :math:`i` and point :math:`i+1` contributes
 
     .. math::
 
@@ -106,8 +111,8 @@ def rms_height(self):
 
     Returns
     -------
-    rms_height : float or array
-        Root-mean square height.
+    rms_height : float
+        Root-mean square height. (Units: length)
     """  # noqa: E501
     return np.sqrt(_SurfaceTopography.nonuniform_variance(*self.positions_and_heights(), ref_h=self.mean()))
 
@@ -124,7 +129,8 @@ def rms_slope(self):
 
     .. math:: \int_{0}^{\Delta x_i} dx\, \left( \frac{\Delta h_i}{\Delta x_i} \right)^2 = \frac{\Delta h_i^2}{\Delta x_i}
 
-    where :math:`\Delta x_i=x_{i+1}-x_i` and :math:`\Delta h_i=h_{i+1}-h_i` to the above integral.
+    to the above integral, where :math:`\Delta x_i=x_{i+1}-x_i`,
+    :math:`\Delta h_i=h_{i+1}-h_i` and :math:`L = x_{N-1} - x_0`.
 
     Parameters
     ----------
@@ -134,7 +140,12 @@ def rms_slope(self):
     Returns
     -------
     rms_slope : float
-        Root-mean square slope.
+        Root-mean square slope. (Units: dimensionless)
+
+    Raises
+    ------
+    ReentrantDataError
+        If the line scan has overhangs (positions not strictly increasing).
     """  # noqa: E501
     x, h = self.positions_and_heights()
     dh = np.diff(h)
@@ -153,6 +164,16 @@ def rms_curvature(self):
     r"""
     Computes root-mean square curvature fluctuation of the line scan:
 
+    .. math::
+
+        h^{\prime\prime}_\text{rms} = \left[ \frac{1}{x_{N-2} - x_1} \int_{x_1}^{x_{N-2}} dx\,
+        \left(\frac{\partial^2 h}{\partial x^2}\right)^2 \right]^{1/2}
+
+    The second derivative is evaluated at the interior points
+    :math:`x_1, \dots, x_{N-2}` with the three-point stencil of
+    :func:`SurfaceTopography.Nonuniform.Derivative.derivative` and its square
+    is integrated with the trapezoidal rule.
+
     Parameters
     ----------
     self : :obj:`NonuniformLineScan`
@@ -161,7 +182,7 @@ def rms_curvature(self):
     Returns
     -------
     rms_curvature : float
-        Root-mean square curvature.
+        Root-mean square curvature. (Units: 1/length)
     """
     x = self.positions()
     d2 = self.derivative(n=2)
@@ -175,11 +196,10 @@ def rms_curvature(self):
 NonuniformLineScanInterface.register_function(
     'mean', lambda self: _SurfaceTopography.nonuniform_mean(*self.positions_and_heights()))
 NonuniformLineScanInterface.register_function('moment', moment)
-# Note: The `rms_*_from_profile` names are not marked as deprecated here
-# (although they used to carry an inactive `deprecated` flag): they are the
-# primary names of the corresponding uniform analysis functions, so
-# deprecating only the nonuniform variants would make generic code warn
-# depending on the data type it happens to operate on.
+# Note: The `rms_*_from_profile` names are not marked as deprecated here,
+# although they are deprecated for uniform data: deprecating them for
+# nonuniform line scans would make generic code warn depending on the data
+# type it happens to operate on.
 NonuniformLineScanInterface.register_function('rms_height_from_profile', rms_height)
 NonuniformLineScanInterface.register_function('Rq', rms_height)
 NonuniformLineScanInterface.register_function('rms_slope_from_profile', rms_slope)

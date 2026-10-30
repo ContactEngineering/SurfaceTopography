@@ -24,7 +24,8 @@
 #
 
 """
-Scale-dependent slope
+Scale-dependent slope computed from the height-difference autocorrelation
+function.
 """
 
 import numpy as np
@@ -38,19 +39,19 @@ def scale_dependent_slope_from_profile(topography, **kwargs):
 
     The scale-dependent slope is given by
 
-       .. math::
-         :nowrap:
+    .. math::
 
-         \begin{equation}
-         h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
-         \end{equation}
+        h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
 
-    where :math:`A(\lambda)` is the autocorrelation function.
+    where :math:`A(\lambda)=\frac{1}{2}\langle[h(x+\lambda)-h(x)]^2\rangle`
+    is the height-difference autocorrelation function. This is the rms of
+    the two-point finite difference :math:`[h(x+\lambda)-h(x)]/\lambda`.
+    The distance :math:`\lambda = 0` is excluded.
 
     Parameters
     ----------
-    topography : :class:`SurfaceTopography.Topography` or :class:`SurfaceTopography.UniformLineScan`
-        Container storing the uniform topography map
+    topography : :class:`SurfaceTopography.Topography` or :class:`SurfaceTopography.UniformLineScan` or :class:`SurfaceTopography.NonuniformLineScan`
+        Container storing the topography map or line scan
     **kwargs : dict
         Additional keyword parameters are passed on to
         `autocorrelation_from_profile`
@@ -72,18 +73,18 @@ def scale_dependent_slope_from_area(topography, **kwargs):
 
     The scale-dependent slope is given by
 
-       .. math::
-         :nowrap:
+    .. math::
 
-         \begin{equation}
-         h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
-         \end{equation}
+        h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
 
-    where :math:`A(\lambda)` is the autocorrelation function.
+    where :math:`A(\lambda)=\frac{1}{2}\langle[h(x+\lambda)-h(x)]^2\rangle`
+    is the height-difference autocorrelation function. This is the rms of
+    the two-point finite difference :math:`[h(x+\lambda)-h(x)]/\lambda`.
+    The distance :math:`\lambda = 0` is excluded.
 
     Parameters
     ----------
-    topography : SurfaceTopography or UniformLineScan
+    topography : :class:`SurfaceTopography.Topography`
         Container storing the uniform topography map
     **kwargs : dict
         Additional keyword parameters are passed on to

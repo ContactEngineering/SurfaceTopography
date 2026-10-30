@@ -65,22 +65,26 @@ class NCReader(ReaderBase):
 
     _name = "Network Common Data Format (NetCDF)"
     _description = """
-Topography data stored in a
+Topography data stored in a classic (version 3)
 [NetCDF](https://www.unidata.ucar.edu/software/netcdf/) container. The
-reader looks for a variable named `heights` containing a two-dimensional
-array that is interpreted as height information. The respective dimensions are
-named `x` and `y`.
+reader looks for a variable named `heights` that is interpreted as height
+information. A two-dimensional `heights` array with dimensions `x` and `y`
+is a topography map, a one-dimensional array with dimension `x` a uniform
+line scan, and a one-dimensional array with dimension `n` a nonuniform line
+scan whose positions are stored in the variable `x`.
 
-The reader additionally looks for two (optional) variables `x` and `y` that
-contain the x- and y-coordinates of the first and second index of the height
-arrays. The attribute `length` of `x` and `y` must contain the physical size
-in the respective direction. The optional attribute `length_unit` of these
-variables describes the physical unit. The optional additional attribute
-`periodic` indicates whether the direction contains periodic data. If
-`periodic` is missing, the reader interprets the data as non-periodic.
+For uniform data, the reader additionally looks for two (optional) variables
+`x` and `y` that contain the x- and y-coordinates of the first and second
+index of the height arrays. The attribute `length` of `x` and `y` contains
+the physical size in the respective direction. The optional attribute `unit`
+of these variables (and of `heights`) describes the physical unit. The
+optional additional attribute `periodic` indicates whether the direction
+contains periodic data. If `periodic` is missing, the reader interprets the
+data as non-periodic.
 
 If an additional variable `mask` is present, this variable is used to mark
-undefined points.
+undefined points. A global attribute `json` holds the `info` dictionary
+serialized as JSON.
 
 An example file layout (output of `ncdump -h`) containing a topography map
 with 128 x 128 pixels looks like this:

@@ -24,12 +24,28 @@
 # SOFTWARE.
 #
 
+"""
+Decorator for deprecated functions.
+"""
+
 import warnings
 from functools import wraps
 
 
 def deprecated(version=None, alternative=None):
-    """Emit a deprecation warning for a function."""
+    """
+    Decorator that emits a `DeprecationWarning` each time the function is
+    called and appends the deprecation notice to its docstring.
+
+    Parameters
+    ----------
+    version : str, optional
+        Version of SurfaceTopography in which the function was deprecated.
+        (Default: None)
+    alternative : str, optional
+        Name of the function that replaces the deprecated one.
+        (Default: None)
+    """
 
     def deprecated_decorator(func):
 

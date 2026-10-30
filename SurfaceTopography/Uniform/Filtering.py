@@ -32,9 +32,16 @@ from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 
 class DownsampledUniformTopography(DecoratedUniformTopography):
-    """
+    r"""
     Downsample topography by picking each n-th point or taking averages over
     rectangular patches.
+
+    With factors :math:`f_x, f_y`, the downsampled topography has
+    :math:`\lfloor N_x/f_x \rfloor \times \lfloor N_y/f_y \rfloor` grid
+    points with spacing :math:`f_x \Delta x, f_y \Delta y`. Trailing grid
+    points that do not fill a complete patch are discarded. Mode 'nth' keeps
+    :math:`h_{f_x i, f_y j}`; mode 'average' replaces each
+    :math:`f_x \times f_y` patch by its arithmetic mean.
     """
 
     def __init__(self, topography, factor, mode='nth', info={}):
@@ -130,22 +137,32 @@ class DownsampledUniformTopography(DecoratedUniformTopography):
 
 
 class WindowedUniformTopography(DecoratedUniformTopography):
-    """
+    r"""
     Construct a topography with a window function applied to it.
+
+    The heights are multiplied by a window :math:`w` that is normalized such
+    that its mean square over the grid is unity, :math:`\langle w^2\rangle = 1`.
     """
 
     name = 'windowed_topography'
 
     def __init__(self, topography, window=None, direction=None, info={}):
         """
+        Parameters
+        ----------
+        topography : :obj:`UniformLineScan` or :obj:`Topography`
+            Parent topography.
         window : str, optional
-            Window for eliminating edge effect. See scipy.signal.get_window.
+            Window for eliminating edge effect. For 'x' and 'y', see
+            scipy.signal.get_window; for 'radial', only 'hann' is supported.
             (Default: no window for periodic Topographies, "hann" window for
             nonperiodic Topographies)
         direction : str, optional
             Direction in which the window is applied. Possible options are
             'x', 'y' and 'radial'. If set to None, it chooses 'x' for line
             scans and 'radial' for topographies. (Default: None)
+        info : dict, optional
+            Updated entries to the info dictionary. (Default: {})
         """
         super().__init__(topography, info=info)
 
@@ -238,12 +255,45 @@ class WindowedUniformTopography(DecoratedUniformTopography):
 
 
 class FourierFilteredUniformTopography(DecoratedUniformTopography):
+    r"""
+    Multiply the Fourier transform of a periodic topography with a transfer
+    function :math:`F` and transform back,
+
+    .. math::
+
+        h'_{ij} = \mathcal{F}^{-1}\left[ F(\mathbf q)\, \tilde h(\mathbf q) \right]_{ij},
+
+    with wavevectors :math:`q_k = 2\pi k / L` (rad per length unit). The
+    transforms are real-to-complex FFTs.
+
+    Note that for an odd number of grid points along the last axis (`y` for
+    topographies, `x` for line scans) the returned heights have one grid
+    point less along this axis.
+    """
+
     name = 'filtered_topography'
 
     def __init__(self, topography,
                  filter_function=lambda q: q <= 1,
                  isotropic=True,
                  info={}):
+        r"""
+        Parameters
+        ----------
+        topography : :obj:`UniformLineScan` or :obj:`Topography`
+            Parent topography. Must be periodic.
+        filter_function : callable, optional
+            Transfer function. Called as `filter_function(q)` with the
+            magnitude of the wavevector for line scans and isotropic filters,
+            and as `filter_function(qx, qy)` for anisotropic filters on
+            topographies. Must accept numpy arrays and return values that
+            broadcast against them. (Default: `lambda q: q <= 1`)
+        isotropic : bool, optional
+            Whether `filter_function` depends only on :math:`|\mathbf q|`.
+            Ignored for line scans. (Default: True)
+        info : dict, optional
+            Updated entries to the info dictionary. (Default: {})
+        """
 
         if not topography.is_periodic:
             raise ValueError("only implemented for periodic topographies")
@@ -275,13 +325,13 @@ class FourierFilteredUniformTopography(DecoratedUniformTopography):
 
     def filter_function(self, *args):
         """
+        Evaluate the transfer function.
 
         Parameters
         ----------
-        if dim = 2 and filter is not isotropic
-            qx, qy
-        if dim = 1
-            q
+        *args : np.ndarray
+            `qx, qy` for anisotropic filters on topographies, otherwise the
+            wavevector magnitude `q`.
         """
 
         if self.dim == 2 and not self.is_filter_isotropic \
@@ -337,24 +387,29 @@ class ShortCutTopography(FourierFilteredUniformTopography):
                  info={}):
         r"""Applies a short wavelength cut filter to the topography using fft.
 
-        for `kind=="circular step"` (default), parts of the spectrum with
-        `|q| > cutoff_wavevector` are set to zero
+        For `kind=="circular step"` (default), parts of the spectrum with
+        :math:`|\mathbf q| > q_c` are set to zero.
 
-        for `kind=="square step"`, parts of the spectrum with
-        `q_x > cutoff_wavevector or q_y > cutoff_wavevector ` are set to zero
+        For `kind=="square step"`, parts of the spectrum with
+        :math:`|q_x| > q_c` or :math:`|q_y| > q_c` are set to zero.
 
-        either `cutoff_wavelength` or
-        `cutoff_wavevector` :math:`= 2 pi /` `cutoff_wavelength`
-        have to be provided.
+        Either `cutoff_wavelength` :math:`\lambda_c` or
+        `cutoff_wavevector` :math:`q_c = 2 \pi / \lambda_c`
+        has to be provided.
 
         Parameters
         ----------
-        topography: Topography
-        cutoff_wavevector: float
-        highest wavevector
-        cutoff_wavelength: float
-        shortest wavelength
-        kind: {"circular step", "square step"}
+        topography : :obj:`UniformLineScan` or :obj:`Topography`
+            Parent topography. Must be periodic.
+        cutoff_wavevector : float, optional
+            Highest wavevector that is kept. (Default: None)
+        cutoff_wavelength : float, optional
+            Shortest wavelength that is kept. (Default: None)
+        kind : {"circular step", "square step"}, optional
+            Shape of the filter in the :math:`(q_x, q_y)` plane; line scans
+            require "circular step". (Default: "circular step")
+        info : dict, optional
+            Updated entries to the info dictionary. (Default: {})
 
         Returns
         -------
@@ -433,24 +488,30 @@ class LongCutTopography(FourierFilteredUniformTopography):
                  info={}):
         r"""Applies a long wavelength cut filter to the topography using fft.
 
-        for `kind=="circular step"` (default), parts of the spectrum with
-        `|q| < cutoff_wavevector` are set to zero
+        For `kind=="circular step"` (default), parts of the spectrum with
+        :math:`|\mathbf q| < q_c` are set to zero. This includes the
+        :math:`\mathbf q = 0` component, i.e. the mean height.
 
-        for `kind=="square step"`, parts of the spectrum with
-        `q_x < cutoff_wavevector or q_y < cutoff_wavevector ` are set to zero
+        For `kind=="square step"`, parts of the spectrum with
+        :math:`|q_x| < q_c` or :math:`|q_y| < q_c` are set to zero.
 
-        either `cutoff_wavelength` or
-        `cutoff_wavevector` :math:`= 2 pi /` `cutoff_wavelength`
-        have to be provided.
+        Either `cutoff_wavelength` :math:`\lambda_c` or
+        `cutoff_wavevector` :math:`q_c = 2 \pi / \lambda_c`
+        has to be provided.
 
         Parameters
         ----------
-        topography: Topography
-        cutoff_wavevector: float
-        highest wavevector
-        cutoff_wavelength: float
-        shortest wavelength
-        kind: {"circular step", "square step"}
+        topography : :obj:`UniformLineScan` or :obj:`Topography`
+            Parent topography. Must be periodic.
+        cutoff_wavevector : float, optional
+            Lowest wavevector that is kept. (Default: None)
+        cutoff_wavelength : float, optional
+            Longest wavelength that is kept. (Default: None)
+        kind : {"circular step", "square step"}, optional
+            Shape of the filter in the :math:`(q_x, q_y)` plane; line scans
+            require "circular step". (Default: "circular step")
+        info : dict, optional
+            Updated entries to the info dictionary. (Default: {})
 
         Returns
         -------

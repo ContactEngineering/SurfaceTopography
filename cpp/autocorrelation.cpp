@@ -126,9 +126,8 @@ Eigen::ArrayXd nonuniform_height_height_autocorrelation(
     /* This is the product (height-height) autocorrelation
      *     A(d) = Integrate[h(x) h(x + d)]
      * over the overlap of the two piecewise-linear segments, without the
-     * factor 1/2 and without normalization by the overlap length. It mirrors
-     * the pure Python loop it replaces (Nonuniform/Autocorrelation.py) but
-     * runs in constant additional memory:
+     * factor 1/2 and without normalization by the overlap length. The loop
+     * over segment pairs runs in constant additional memory:
      *     f1[x_] := (h1 + s1*(x - x1))
      *     f2[x_] := (h2 + s2*(x - x2))
      *     Integrate[f1[x]*f2[x + d], {x, b - db, b + db}]

@@ -25,18 +25,18 @@
 """
 Serializable expression mini-language for the declarative file layouts.
 
-PROTOTYPE. The declarative readers currently express data-dependent
-quantities (array shapes, validation conditions, conversions) as Python
-lambdas. Lambdas cannot be serialized, which ties the format descriptions to
-Python. This module provides drop-in replacements: expression objects that
-are callable with the same signatures as the lambdas, but that can also be
+Declarative readers express data-dependent quantities (array shapes,
+validation conditions, conversions, conditional layouts) as expression
+objects. Expressions are callable with the same signatures as the Python
+callables the layout classes accept, but unlike Python lambdas they can be
 serialized to a JSON-compatible AST and rehydrated, e.g. by an expression
 interpreter written in another language.
 
 The normative definition of the AST, its operator semantics and the
-function registry is `docs/format_description_contract.rst`; the design
-rationale is `docs/declarative_readers_design.rst`. Where this module and
-the contract disagree, the contract wins and this module needs fixing.
+function registry is `docs/format-description-contract.md`; the
+architecture is described in `docs/declarative-readers.md`. Where this
+module and the contract disagree, the contract wins and this module needs
+fixing.
 
 Authoring vocabulary
 --------------------
@@ -198,7 +198,7 @@ def _zlib_reader(stream_obj):
 # Named function registry. This is the fixed set of primitives that an
 # expression interpreter in another language must provide (or reject).
 # The normative list, including which functions are capability-gated,
-# is `docs/format_description_contract.rst`.
+# is `docs/format-description-contract.md`.
 _FUNCTIONS = {
     "dtype": np.dtype,
     "float": float,
@@ -221,8 +221,8 @@ _FUNCTIONS = {
     "split": lambda s, separator: s.split(separator),
     "parse_datetime": dateutil.parser.parse,
     "make_datetime": _make_datetime,
-    # POSIX timestamp to datetime (in local time, matching historic
-    # reader behavior)
+    # POSIX timestamp to a naive datetime in the local time zone of the
+    # host
     "from_timestamp": lambda ts: __import__("datetime").datetime.fromtimestamp(ts),
     "unit_conversion_factor": _unit_conversion_factor,
     "mangle_length_unit": _mangle_length_unit,
@@ -264,7 +264,13 @@ FUNCTION_CAPABILITIES = {
 
 
 def register_function(name, fun):
-    """Register a named function usable as `F.<name>(...)` in expressions."""
+    """
+    Register a named function usable as `F.<name>(...)` in expressions.
+
+    Functions registered this way are not part of the format description
+    contract; a document that calls them can only be executed by this
+    engine.
+    """
     _FUNCTIONS[name] = fun
 
 

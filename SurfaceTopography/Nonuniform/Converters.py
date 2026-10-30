@@ -35,12 +35,18 @@ from SurfaceTopography.UniformLineScanAndTopography import UniformLineScan, Deco
 
 
 class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
-    """
-    Interpolate a topography onto a uniform grid.
+    r"""
+    Interpolate a nonuniform line scan onto a uniform grid.
+
+    The uniform grid has positions :math:`x_0 + i \Delta x` (reported as
+    :math:`i \Delta x`), :math:`i = 0, \dots, M-1`, where :math:`x_0` is
+    the first position of the nonuniform line scan; heights are linearly
+    interpolated between the data points. The resulting line scan is
+    nonperiodic and its physical size is :math:`(M-1) \Delta x`.
     """
 
     def __init__(self, topography, nb_points=None, padding=0, nb_interpolate=None, pixel_size=None, info={}):
-        """
+        r"""
         Convert a nonuniform line scan to a uniform line scan by explicit
         linear interpolation between the discrete coordinates of the
         nonuniform scan.
@@ -49,22 +55,25 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
 
         Parameters
         ----------
-        topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
-            SurfaceTopography to interpolate.
+        topography : :obj:`NonuniformLineScan`
+            Line scan to interpolate. Must not be reentrant.
         nb_points : int, optional
-            Number of equidistant grid points. Number of points will be
-            automatically computed from the mean grid spacing and
-            `nb_interpolate` if set to None. (Default: None)
+            Number of equidistant grid points :math:`M`; the grid spacing is
+            :math:`\Delta x = L/(M-1)`. (Default: None)
         padding : int, optional
             Number of padding grid points appended to the data; they hold
             the value of the final data point (np.interp clamps to the
             boundary values).
             (Default: 0)
         nb_interpolate : int, optional
-            Number of grid points to between closest points on surface.
-            (Default: None)
+            Number of grid points per smallest spacing between data points;
+            :math:`M` is `nb_interpolate` times :math:`\lfloor L / \min_i
+            \Delta x_i \rfloor`. (Default: None)
         pixel_size : float, optional
-            Grid spacing. (Default: None)
+            Grid spacing :math:`\Delta x`; :math:`M = \lfloor L/\Delta x
+            \rfloor + 1`. (Default: None)
+        info : dict, optional
+            Updated entries to the info dictionary. (Default: {})
         """
         super().__init__(topography, info=info)
         self.nb_points = nb_points

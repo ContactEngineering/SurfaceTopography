@@ -90,8 +90,8 @@ class ChannelInfo:
         can be None if the information cannot be determined. (This is the
         default for all keyword arguments.)
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         reader : :obj:`ReaderBase`
             Reader instance this channel is coming from.
         index : int
@@ -113,7 +113,7 @@ class ChannelInfo:
             calculations (windowing).
         uniform : bool, optional
             Data is uniform.
-        has_undefined_data : bool, optional
+        undefined_data : bool, optional
             Underlying data has missing/undefined points.
         unit : str, optional
             Length unit of measurement (lateral dimensions).
@@ -148,7 +148,8 @@ class ChannelInfo:
         self._unit = unit
         self._data_kind = data_kind if data_kind is not None else DataKind.HEIGHT
         self._data_unit = data_unit
-        # These will be set by reader._finalize_channels()
+        # Computed lazily from the reader's channel list (see
+        # `_compute_id_and_height_index`)
         self._channel_id = None
         self._height_index = None
         if info is None:
@@ -190,35 +191,36 @@ class ChannelInfo:
     ):
         """
         Returns an instance of a subclass of :obj:`HeightContainer` that
-        contains the topography data. The method allows to override data
-        found in the data file.
+        contains the topography data of this channel. Metadata missing from
+        the data file can be supplied as arguments; metadata present in the
+        file cannot be overridden (see :meth:`ReaderBase.topography`).
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         physical_sizes : tuple of floats, optional
-            Physical size of the topography. It is necessary to specify this
-            if no physical size is found in the data file. If there is a
-            physical size, then this parameter will override the physical
-            size found in the data file.
+            Physical size of the topography. Required if no physical size is
+            found in the data file; raises `MetadataAlreadyFixedByFile` if
+            the file provides one. (Default: None)
         height_scale_factor : float, optional
             Factor by which the heights should be multiplied.
             This parameter is only available for file formats that do not provide
             metadata information about units and associated length scales.
+            (Default: None)
         unit : str, optional
-            Length unit of measurement.
+            Length unit of measurement. (Default: None)
         info : dict, optional
             This dictionary will be appended to the info dictionary returned
-            by the reader.
+            by the reader. (Default: {})
         periodic : bool, optional
             Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
-            calculations (windowing)
+            calculations (windowing). (Default: False)
         subdomain_locations : tuple of ints, optional
             Origin (location) of the subdomain handled by the present MPI
-            process.
+            process. (Default: None)
         nb_subdomain_grid_pts : tuple of ints, optional
             Number of grid points within the subdomain handled by the present
-            MPI process.
+            MPI process. (Default: None)
 
         Returns
         -------
@@ -337,7 +339,7 @@ class ChannelInfo:
     @property
     def pixel_size(self):
         """
-        The pixel size is returned as the phyiscal size divided by the number
+        The pixel size is returned as the physical size divided by the number
         of grid points. If the physical size can be determined from the file,
         a tuple is returned. The tuple has 1 or 2 elements (size_x, size_y),
         depending on the dimension of the topography.
@@ -359,7 +361,7 @@ class ChannelInfo:
     def area_per_pt(self):
         """
         The area per point is returned as the product over the pixel size
-        tuple. If `pixel_size` returns None, than also `area_per_pt` returns
+        tuple. If `pixel_size` returns None, then also `area_per_pt` returns
         None.
         """
         if self.pixel_size is None:
@@ -486,8 +488,8 @@ class ChannelInfo:
         """
         Index among height channels only.
 
-        This provides backwards compatibility for code that expects channels
-        to be indexed only among height data. Non-height channels return None.
+        Use this for code that indexes channels among height data only.
+        Non-height channels return None.
 
         Returns
         -------
@@ -503,7 +505,7 @@ class ChannelInfo:
     def info(self) -> dict:
         """
         A dictionary containing additional information (metadata) not used by
-        SurfaceTopography itself, but required by third-party application.
+        SurfaceTopography itself, but required by third-party applications.
         """
         return self._info.model_dump(exclude_none=True)
 
@@ -526,7 +528,7 @@ class ChannelInfo:
 
 class ReaderBase(metaclass=abc.ABCMeta):
     """
-    Base class for topography readers. These are object that allow to open a
+    Base class for topography readers. These are objects that allow to open a
     file (from filename or stream object), inspect its metadata and then
     request to load a topography from it. Metadata is typically extracted
     without reading the full file.
@@ -680,9 +682,8 @@ class ReaderBase(metaclass=abc.ABCMeta):
         """
         Convert a height channel index to a stable channel ID.
 
-        This utility function is useful for migrating databases that stored
-        channel references using the old height-only index system to the new
-        stable channel_id system.
+        Use this to convert channel references stored as height indices
+        (index among height channels only) into stable channel IDs.
 
         Parameters
         ----------
@@ -702,10 +703,8 @@ class ReaderBase(metaclass=abc.ABCMeta):
         Examples
         --------
         >>> reader = open_topography("scan.ibw")
-        >>> # Migrate old database entry
-        >>> old_index = 0  # stored in database
-        >>> new_id = reader.height_index_to_channel_id(old_index)
-        >>> # Store new_id in database instead
+        >>> height_index = 0  # e.g. stored in a database
+        >>> channel_id = reader.height_index_to_channel_id(height_index)
         """
         channel = self._get_channel_by_height_index(height_index)
         return channel.channel_id
@@ -714,9 +713,8 @@ class ReaderBase(metaclass=abc.ABCMeta):
         """
         Convert a stable channel ID to a height channel index.
 
-        This utility function can be used to convert channel IDs back to
-        height indices for backwards compatibility with systems that
-        require numeric indices.
+        Use this for systems that require numeric indices among height
+        channels.
 
         Parameters
         ----------
@@ -793,7 +791,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
             channel_info = self._get_channel_by_id(channel_id)
             resolved_index = self.channels.index(channel_info)
         elif height_channel_index is not None:
-            # Look up by height channel index (backwards compatible)
+            # Look up by index among height channels
             channel_info = self._get_channel_by_height_index(height_channel_index)
             resolved_index = self.channels.index(channel_info)
         elif channel_index is not None:
@@ -819,10 +817,8 @@ class ReaderBase(metaclass=abc.ABCMeta):
     @property
     def height_channels(self):
         """
-        Returns a list of :obj:`ChannelInfo`s for height channels only.
-
-        This provides backwards compatibility for code that expects only
-        height data channels.
+        Returns a list of :obj:`ChannelInfo`s for height channels only,
+        i.e. channels whose `data_kind` is `DataKind.HEIGHT`.
         """
         return [ch for ch in self.channels if ch.is_height_channel]
 
@@ -852,7 +848,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
                 )
             eff_physical_sizes = physical_sizes_from_arg
         elif physical_sizes_from_arg is not None:
-            # in general this should result in an exception now
+            # Metadata present in the file cannot be overridden
             raise MetadataAlreadyFixedByFile("physical_sizes")
         else:
             eff_physical_sizes = physical_sizes
@@ -890,47 +886,44 @@ class ReaderBase(metaclass=abc.ABCMeta):
         There are three ways to specify which channel to load:
         1. `channel_index`: Index into the full channels list (all data types)
         2. `channel_id`: Stable string identifier (e.g., "Height", "Phase#2")
-        3. `height_channel_index`: Index among height channels only (backwards
-           compatible with pre-existing database indices)
+        3. `height_channel_index`: Index among height channels only
 
         Only one of these parameters should be specified. If none are given,
         the default channel is loaded.
 
-        Arguments
-        ---------
-        channel_index : int
+        Parameters
+        ----------
+        channel_index : int, optional
             Index of the channel to load. See also `channels` method.
             (Default: None, which loads the default channel)
-        channel_id : str
+        channel_id : str, optional
             Stable channel identifier string. This is the recommended way to
             identify channels for storage in databases as it remains stable
-            even if channel ordering changes.
-        height_channel_index : int
-            Index among height channels only. This provides backwards
-            compatibility for databases that stored channel indices before
-            non-height channels were supported.
-        physical_sizes : tuple of floats
-            Physical size of the topography. It is necessary to specify this
-            if no physical size is found in the data file. If there is a
-            physical size, then this parameter will override the physical
-            size found in the data file.
-        height_scale_factor : float
-            Override height scale factor found in the data file.
-        unit : str
-            Length unit.
-        info : dict
+            even if channel ordering changes. (Default: None)
+        height_channel_index : int, optional
+            Index among height channels only. (Default: None)
+        physical_sizes : tuple of floats, optional
+            Physical size of the topography. Required if no physical size is
+            found in the data file; raises `MetadataAlreadyFixedByFile` if
+            the file provides one. (Default: None)
+        height_scale_factor : float, optional
+            Height scale factor, for files that do not provide one.
+            (Default: None)
+        unit : str, optional
+            Length unit, for files that do not provide one. (Default: None)
+        info : dict, optional
             This dictionary will be appended to the info dictionary returned
-            by the reader.
-        periodic: bool
+            by the reader. (Default: {})
+        periodic : bool, optional
             Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
-            calculations (windowing).
-        subdomain_locations : tuple of ints
+            calculations (windowing). (Default: False)
+        subdomain_locations : tuple of ints, optional
             Origin (location) of the subdomain handled by the present MPI
-            process.
-        nb_subdomain_grid_pts : tuple of ints
+            process. (Default: None)
+        nb_subdomain_grid_pts : tuple of ints, optional
             Number of grid points within the subdomain handled by the present
-            MPI process.
+            MPI process. (Default: None)
 
         Returns
         -------
@@ -940,7 +933,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         Raises
         ------
         MetadataAlreadyFixedByFile
-            Raised if `physical_sizes`, `unit or `height_scale_factor` have
+            Raised if `physical_sizes`, `unit` or `height_scale_factor` have
             already been defined in the file, because they should not be
             overridden by the user.
         ValueError
@@ -951,7 +944,24 @@ class ReaderBase(metaclass=abc.ABCMeta):
 
 
 class CompoundLayout(LayoutWithNameBase):
-    """Declare a file layout"""
+    """
+    Ordered sequence of layout nodes parsed one after the other from the
+    stream, sharing one context: each node sees the results of the
+    previous nodes, and the enclosing context as `__parent__`.
+
+    Parameters
+    ----------
+    structures : list
+        Layout nodes. An entry may also be a callable that takes the
+        current context and returns the layout node to parse (such
+        entries cannot be serialized).
+    name : str, optional
+        Name of the result in the enclosing context. If None, the results
+        are merged into the enclosing context. (Default: None)
+    context_mapper : callable or expression, optional
+        Applied to the result before it is returned, e.g. to restructure
+        it. (Default: identity)
+    """
 
     def __init__(self, structures, name=None, context_mapper=_identity):
         self._structures = structures
@@ -974,7 +984,21 @@ class CompoundLayout(LayoutWithNameBase):
 
 
 class If:
-    """Switch structure type dependent on data"""
+    """
+    Select a layout depending on conditions evaluated against the context.
+
+    Parameters
+    ----------
+    *args
+        Condition/layout pairs `condition1, layout1, condition2, layout2,
+        ...`, optionally followed by a default layout. Conditions are
+        callables or expressions taking the context; the layout of the
+        first true condition is parsed. Without a true condition and
+        without a default, nothing is parsed and the result is empty.
+    context_mapper : callable or expression, optional
+        Applied to the context before the conditions are evaluated and
+        the selected layout is parsed. (Default: None)
+    """
 
     def __init__(self, *args, context_mapper=None):
         self._args = args
@@ -1168,26 +1192,29 @@ class SizedChunk(LayoutWithNameBase):
     ):
         """
         Declare a file portion of a specific size. This allows bounds checking,
-        i.e. raising exception if too much or too little data is read.
+        i.e. raising an exception if too much or too little data is read.
 
         Parameters
         ----------
-        size : function or int
-            Function that returns the size of the chunk and takes as input the
-            current context.
-        structure : structure definition
+        size : int, callable or expression
+            Size of the chunk in bytes, or a callable/expression evaluating
+            it against the current context.
+        structure : layout
             Definition of the structure within this chunk.
-        mode : str
+        mode : str, optional
             Reading mode, can be 'read-once', 'skip-missing' or 'loop'.
             'read-once' and 'skip-missing' read the containing block once,
             but 'skip-missing' does not complain if this is not the complete
-            chunk. 'loop' repeats the containing block until the full chunk
-            has been read. (Default: 'read-once')
-        name : str
-            Context name of this block. Required if mode is 'loop'.
-        context_mapper : callable
-            Function that takes a context and returns a new context.
-        debug : Bool
+            chunk and skips to its end. 'loop' repeats the containing block
+            until the full chunk has been read and returns a list.
+            (Default: 'read-once')
+        name : str, optional
+            Context name of this block. If None, the result is merged into
+            the enclosing context. Mode 'loop' requires `name` or
+            `context_mapper`. (Default: None)
+        context_mapper : callable or expression, optional
+            Applied to the result before it is returned. (Default: None)
+        debug : bool, optional
             Print boundary offsets of chunk. (Default: False)
         """
         self._size = size
@@ -1270,7 +1297,20 @@ class SizedChunk(LayoutWithNameBase):
 
 
 class For(LayoutWithNameBase):
-    """Repeat structure"""
+    """
+    Repeat a structure a given number of times and collect the results in
+    a list.
+
+    Parameters
+    ----------
+    range : int, callable or expression
+        Number of repetitions, or a callable/expression evaluating it
+        against the context.
+    structure : layout
+        Layout parsed in each repetition.
+    name : str
+        Context name of the list of results. Required.
+    """
 
     def __init__(self, range, structure, name=None):
         self._range = range
@@ -1362,7 +1402,21 @@ class Let:
 
 
 class While(LayoutWithNameBase):
-    """Repeat as long as condition is met"""
+    """
+    Repeat a sequence of layouts as long as a condition holds and collect
+    the results in a list.
+
+    Parameters
+    ----------
+    *args
+        Layout nodes and conditions, processed in order in each
+        iteration. Conditions are callables or expressions evaluated
+        against the results of the current iteration (with the enclosing
+        context as `__parent__`); a false condition ends the loop after
+        the current iteration, skipping the remaining entries.
+    name : str
+        Context name of the list of results. Required.
+    """
 
     def __init__(self, *args, name=None):
         self._args = args
@@ -1394,13 +1448,14 @@ class While(LayoutWithNameBase):
 
 class DeclarativeReaderBase(ReaderBase):
     """
-    Base class for automatic readers.
+    Base class for declarative readers.
 
     Subclasses declare the file structure via the `_file_layout` class
     member and either override the `channels` property or declare the
     mapping from parsed metadata to channels via the `_channel_bindings`
     class member (see the format description contract,
-    `docs/format_description_contract.rst`).
+    `docs/format-description-contract.md`). Magic-byte detection is
+    declared via `_magic`, a list of `(offset, bytes)` alternatives.
 
     `_channel_bindings` is a list of dictionaries with the entries
 
@@ -1431,6 +1486,7 @@ class DeclarativeReaderBase(ReaderBase):
       emitted channel; a falsy condition raises the named error
 
     Expressions are evaluated against the parsed metadata context.
+    Channels are numbered in the order in which they are emitted.
     """
 
     _file_layout = None

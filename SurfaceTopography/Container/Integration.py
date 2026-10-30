@@ -36,10 +36,10 @@ def _bandwidth_intervals_from_profile(self, unit, reliable=True):
     then be answered without touching the topographies again (lazy
     containers read the data file on every element access).
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     self : SurfaceContainer
-        Collection of Height containers
+        Container with topographies and/or line scans.
     unit : str
         Unit of lengths in which the wavevector is defined.
     reliable : bool, optional
@@ -92,12 +92,12 @@ def _bandwidth_count_from_profile(self, qx, unit, reliable=True):
     r"""
     Return number of topographies that include qx in their bandwidth.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     self : SurfaceContainer
-        Collection of Height containers
-    qx: np.ndarrau of floats
-        wavevector
+        Container with topographies and/or line scans.
+    qx : np.ndarray of floats
+        Wavevectors.
     unit : str
         Unit of lengths in which the wavevector is defined.
     reliable : bool, optional
@@ -105,8 +105,8 @@ def _bandwidth_count_from_profile(self, qx, unit, reliable=True):
 
     Returns
     -------
-    number: np.ndarray
-        number of topographies having qx in their bandwidth
+    number : np.ndarray
+        Number of topographies having qx in their bandwidth.
     """
     return _count_in_intervals(
         _bandwidth_intervals_from_profile(self, unit, reliable), len(self), qx
@@ -115,51 +115,59 @@ def _bandwidth_count_from_profile(self, qx, unit, reliable=True):
 
 def integrate_psd_from_profile(self, factor, unit, window=None, reliable=True):
     r"""
+    Computes the integral of the 1D PSD weighted by `factor` over all
+    topographies of the container.
 
-    Computes the integral of the 1D PSD weighted by "factor"
-
-    The integral is computed by adding up the discrete sum for each topography.
-
-    The summand for each topography is weighted by the number of topographies having this wavevector in their bandwidth
-
-    Hence for a container containing only one topogaphy,
-    this method is identical to calling `topography.integrate_psd_from_profile()`
+    The integral is computed by adding up the discrete sums of the individual
+    topographies. Each summand is divided by the number of topographies that
+    have the respective wavevector within their bandwidth, so that wavevector
+    ranges covered by several topographies are averaged rather than counted
+    multiple times. For a container with a single topography, this method is
+    identical to calling `topography.integrate_psd_from_profile()`.
 
     Continuum:
 
     .. math::
 
-        \frac{1}{2 \pi} \int_{-\infty}^\infty dq_x factor(q_x) C^{1D}(q_x)
+        \frac{1}{2 \pi} \int_{-\infty}^\infty dq_x\, f(q_x)\, C^\text{1D}(q_x)
 
-    Discrete
+    Discrete:
 
     .. math::
 
-         m_\alpha = \sum_i \frac{1}{L_{x, i}} \sum_{q_x} \frac{factor(q_x) C^{1D}_{i}(q_x)}{N(q_x)}
+         \sum_i \frac{1}{L_{x,i}} \sum_{q_x} \frac{f(q_x)\, C^\text{1D}_i(q_x)}{N(q_x)}
 
+    where the index :math:`i` runs over all topographies, :math:`f` is
+    `factor` and :math:`N(q_x)` is the number of topographies with
+    :math:`2\pi/L_{x,i} \le |q_x| \le \min(\pi/\Delta x_i, 2\pi/\lambda_{c,i})`
+    (:math:`\lambda_{c,i}` is the short reliability cutoff, only used if
+    `reliable` is True). All topographies contain :math:`q_x=0`. For 2D
+    topographies, :math:`C^\text{1D}_i` is averaged over all profiles along
+    :math:`x`. Only uniform topographies are supported.
 
-    Where the index :math:`i` runs over all topographies and :math:`N(q_x)` is the number
-    of topographies having the wavevector `q_x` in their bandwidth
-
-
-    Parameters:
-    -----------
+    Parameters
+    ----------
     self : SurfaceContainer
-        Collection of Height containers
-    factor: callable
-        Function taking as argument the wavevector in the fast scan direction qx
+        Container with topographies and/or line scans.
+    factor : callable
+        Function taking as argument the wavevector in the fast scan
+        direction qx
 
             ``func(np.ndarray: qx) -> np.ndarray``
 
+    unit : str
+        Length unit. All topographies are converted to this unit before the
+        integral is computed; the wavevector passed to `factor` is in units
+        of 1/`unit`.
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         (Default: None)
     reliable : bool, optional
-        Only return data deemed reliable. (Default: True)
+        Only incorporate data deemed reliable. (Default: True)
 
-    Returns:
-    --------
-    weighted_integral: float
+    Returns
+    -------
+    weighted_integral : float
     """
     integ = 0
 
@@ -186,27 +194,40 @@ def integrate_psd_from_profile(self, factor, unit, window=None, reliable=True):
 
 def ciso_moment(self, order=1, cumulative=False, **kwargs):
     r"""
-    trapz integration of the moments of the averaged isotropic PSD.
+    Moment of the isotropic PSD obtained from the averaged 1D PSD of the
+    container, computed by trapezoidal integration.
 
-    Containers only implement the 1D power-spectrum, so that we use the approximation mapping
-    the 1d PSD to the isotropic PSD
+    Containers only compute the 1D power spectrum (they may contain line
+    scans), so the isotropic PSD is approximated from the averaged 1D PSD as
 
     .. math::
 
-        C^\mathrm{iso} = \frac{\pi}{q} C^\mathrm{1D}
+        C^\text{iso}(q) = \frac{\pi}{q} C^\text{1D}(q)
 
+    and the moment is
+
+    .. math::
+
+        m_\alpha = \frac{1}{2\pi} \int dq\, q^{\alpha+1} C^\text{iso}(q).
+
+    Masked (empty) bins of the averaged PSD are dropped before integration.
 
     Parameters
     ----------
-    self : SurfaceContainer or HeightContainer
-        Container with height information or collection of height containsers
-    order : float
-        order of moment of the PDF to compute
-    Further parameters are passed to the power_spectrum method, see the documentation of the corresponding method
+    self : SurfaceContainer
+        Container with topographies and/or line scans.
+    order : float, optional
+        Order :math:`\alpha` of the moment. (Default: 1)
+    cumulative : bool, optional
+        If True, return the cumulative integral evaluated at each wavevector
+        instead of the full integral. (Default: False)
+    **kwargs
+        Further parameters (e.g. `unit`, `nb_points_per_decade`,
+        `reliable`) are passed to `power_spectrum`.
 
     Returns
     -------
-    float
+    moment : float or np.ndarray
     """
     power_spectrum = self.power_spectrum(**kwargs)  #
     q, C1D = power_spectrum
@@ -224,20 +245,32 @@ def ciso_moment(self, order=1, cumulative=False, **kwargs):
 
 
 def c1d_moment(self, order=1, cumulative=False, **kwargs):
-    """
-    trapz integration of
+    r"""
+    Moment of the averaged 1D PSD of the container, computed by trapezoidal
+    integration,
+
+    .. math::
+
+        m_\alpha = \frac{1}{\pi} \int_0^\infty dq\, q^\alpha C^\text{1D}(q).
+
+    Masked (empty) bins of the averaged PSD are dropped before integration.
 
     Parameters
     ----------
-    self : SurfaceContainer or HeightContainer
-        Container with height information or collection of height containsers
-    order : float
-        order of moment of the PDF to compute
-    Further parameters are passed to the power_spectrum method, see the documentation of the corresponding method
+    self : SurfaceContainer
+        Container with topographies and/or line scans.
+    order : float, optional
+        Order :math:`\alpha` of the moment. (Default: 1)
+    cumulative : bool, optional
+        If True, return the cumulative integral evaluated at each wavevector
+        instead of the full integral. (Default: False)
+    **kwargs
+        Further parameters (e.g. `unit`, `nb_points_per_decade`,
+        `reliable`) are passed to `power_spectrum`.
 
     Returns
     -------
-    float
+    moment : float or np.ndarray
     """
     power_spectrum = self.power_spectrum(**kwargs)  #
     q, C1D = power_spectrum

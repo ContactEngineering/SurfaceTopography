@@ -25,7 +25,7 @@
 #
 
 """
-Helper functions for the generation of random fractal surfaces
+Generation of random self-affine (fractal) topographies by Fourier synthesis
 """
 
 import numpy as np
@@ -63,64 +63,74 @@ def _irfft2(karr, rarr, progress_callback=None):
 def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
                           rms_slope=None, short_cutoff=None, long_cutoff=None):
     r"""
-    Compute prefactor :math:`C_0` for the power-spectrum density of an ideal
-    self-affine topography given by
+    Compute the amplitude prefactor used by `fourier_synthesis` for an ideal
+    self-affine topography with power-spectral density (PSD)
 
     .. math ::
 
-        C(q) = C_0 q^{-2-2H}
+        C^\text{2D}(q) = C_0 q^{-2-2H}
 
     for two-dimensional topography maps and
 
     .. math ::
 
-        C(q) = C_0 q^{-1-2H}
+        C^\text{1D}(q) = C_0 q^{-1-2H}
 
     for one-dimensional line scans. Here :math:`H` is the Hurst exponent.
-
-    Note:
-    In the 2D case:
-
-    .. math ::
-
-        h^2_{rms} = \frac{1}{2 \pi} \int_{0}^{\infty} q C^{iso}(q) dq
-
-    whereas in the 1D case:
+    :math:`C_0` is determined such that the PSD between the long-wavelength
+    cutoff :math:`q_L` and the short-wavelength cutoff :math:`q_s` yields
+    the requested rms height or rms slope, using (Eqs. (1) and (4) in [1])
 
     .. math ::
 
-        h^2_{rms} = \frac{1}{\pi} \int_{0}^{\infty} C^{1D}(q) dq
+        h^2_\text{rms} = \frac{1}{2 \pi} \int_{q_L}^{q_s} q C^\text{2D}(q) dq,
+        \quad
+        h^2_\text{rms} = \frac{1}{\pi} \int_{q_L}^{q_s} C^\text{1D}(q) dq,
 
-    See Equations (1) and (4) in [1].
+    which give for the 2D case
 
+    .. math ::
+
+        C_0 = \frac{4 \pi H h_\text{rms}^2}{q_L^{-2H} - q_s^{-2H}}
+        \quad \text{or} \quad
+        C_0 = \frac{4 \pi (1 - H) {h'_\text{rms}}^2}{q_s^{2-2H} - q_L^{2-2H}}
+
+    and half of these values for the 1D case. The contribution of a
+    roll-off region below :math:`q_L` is not included.
 
     Parameters
     ----------
     nb_grid_pts : array_like
-        Resolution of the topography map or the line scan.
+        Number of grid points :math:`(N_x, N_y)` or :math:`(N,)`.
     physical_sizes : array_like
-        Physical physical_sizes of the topography map or the line scan.
+        Physical size :math:`(L_x, L_y)` or :math:`(L,)`.
     Hurst : float
-        Hurst exponent.
-    rms_height : float
-        Root mean-squared height.
-    rms_slope : float
-        Root mean-squared slope of the topography map or the line scan.
-    short_cutoff : float
-        Short-wavelength cutoff.
-    long_cutoff : float
-        Long-wavelength cutoff.
+        Hurst exponent :math:`H`.
+    rms_height : float, optional
+        Root mean-squared height. Requires :math:`H > 0`. (Default: None)
+    rms_slope : float, optional
+        Root mean-squared slope. Used if `rms_height` is None. Requires
+        :math:`H < 1`. (Default: None)
+    short_cutoff : float, optional
+        Short-wavelength cutoff :math:`\lambda_s = 2\pi/q_s`.
+        (Default: None, i.e. :math:`q_s = \pi/\Delta x`, using the smallest
+        Nyquist wavevector of the two directions)
+    long_cutoff : float, optional
+        Long-wavelength cutoff :math:`\lambda_L = 2\pi/q_L`.
+        (Default: None, i.e. :math:`q_L = 2\pi/L`, using the larger
+        fundamental wavevector of the two directions)
 
     Returns
     -------
     prefactor : float
-        Prefactor :math:`\sqrt{C_0}`
+        Prefactor :math:`\sqrt{C_0}\, N_x N_y / \sqrt{L_x L_y}` (1D:
+        :math:`\sqrt{C_0}\, N / \sqrt{L}`) of the Fourier amplitudes in
+        numpy's unnormalized FFT convention.
 
     References
-    -----------
+    ----------
     [1]: Jacobs, Junge, Pastewka,
-    Surf. Topgogr.: Metrol. Prop. 5, 013001 (2017)
-
+    Surf. Topogr.: Metrol. Prop. 5, 013001 (2017)
     """
     nb_grid_pts = np.asarray(nb_grid_pts)
     physical_sizes = np.asarray(physical_sizes)
@@ -174,61 +184,96 @@ def fourier_synthesis(nb_grid_pts, physical_sizes,
                       periodic=True, rfn=None, kfn=None,
                       progress_callback=None, unit=None, info={}):
     r"""
-    Create a self-affine, randomly rough surface using a Fourier filtering
-    algorithm. The algorithm is described in:
+    Create a randomly rough topography with prescribed power-spectral
+    density (PSD) by Fourier filtering of random noise. The algorithm is
+    described in:
     Ramisetti et al., J. Phys.: Condens. Matter 23, 215004 (2011);
-    Jacobs, Junge, Pastewka, Surf. Topgogr.: Metrol. Prop. 5, 013001 (2017)
+    Jacobs, Junge, Pastewka, Surf. Topogr.: Metrol. Prop. 5, 013001 (2017)
+
+    The Fourier coefficient at each wavevector :math:`\mathbf q` of the
+    grid is
+
+    .. math ::
+
+        \tilde h(\mathbf q) = \sqrt{A\, C(q)}\; a_\mathbf{q}\; e^{i\phi_\mathbf{q}}
+
+    with :math:`A = L_x L_y` (1D: :math:`L`), random amplitudes
+    :math:`a_\mathbf{q}` drawn from `amplitude_distribution` and uniformly
+    distributed random phases :math:`\phi_\mathbf{q} \in [0, 2\pi)`. For
+    :math:`\langle a^2 \rangle = 1` the expectation value of the PSD of the
+    result is :math:`C(q)`. The PSD is either self-affine,
+    :math:`C(q) = C_0 q^{-2-2H}` (1D: :math:`C_0 q^{-1-2H}`) with
+    :math:`C_0` given or computed from `rms_height` or `rms_slope` (see
+    `self_affine_prefactor`), or the function `psd`. It is zero for
+    :math:`q > q_s` and, if `long_cutoff` is given, constant and equal to
+    :math:`\text{rolloff}^2\, C(q_L)` for :math:`q < q_L`. For the
+    self-affine PSD the :math:`q = 0` coefficient is zero, i.e. the mean
+    height vanishes.
+
+    The real-space heights are obtained by an inverse real-to-complex FFT;
+    the cost is :math:`O(N_x N_y \log(N_x N_y))`. The result is always
+    periodic by construction.
 
     Parameters
     ----------
     nb_grid_pts : array_like
-        Resolution of the topography map.
+        Number of grid points, :math:`(N_x, N_y)` for a topography map or
+        :math:`(N,)` for a line scan.
     physical_sizes : array_like
-        Physical physical_sizes of the topography map.
-    hurst : float
-        Hurst exponent.
-    rms_height : float
-        Root mean-squared height.
-    rms_slope : float
-        Root mean-squared slope.
-    c0: float
-        self affine prefactor :math:`C_0`:
-        :math:`C(q) = C_0 q^{-2-2H}`
-    psd: callable
-        C(q)
-        Function returning the Power Spectral Density as a function of the absolute value of the wavevector
-    short_cutoff : float
-        Short-wavelength cutoff.
-    long_cutoff : float
-        Long-wavelength cutoff.
-    rolloff : float
-        Value for the power-spectral density (PSD) below the long-wavelength
-        cutoff. This multiplies the value at the cutoff, i.e. unit will give a
-        PSD that is flat below the cutoff, zero will give a PSD that is
-        vanishes below cutoff. (Default: 1.0)
-    amplitude_distribution : function
-        Function that generates the distribution of amplitudes.
-        (Default: np.random.normal)
-    periodic : bool
-        Return a periodic surface. (Default: True)
-    rfn : str
-        Name of file that stores the real-space array. If specified, real-space
-        array will be created as a memory mapped file. This is useful for
-        creating very large topography maps. (Default: None)
-    kfn : str
-        Name of file that stores the Fourie-space array. If specified,
+        Physical size, :math:`(L_x, L_y)` or :math:`(L,)`.
+    hurst : float, optional
+        Hurst exponent :math:`H`. Required unless `psd` is given.
+        (Default: None)
+    rms_height : float, optional
+        Root mean-squared height. (Default: None)
+    rms_slope : float, optional
+        Root mean-squared slope. Used if `rms_height` is None.
+        (Default: None)
+    c0 : float, optional
+        Self-affine prefactor :math:`C_0`. Used if neither `rms_height` nor
+        `rms_slope` is given. (Default: None)
+    psd : callable, optional
+        Function returning the PSD :math:`C(q)` (2D: :math:`C^\text{2D}`,
+        1D: :math:`C^\text{1D}`) as a function of the magnitude of the
+        wavevector. It is also evaluated at :math:`q = 0`. Cannot be
+        combined with `hurst`, `rms_height`, `rms_slope`, `c0` or
+        `long_cutoff`. (Default: None)
+    short_cutoff : float, optional
+        Short-wavelength cutoff :math:`\lambda_s = 2\pi/q_s`.
+        (Default: None, i.e. :math:`q_s = \pi/\Delta x`)
+    long_cutoff : float, optional
+        Long-wavelength cutoff :math:`\lambda_L = 2\pi/q_L`. (Default: None,
+        i.e. power law down to the smallest nonzero wavevector)
+    rolloff : float, optional
+        Amplitude of the Fourier coefficients below the long-wavelength
+        cutoff relative to the amplitude at the cutoff; the PSD for
+        :math:`q < q_L` is :math:`\text{rolloff}^2\, C(q_L)`. Unity gives a
+        PSD that is flat below the cutoff, zero a PSD that vanishes below
+        the cutoff. (Default: 1.0)
+    amplitude_distribution : function, optional
+        Function that returns `n` random amplitudes :math:`a_\mathbf{q}`.
+        (Default: standard normal distribution, `np.random.normal`)
+    periodic : bool, optional
+        Value of the `is_periodic` flag of the returned topography. The
+        heights are periodic in either case. (Default: True)
+    rfn : str, optional
+        Name of file that stores the real-space array. If specified, the
         real-space array will be created as a memory mapped file. This is
         useful for creating very large topography maps. (Default: None)
-    progress_callback : function(i, n)
-        Function that is called to report progress.
+    kfn : str, optional
+        Name of file that stores the Fourier-space array. If specified, the
+        Fourier-space array will be created as a memory mapped file. This is
+        useful for creating very large topography maps. (Default: None)
+    progress_callback : function(i, n), optional
+        Function that is called to report progress. (Default: None)
     unit : str, optional
-        Length unit.
+        Length unit. (Default: None)
     info : dict, optional
-        Initial info dictionary.
+        Initial info dictionary. (Default: {})
 
     Returns
     -------
-    topography : UniformTopography or UniformLineScan
+    topography : Topography or UniformLineScan
         The topography.
     """
     if short_cutoff is not None:

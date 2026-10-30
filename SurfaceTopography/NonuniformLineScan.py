@@ -26,7 +26,8 @@
 #
 
 """
-Support for nonuniform topogography descriptions
+Line scans on nonuniform grids (`NonuniformLineScan`) and the pipeline steps
+for unit conversion and scaling.
 """
 
 import numpy as np
@@ -41,7 +42,10 @@ from .Support.UnitConversion import get_unit_conversion_factor
 
 class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
     """
-    Nonuniform topography with point list consisting of static numpy arrays.
+    Line scan with arbitrary positions :math:`x_i`. Heights between data
+    points are obtained by linear interpolation. Positions are normally
+    increasing; line scans whose positions are not strictly increasing are
+    reentrant (see `is_reentrant`) and not supported by most analyses.
     """
 
     def __init__(self, x, y, unit=None, info={}):
@@ -51,13 +55,13 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
         Arguments
         ---------
         x : array_like
-            x-positions of the data points that sample the line scan.
+            Positions of the data points that sample the line scan.
         y : array_like
-            y-positions of the data points that sample the line scan.
+            Heights at these positions. Must not be a masked array.
         unit : str, optional
-            The length unit.
+            The length unit. (Default: None)
         info : dict, optional
-            The info dictionary containing auxiliary data.
+            The info dictionary containing auxiliary data. (Default: {})
         """
         super().__init__(unit=unit, info=info)
         if np.ma.is_masked(x) or np.ma.is_masked(y):
@@ -110,16 +114,24 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
         return self._x[0], self._x[-1]
 
     def positions(self):
+        """Return the array of positions :math:`x_i`."""
         return self._x
 
     def heights(self):
+        """Return the array of heights :math:`h_i`."""
         return self._h
 
     def squeeze(self):
+        """Return this object; it already owns its data."""
         return self
 
 
 class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInterface):
+    """
+    Base class of pipeline steps on nonuniform line scans. Derived classes
+    override `heights` (and `positions`, if they change it).
+    """
+
     @property
     def is_periodic(self):
         return self.parent_topography.is_periodic
@@ -154,18 +166,23 @@ class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInter
         return self.parent_topography.positions()
 
     def squeeze(self):
+        """
+        Evaluate the pipeline and return a `NonuniformLineScan` that owns
+        the resulting positions and heights.
+        """
         return NonuniformLineScan(
             self.positions(), self.heights(), info=self.info, unit=self.unit
         )
 
 
 class ScaledNonuniformTopography(DecoratedNonuniformTopography):
-    """Scale heights, positions, or both."""
+    """Convert heights and positions to a different length unit."""
 
     def __init__(self, topography, unit, info={}):
         """
         This topography wraps a parent topography and rescales x and z
-        coordinates according to certain rules.
+        coordinates by the conversion factor from the parent's unit to
+        `unit`.
 
         Arguments
         ---------
@@ -212,8 +229,8 @@ class StaticallyScaledNonuniformTopography(ScaledNonuniformTopography):
         info={},
     ):
         """
-        This topography wraps a parent topography and rescales x and z
-        coordinates according to certain rules.
+        This topography wraps a parent topography and multiplies heights by
+        `height_scale_factor` and positions by `position_scale_factor`.
 
         Arguments
         ---------

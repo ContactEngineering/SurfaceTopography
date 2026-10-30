@@ -25,8 +25,13 @@
 # SOFTWARE.
 #
 
-"""
-Helper functions to compute trends of surfaces
+r"""
+Polynomial trends of uniform line scans and topographies and the `detrend`
+pipeline step that removes them.
+
+Trends are polynomials in the normalized coordinates :math:`\xi = x/L_x`
+and :math:`\eta = y/L_y`, i.e. :math:`\xi_i = i/N_x` on the grid. The
+coefficients therefore all carry the unit of the heights.
 """
 
 import numpy as np
@@ -36,13 +41,30 @@ from SurfaceTopography.UniformLineScanAndTopography import (
 
 
 def polyfit_line_scan(self, deg):
-    """
-    Compute the detrending plane that, if subtracted, minimizes the rms height.
+    r"""
+    Compute the polynomial that, if subtracted, minimizes the rms height of a
+    uniform line scan.
+
+    Solves the discrete least-squares problem
+
+    .. math::
+
+        \min_{\{a_k\}} \sum_i \left( h_i - \sum_{k=0}^n a_k \xi_i^k \right)^2
+
+    with :math:`\xi_i = x_i / L` over all defined (unmasked) data points.
 
     Parameters
     ----------
     self : :obj:`UniformLineScan`
-        Topography or line scan container object.
+        Line scan container object.
+    deg : int
+        Degree :math:`n` of the polynomial.
+
+    Returns
+    -------
+    a : np.ndarray
+        Coefficients :math:`a_0, \dots, a_n` (lowest order first, in units
+        of the heights).
     """
     x, h = self.positions_and_heights()
     x /= self.physical_sizes[0]
@@ -57,40 +79,34 @@ def polyfit_line_scan(self, deg):
 
 
 def polyfit1_topography(self, full_output=False):
-    """
-    Compute the tilt plane that if subtracted minimizes the rms height of the
-    surface. The tilt plane is parameterized as:
+    r"""
+    Compute the tilt plane that, if subtracted, minimizes the rms height of
+    the surface. The tilt plane is parameterized as
 
     .. math::
 
-        p(x, y) = h_0 + m x + n y
+        p(\xi, \eta) = h_0 + m \xi + n \eta
 
-    The values of :math:`m`, :math:`n` and :math:`h0` are return by this
-    function.
-
-    idea as follows
-
-    1) arr = arr_out + (ň.x + d)/ň_z
-    2) arr_out.sum() = 0
-    3) |ň| = 1
-    => n_z = sqrt(1 - n_x^2 - n_y^2) (for 2D, but you get the idea)
-       dofs = n_x, n_y, d = X
-
-    solution X_s = arg_min ((arr - ň.x + d)^2).sum()
+    with normalized coordinates :math:`\xi = x/L_x`, :math:`\eta = y/L_y`.
+    The coefficients solve the linear least-squares problem
+    :math:`\min \sum_{ij} (h_{ij} - p(\xi_i, \eta_j))^2` over all defined
+    (unmasked) data points.
 
     Parameters
     ----------
     self : :obj:`Topography`
         Height information.
+    full_output : bool, optional
+        If True, also return the design matrix of the least-squares
+        problem. (Default: False)
 
     Returns
     -------
-    m : float
-        Slope in x-direction.
-    n : float
-        Slope in y-direction.
-    h0 : float
-        Mean value.
+    coeffs : np.ndarray
+        Coefficients :math:`h_0, m, n` (in this order and in units of the
+        heights; the slopes are :math:`m/L_x` and :math:`n/L_y`).
+    location_matrix : np.ndarray
+        Design matrix, only returned if `full_output` is True.
     """
     arr = self.heights()
     nb_dim = self.dim
@@ -115,28 +131,34 @@ def polyfit1_topography(self, full_output=False):
 
 
 def polyfit2_topography(self, full_output=False):
-    """
-    Data in arr is interpreted as height information of a tilted and shifted
-    surface.
+    r"""
+    Compute the second-order polynomial that, if subtracted, minimizes the
+    rms height of the surface,
 
-    idea as follows
+    .. math::
 
-    1) arr = arr_out + (ň.x + d)/ň_z
-    2) arr_out.sum() = 0
-    3) |ň| = 1
-    => n_z = sqrt(1 - n_x^2 - n_y^2) (for 2D, but you get the idea)
-       dofs = n_x, n_y, d = X
+        p(\xi, \eta) = a_0 + a_1 \xi + a_2 \eta + a_3 \xi^2 + a_4 \eta^2 + a_5 \xi \eta
 
-    solution X_s = arg_min ((arr - ň.x + d)^2).sum()
+    with normalized coordinates :math:`\xi = x/L_x`, :math:`\eta = y/L_y`.
+    The coefficients solve the linear least-squares problem
+    :math:`\min \sum_{ij} (h_{ij} - p(\xi_i, \eta_j))^2` over all defined
+    (unmasked) data points.
 
-    Returns:
-    ---------
-    coeffs [, location_matrix (if full_output)]
+    Parameters
+    ----------
+    self : :obj:`Topography`
+        Height information.
+    full_output : bool, optional
+        If True, also return the design matrix of the least-squares
+        problem. (Default: False)
 
-    coeffs ordered as follows
-
-    {0} + {1} x + {2} y + {3} x^2 + {4} y^2 + {5} xy
-
+    Returns
+    -------
+    coeffs : np.ndarray
+        Coefficients :math:`a_0, \dots, a_5` in the order given above (in
+        units of the heights).
+    location_matrix : np.ndarray
+        Design matrix, only returned if `full_output` is True.
     """
     arr = self.heights()
     nb_dim = self.dim
@@ -166,12 +188,21 @@ def polyfit2_topography(self, full_output=False):
 
 def polyfit_topography(self, deg):
     """
-    Compute the detrending plane that, if subtracted, minimizes the rms height.
+    Compute the detrending polynomial that, if subtracted, minimizes the rms
+    height of a topography. See `polyfit1_topography` and
+    `polyfit2_topography`.
 
     Parameters
     ----------
     self : :obj:`Topography`
-        Topography or line scan container object.
+        Topography container object.
+    deg : int
+        Degree of the polynomial, 1 or 2.
+
+    Returns
+    -------
+    coeffs : np.ndarray
+        Three (`deg` = 1) or six (`deg` = 2) coefficients.
     """
     if deg == 1:
         return polyfit1_topography(self)
@@ -183,6 +214,25 @@ def polyfit_topography(self, deg):
 
 
 def polyfit(self, deg):
+    """
+    Compute the polynomial that, if subtracted, minimizes the rms height of
+    a uniform line scan or topography. Positions enter as the normalized
+    coordinates :math:`x/L_x` (and :math:`y/L_y`).
+
+    Parameters
+    ----------
+    self : :obj:`UniformLineScan` or :obj:`Topography`
+        Container object.
+    deg : int
+        Degree of the polynomial. Arbitrary for line scans, 1 or 2 for
+        topographies.
+
+    Returns
+    -------
+    coeffs : np.ndarray
+        Coefficients, lowest order first. For topographies see
+        `polyfit1_topography` and `polyfit2_topography` for the order.
+    """
     if self.dim == 1:
         return polyfit_line_scan(self, deg)
     elif self.dim == 2:
@@ -192,6 +242,11 @@ def polyfit(self, deg):
 
 
 def _detrend_1d_slope_coeffs(self):
+    """
+    Coefficients [a0, a1] of the line whose slope is the mean finite
+    difference slope (this minimizes the rms slope of the detrended line
+    scan); a0 makes the mean of the detrended line scan zero.
+    """
     sl = self.parent_topography.derivative(1, periodic=False).mean()
     n, = self.nb_grid_pts
     s, = self.physical_sizes
@@ -200,6 +255,11 @@ def _detrend_1d_slope_coeffs(self):
 
 
 def _detrend_2d_slope_coeffs(self):
+    """
+    Coefficients [a0, a1x, a1y] of the plane whose slopes are the mean
+    finite difference slopes in x and y (this minimizes the rms gradient of
+    the detrended topography); a0 makes the mean of the result zero.
+    """
     slx, sly = self.parent_topography.derivative(1, periodic=False)
     slx = slx.mean()
     sly = sly.mean()
@@ -211,49 +271,60 @@ def _detrend_2d_slope_coeffs(self):
 
 class DetrendedUniformTopography(DecoratedUniformTopography):
     """
-    Remove trends from a topography. This is achieved by fitting polynomials
-    to the topography data to extract trend lines. The resulting topography
-    is then detrended by substracting these trend lines.
+    Remove a polynomial trend from a uniform line scan or topography. The
+    trend is a polynomial in the normalized coordinates :math:`x/L_x` (and
+    :math:`y/L_y`) whose coefficients are determined according to
+    `detrend_mode`; the result is the parent heights minus this polynomial.
 
-    Note on periodicity: Detrended Topographies with mode other than 'center'
-    will have `is_periodic` property set to False.
+    Note on periodicity: Detrended topographies with mode other than
+    'center' have their `is_periodic` property set to False.
     """
 
     _detrend_functions = {
         'mean': lambda self: [self.parent_topography.mean()],
-        # same as 'mean', deprecate 'center' in the future
+        # alias of 'mean'
         'center': lambda self: [self.parent_topography.mean()],
         'median': lambda self: [self.parent_topography.median()],
         'rms-tilt': lambda self: self.parent_topography.polyfit(1),
-        # same as 'rms-tilt', deprecate 'height' in the future
+        # alias of 'rms-tilt'
         'height': lambda self: self.parent_topography.polyfit(1),
         'mad-tilt': lambda self: self.parent_topography.mad_polyfit(1),
         'slope': lambda self: _detrend_1d_slope_coeffs(self) if self.dim == 1 else _detrend_2d_slope_coeffs(self),
         'rms-curvature': lambda self: self.parent_topography.polyfit(2),
-        # same as 'rms-curvature', deprecate 'curvature' in the future
+        # alias of 'rms-curvature'
         'curvature': lambda self: self.parent_topography.polyfit(2),
         'mad-curvature': lambda self: self.parent_topography.mad_polyfit(2),
     }
 
     def __init__(self, topography, detrend_mode='height', coeffs=None, info={}):
         """
-        Note on periodicity: Detrended Topographies with mode other than
-        "center" will have `is_periodic` property set to False.
+        Note on periodicity: Detrended topographies with mode other than
+        'center' have their `is_periodic` property set to False.
 
         Parameters
         ----------
-        topography : Topography
-            SurfaceTopography to be detrended.
-        detrend_mode : str
-            'center': center the topography, no trend correction.
-            'height': adjust slope such that rms height is minimized.
-            'slope': adjust slope such that rms slope is minimized.
-            'curvature': adjust slope and curvature such that rms height is
-            minimized.
+        topography : :obj:`UniformLineScan` or :obj:`Topography`
+            Topography to be detrended.
+        detrend_mode : str, optional
+            'mean' (alias 'center'): subtract the mean height, no tilt
+            correction.
+            'median': subtract the median height, no tilt correction.
+            'rms-tilt' (alias 'height'): subtract the plane that minimizes the
+            rms height.
+            'mad-tilt': subtract the plane that minimizes the median absolute
+            deviation of the heights.
+            'slope': subtract the plane that minimizes the rms slope.
+            'rms-curvature' (alias 'curvature'): subtract the second-order
+            polynomial that minimizes the rms height.
+            'mad-curvature': subtract the second-order polynomial that
+            minimizes the median absolute deviation of the heights.
             (Default: 'height')
         coeffs : array_like, optional
-            Coefficients of the detrending plane. If not given, they are
-            computed from the topography. (Default: None)
+            Coefficients of the detrending polynomial in normalized
+            coordinates, in the order returned by `polyfit`. If given,
+            `detrend_mode` is not used to compute them. (Default: None)
+        info : dict, optional
+            Updated entries to the info dictionary. (Default: {})
         """
         super().__init__(topography, info=info)
         self._detrend_mode = detrend_mode
@@ -340,7 +411,15 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
 
     def stringify_plane(self, fmt=lambda x: str(x)):
         """
-        Return a string giving the expression for the detrending plane.
+        Return a string giving the expression for the detrending polynomial.
+        `x` and `y` in this expression are the normalized coordinates
+        :math:`x/L_x` and :math:`y/L_y`.
+
+        Parameters
+        ----------
+        fmt : callable, optional
+            Function that converts a coefficient to a string.
+            (Default: str)
         """
 
         str_coeffs = [fmt(x) for x in self._coeffs]
@@ -371,11 +450,15 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
     @property
     def curvatures(self):
         r"""
-        Curvature(s) of the fitted plane.
+        Curvature(s) of the detrending polynomial in physical units (inverse
+        length).
 
         Returns
         -------
-        :math:`\rho = 1 / R` for line scans or tuple :math:`\rho_{xx}, \rho_{yy}, \rho_{xy}` for topographies
+        curvatures : tuple
+            :math:`(\rho,)` with :math:`\rho = 1 / R = \partial^2 p/\partial x^2` for
+            line scans, :math:`(\rho_{xx}, \rho_{yy}, \rho_{xy})` for
+            topographies. Zero for modes without second-order terms.
         """
 
         if self.dim == 1:

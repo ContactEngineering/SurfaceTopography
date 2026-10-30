@@ -38,18 +38,30 @@ from SurfaceTopography.UniformLineScanAndTopography import (
 
 
 class ScanLineAlignedTopography(DecoratedUniformTopography):
-    """
+    r"""
     Remove scan line artifacts from topography.
 
     This correction performs two steps:
+
     1. Removes trends from each scan line individually by fitting and
-       subtracting a polynomial of specified degree
-    2. Aligns adjacent lines by adjusting their mean heights to minimize
-       discontinuities between lines
+       subtracting a polynomial of specified degree. For scan line :math:`j`
+       with heights :math:`h_{ij}` along the line, the coefficients of
+       :math:`p_j(t) = \sum_{k=0}^d c_{jk} t^k` minimize
+       :math:`\sum_i (h_{ij} - p_j(t_i))^2` over the defined points of the
+       line, where :math:`t_i = i/N` is the normalized position along the
+       line.
+    2. Aligns adjacent lines by shifting each line such that its center
+       :math:`c_j` (median or mean of the residual of step 1) matches the
+       center of the previous line. The cumulative offsets
+       :math:`o_j = o_{j-1} + c_{j-1} - c_j` are finally shifted to zero mean.
 
     This is useful for AFM data where each scan line may have different offset
     and tilt due to scanner drift or feedback errors. Higher polynomial degrees
     can correct for scanner bow or other nonlinear distortions within each line.
+    Since step 1 includes a constant term, the mean of every line residual
+    vanishes; with `mode='mean'` step 2 therefore leaves the heights
+    unchanged (up to rounding). Any genuine height variation along the slow
+    scan direction is removed together with the artifacts.
 
     Note on periodicity: Aligned topographies will have `is_periodic` property
     set to False, since the alignment process breaks periodicity.
@@ -80,6 +92,8 @@ class ScanLineAlignedTopography(DecoratedUniformTopography):
             - 1: Linear fit (offset + tilt) per line (default)
             - 2: Quadratic fit (offset + tilt + curvature) per line
             - Higher values for more complex corrections
+            Lines with fewer than `degree` + 1 defined points are fitted with
+            the highest degree their points allow.
         info : dict, optional
             Metadata dictionary.
         """

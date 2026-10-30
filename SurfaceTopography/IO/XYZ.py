@@ -58,7 +58,7 @@ def read_text_header_hfm(fobj, unit, height_scale_factor):
     fobj : file object
         File object to read from.
     unit : str
-        Length unit of the data. Raises an error if not `None`because HFM
+        Length unit of the data. Raises an error if not `None` because HFM
         files always give a unit.
     height_scale_factor : float
         Conversion factor for the height data. Raises an error if not `None`
@@ -460,8 +460,20 @@ The reader supports parsing HFM and Dektak header information.
 
         Parameters
         ----------
-        file : str or file object
-             File name or stream.
+        physical_sizes : float or tuple of floats, optional
+             Must be None, since the physical sizes are determined by the
+             positions in the file; otherwise `MetadataAlreadyFixedByFile`
+             is raised. (Default: None)
+        height_scale_factor : float, optional
+             Factor by which the heights are multiplied, only if not
+             present in the file. (Default: None)
+        unit : str, optional
+             Length unit, only if not present in the file. (Default: None)
+        info : dict, optional
+             Additional entries for the info dictionary. (Default: {})
+        periodic : bool, optional
+             Whether the data is periodic. Nonuniform line scans cannot be
+             periodic. (Default: None, which means not periodic)
         max_header_rows : int, optional
              Maximum number of rows to skip when testing for headers.
              (Default: 200)

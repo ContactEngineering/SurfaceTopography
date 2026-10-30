@@ -40,14 +40,11 @@ from ..Exceptions import (  # noqa: F401
     ReadFileError,
 )
 
-# New-style readers
 from .AL3D import AL3DReader
 from .BCR import BCRReader
 from .DATX import DATXReader
 from .DI import DIReader
 from .EZD import EZDReader
-
-# Old-style readers
 from .FromFile import HGTReader
 from .FRT import FRTReader
 from .GWY import GWYReader
@@ -205,10 +202,28 @@ def detect_format(fobj, comm=None):
     """
     Detect file format based on its content.
 
+    The readers are tried in the order of the list `readers`. A reader is
+    skipped if the first bytes of the file rule out its format
+    (`can_read` returns `MagicMatch.NO`); otherwise it attempts to open the
+    file, and the format of the first reader that succeeds is returned.
+
     Arguments
     ---------
-    fobj : filename or file object
+    fobj : str, file-like object or callable
+        Path of the file, a file-like object or a callable that returns a
+        file-like object when called.
     comm : mpi communicator, optional
+        Communicator passed to the readers. (Default: None)
+
+    Returns
+    -------
+    format : str
+        Format identifier of the file.
+
+    Raises
+    ------
+    CannotDetectFileFormat
+        If no registered reader can open the file.
     """
     # Read magic buffer once for fast pre-filtering
     magic_buffer = _read_magic_buffer(fobj)
@@ -239,74 +254,67 @@ def detect_format(fobj, comm=None):
 
 def open_topography(fobj, format=None, communicator=None):
     r"""
-    Returns a reader object for the file `fobj`. The reader interface mirrors
-    the topography interface and can be used to extract meta data (number of
-    grid points, physical sizes, etc.) without reading the full topography in
-    memory.
+    Open a topography file and return a reader object for it. The reader
+    gives access to the channels in the file and their metadata (number of
+    grid points, physical sizes, units, etc.) without reading the height data
+    into memory. The data is read when calling `topography` on the reader or
+    on one of its channels.
 
     Parameters
     ----------
-    fobj : str or filelike object
-        path of the file or filelike object
+    fobj : str, file-like object or callable
+        Path of the file, a (binary) file-like object or a callable that
+        returns a file-like object when called.
     format : str, optional
-        specify in which format the file should be interpreted
-    communicator : mpi4py or NuMPI communicator object
-        MPI communicator handling inter-process communication
+        Format identifier (e.g. 'di', 'sdf'; see `readers` for the list of
+        registered readers). (Default: None, which means the format is
+        detected from the file contents)
+    communicator : mpi4py or NuMPI communicator object, optional
+        MPI communicator handling inter-process communication. It is passed
+        to readers that support parallel I/O. If the communicator has more
+        than one process, readers without parallel I/O support are rejected:
+        with an explicit `format`, a `ValueError` is raised; during format
+        detection, the reader is skipped. (Default: None)
 
     Returns
     -------
-    Instance of a :class:`SurfaceTopography.IO.Reader.ReaderBase` subclass
-    according to the format.
+    reader : :class:`SurfaceTopography.IO.Reader.ReaderBase`
+        Instance of the reader subclass for the format of the file.
+
+    Raises
+    ------
+    FileNotFoundError
+        If `fobj` is a path and the file does not exist.
+    CannotDetectFileFormat
+        If no registered reader can open the file.
+    UnknownFileFormat
+        If `format` is not a registered format identifier.
 
     Examples
     --------
-    Simplest read workflow:
+    Simplest read workflow, which returns the default channel:
 
     >>> reader = open_topography("filename")
     >>> top = reader.topography()
 
-    The first topography in file is returned, independently of whether
-    the file has multiple channels or not.
+    The channels and their metadata are listed in `reader.channels`, a list
+    of :class:`SurfaceTopography.IO.Reader.ChannelInfo` objects:
 
-    You can always check the channels and their metadata with
-    `reader.channels()`. This returns a list of dicts containing attributes `name`,
-    `physical_sizes`, `nb_grid_pts`, ``unit` and `height_scale_factor:
+    >>> for channel in reader.channels:
+    ...     print(channel.name, channel.nb_grid_pts, channel.physical_sizes,
+    ...           channel.unit)
 
-    >>> reader.channels
-    [{'name': 'ZSensor',
-      'nb_grid_pts': (256, 256),
-      'physical_sizes': (9999.999999999998, 9999.999999999998),
-      'unit': 'nm',
-      'height_scale_factor': 0.29638271279074097},
-     {'name': 'AmplitudeError',
-      'nb_grid_pts': (256, 256),
-      'physical_sizes': (10.0, 10.0),
-      'unit': ('µm', None),
-      'height_scale_factor': 0.04577566528320313}]
+    A specific channel is loaded by its index in this list:
 
-    Here the channel 'ZSensor' offers a topography with sizes of
-    10000 nm in each dimension.
+    >>> top = reader.topography(channel_index=1)
 
-    You can choose it by giving the index 0 to channel
-    (you would use `channel=1` for the second):
+    Metadata that is not stored in the file can be specified when reading
+    the topography:
 
-    >>> top = reader.topography(channel=0)
+    >>> top = reader.topography(physical_sizes=(10., 10.), unit="µm")
 
-    The returned topography has the physical sizes found in the file.
-
-    You can also prescribe some attributes when reading the topography:
-
-    >>> top = reader.topography(channel=0, physical_sizes=(10.,10.), info={"unit":"µm"})
-
-    In order to plot the topography with matplotlib, you can use
-
-    >>> plt.pcolormesh(*top.positions_and_heights())
-
-    with origin in the lower left and correct tick labels at x and y axes, or
-
-    >>> plt.imshow(top.heights().T)
-
-    with origin in the upper left (inverted y axis).
+    Specifying metadata that is stored in the file raises
+    `MetadataAlreadyFixedByFile`.
     """  # noqa: E501
     def reader_accepts_communicator(reader_class):
         """Check if a reader's __init__ accepts a 'communicator' argument."""
@@ -369,40 +377,53 @@ def open_topography(fobj, format=None, communicator=None):
 
 def read_topography(fn, format=None, communicator=None, **kwargs):
     r"""
-    Returns a topography object representing the topograpgy in the file `fobj`.
-    If there are multiple data channels within this file, the default channel
-    is returned. The default channel depends on the file format; see
-    documentation of the respective reader on this.
+    Read a topography from a file. If there are multiple data channels in
+    the file, the default channel is returned unless a channel is selected.
+    The default channel depends on the file format; see the documentation of
+    the respective reader.
+
+    This is a shortcut for `open_topography(fn, ...).topography(**kwargs)`.
 
     Parameters
     ----------
-    fobj : str or filelike object
-        path of the file or filelike object
+    fn : str, file-like object or callable
+        Path of the file, a (binary) file-like object or a callable that
+        returns a file-like object when called.
     format : str, optional
-        specify in which format the file should be interpreted
-    communicator : mpi4py or NuMPI communicator object
-        MPI communicator handling inter-process communication
-    channel : int
-        Number of the channel to load. See also `channels` method.
-    physical_sizes : tuple of floats
+        Format identifier. (Default: None, which means the format is
+        detected from the file contents)
+    communicator : mpi4py or NuMPI communicator object, optional
+        MPI communicator handling inter-process communication.
+        (Default: None)
+    channel_index : int, optional
+        Index of the channel to load in the list `reader.channels`.
+        (Default: None, which loads the default channel)
+    physical_sizes : tuple of floats, optional
         Physical size of the topography. It is necessary to specify this
         if no physical size is found in the data file. If there is a
-        physical size in the file, then specifying this parameter will raise
-        an exception.
-    height_scale_factor : float
-        Can be used to set height scale factor if not found in the data file.
-    info : dict
+        physical size in the file, then specifying this parameter raises
+        `MetadataAlreadyFixedByFile`.
+    height_scale_factor : float, optional
+        Factor by which the heights are multiplied, if not found in the data
+        file.
+    unit : str, optional
+        Length unit, if not found in the data file.
+    info : dict, optional
         This dictionary will be appended to the info dictionary returned
         by the reader.
-    periodic: bool
-        Wether the SurfaceTopography should be interpreted as one period of a
-        periodic surface. This will affect the PSD and autocorrelation
-        calculations (windowing)
-    subdomain_locations : tuple of ints
+    periodic : bool, optional
+        Whether the topography should be interpreted as one period of a
+        periodic surface. This affects the PSD and autocorrelation
+        calculations (windowing).
+    subdomain_locations : tuple of ints, optional
         Origin (location) of the subdomain handled by the present MPI process.
-    nb_subdomain_grid_pts : tuple of ints
+    nb_subdomain_grid_pts : tuple of ints, optional
         Number of grid points within the subdomain handled by the present
         MPI process.
+    **kwargs
+        All keyword arguments other than `format` and `communicator` are
+        passed to the `topography` method of the reader. Some readers
+        additionally accept `channel_id` and `height_channel_index`.
 
     Returns
     -------
@@ -411,9 +432,9 @@ def read_topography(fn, format=None, communicator=None, **kwargs):
 
     Raises
     ------
-    MetadataAlreadyDefined
-        Raised if given arguments for `physical_sizes` or `height_scale_factor`
-        although it's already given in the file.
+    MetadataAlreadyFixedByFile
+        Raised if `physical_sizes`, `unit` or `height_scale_factor` are
+        given although they are already defined in the file.
     """
     with open_topography(fn, format=format,
                          communicator=communicator) as reader:

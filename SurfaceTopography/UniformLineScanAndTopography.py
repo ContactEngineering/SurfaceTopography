@@ -25,7 +25,9 @@
 #
 
 """
-Support for uniform topogography descriptions
+Topographies on uniform grids: line scans (`UniformLineScan`), topography
+maps (`Topography`) and the pipeline steps for unit conversion, scaling,
+transposition, translation and superposition.
 """
 
 import numpy as np
@@ -57,17 +59,21 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
         """
         Parameters
         ----------
-        profile : array_like
+        heights : array_like
             Data containing the height information. Needs to be a
-            one-dimensional array.
-        physical_sizes : tuple of floats
-            Physical physical_sizes of the topography map
+            one-dimensional array. Non-finite values (NaN, inf) are
+            converted to masked (undefined) data points.
+        physical_sizes : float or tuple of one float
+            Physical length :math:`L` of the line scan.
         periodic : bool, optional
-            Flag setting the periodicity of the surface
+            The line scan is periodic. (Default: False)
         unit : str, optional
-            The length unit.
+            The length unit. (Default: None)
         info : dict, optional
-            The info dictionary containing auxiliary data.
+            The info dictionary containing auxiliary data. (Default: {})
+        communicator : mpi4py communicator or NuMPI stub communicator, optional
+            The MPI communicator object. Line scans are never domain
+            decomposed. (Default: MPI.COMM_SELF)
         """
         if not hasattr(heights, "ndim"):
             heights = np.array(heights)
@@ -136,13 +142,13 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
         return np.ma.getmaskarray(self._heights).sum() > 0
 
     def positions(self, meshgrid=True):
-        """
-        Return grid positions.
+        r"""
+        Return grid positions :math:`x_i = i \Delta x`.
 
         Arguments
         ---------
         meshgrid : bool, optional
-            Ignore, for compatibility with two-dimensional topographies
+            Ignored, for compatibility with two-dimensional topographies.
 
         Returns
         -------
@@ -154,12 +160,22 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
         return np.arange(r) * p
 
     def heights(self):
+        """Return the array of heights (masked array if data is undefined)."""
         return self._heights
 
     def save(self, fname, compress=True):
         """
-        saves the topography as a NumpyTxtTopography. Warning: This only saves
-        the profile; the physical_sizes is not contained in the file
+        Save the heights as a text file with `np.savetxt`. Warning: This only
+        saves the heights; physical size, unit and periodicity are not
+        contained in the file.
+
+        Parameters
+        ----------
+        fname : str
+            File name.
+        compress : bool, optional
+            Append `.gz` to the file name (if not present), which makes
+            `np.savetxt` write a gzip-compressed file. (Default: True)
         """
         if compress:
             if not fname.endswith(".gz"):
@@ -167,6 +183,7 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
         np.savetxt(fname, self.heights())
 
     def squeeze(self):
+        """Return this object; it already owns its data."""
         return self
 
 
@@ -192,53 +209,65 @@ class Topography(AbstractTopography, UniformTopographyInterface):
         """
         Parameters
         ----------
-        heights : array_like
+        heights : np.ndarray
             Data containing the height information. Needs to be a
-            two-dimensional array.
+            two-dimensional array (lists are not converted); the first
+            index is the x-direction. Non-finite values (NaN, inf) are
+            converted to masked (undefined) data points.
         physical_sizes : tuple of floats
-            Physical physical_sizes of the topography map
+            Physical size :math:`(L_x, L_y)` of the topography map.
         periodic : bool, optional
             The topography is periodic. (Default: False)
         nb_grid_pts : tuple of ints, optional
             Number of grid points for the full topography. This is only
             required if decomposition is set to 'subdomain'.
+            (Default: None)
         subdomain_locations : tuple of ints, optional
             Origin (location) of the subdomain handled by the present MPI
-            process.
+            process. Required for parallel runs. (Default: None)
         nb_subdomain_grid_pts : tuple of ints, optional
             Number of grid points within the subdomain handled by the present
             MPI process. This is only required if decomposition is set to
-            'domain'.
+            'domain'. (Default: None)
         unit : str, optional
-            The length unit.
+            The length unit. (Default: None)
         info : dict, optional
-            The info dictionary containing auxiliary data.
+            The info dictionary containing auxiliary data. (Default: {})
         decomposition : str, optional
             Specification of the data decomposition of the heights array. If
             set to 'subdomain', the heights array contains only the part of
             the full topography local to the present MPI process. If set to
-            'domain', the heights array contains the global array.
-            Default: 'serial', which fails for parallel runs.
+            'domain', the heights array contains the global array and the
+            local subdomain is cut out of it. 'serial' raises an error if
+            the communicator has more than one process. For a single process,
+            the value is ignored. (Default: 'serial')
         communicator : mpi4py communicator or NuMPI stub communicator, optional
-            The MPI communicator object.
-            default value is COMM_SELF because sometimes NON-MPI readers that
-            do not set the communicator value are used in MPI Programs.
-            See discussion in issue #166
+            The MPI communicator object. The default is COMM_SELF such that
+            readers that do not set a communicator return serial topographies
+            also when used within MPI programs (see issue #166).
+            (Default: MPI.COMM_SELF)
 
-        Examples for initialisation:
-        ----------------------------
-        1. Serial code
-        >>>Topography(heights, physical_sizes, [periodic, info])
-        2. Parallel code, providing local data
-        >>>Topography(heights, physical_sizes, [periodic],
-                      decomposition='subdomain',
-                      subdomain_locations, nb_grid_pts, comm,
-                      [info])
-        3. Parallel code, providing full data
-        >>>Topography(heights, physical_sizes, [periodic],
-                      decomposition='domain',
-                      subdomain_locations, nb_subdomain_grid_pts, comm,
-                      [info])
+        Examples
+        --------
+        Serial code::
+
+            Topography(heights, physical_sizes, periodic=False, info={})
+
+        Parallel code, providing local data::
+
+            Topography(local_heights, physical_sizes,
+                       decomposition='subdomain',
+                       nb_grid_pts=nb_grid_pts,
+                       subdomain_locations=subdomain_locations,
+                       communicator=comm)
+
+        Parallel code, providing the full data::
+
+            Topography(global_heights, physical_sizes,
+                       decomposition='domain',
+                       subdomain_locations=subdomain_locations,
+                       nb_subdomain_grid_pts=nb_subdomain_grid_pts,
+                       communicator=comm)
         """
         if heights.ndim != 2:
             raise ValueError("Heights array must be two-dimensional.")
@@ -382,17 +411,17 @@ class Topography(AbstractTopography, UniformTopographyInterface):
 
     @property
     def nb_subdomain_grid_pts(self):
-        """needs to be testable to make sure that geometry and halfspace are
-        compatible
-        """
+        """Number of grid points stored by the present MPI process."""
         return self._heights.shape
 
     @property
     def subdomain_locations(self):
+        """Grid indices of the first point of the local subdomain."""
         return self._subdomain_locations
 
     @property
     def subdomain_slices(self):
+        """Slices that cut the local subdomain out of the global grid."""
         return tuple(
             slice(s, s + n)
             for s, n in zip(self.subdomain_locations, self.nb_subdomain_grid_pts)
@@ -418,8 +447,9 @@ class Topography(AbstractTopography, UniformTopographyInterface):
         )
 
     def positions(self, meshgrid=True):
-        """
-        Return grid positions.
+        r"""
+        Return grid positions :math:`x_i = i \Delta x`,
+        :math:`y_j = j \Delta y` of the local subdomain.
 
         Arguments
         ---------
@@ -445,6 +475,10 @@ class Topography(AbstractTopography, UniformTopographyInterface):
         return x, y
 
     def heights(self):
+        """
+        Return the array of heights of the local subdomain (masked array if
+        data is undefined).
+        """
         return self._heights
 
     def positions_and_heights(self, **kwargs):
@@ -456,10 +490,18 @@ class Topography(AbstractTopography, UniformTopographyInterface):
         return self._communicator
 
     def squeeze(self):
+        """Return this object; it already owns its data."""
         return self
 
 
 class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface):
+    """
+    Base class of pipeline steps on uniform topographies. Geometry, unit,
+    periodicity and positions are passed through from the parent; derived
+    classes override `heights` (and, if they change the geometry,
+    `nb_grid_pts` and `physical_sizes`).
+    """
+
     @property
     def has_undefined_data(self):
         return self.parent_topography.has_undefined_data
@@ -534,6 +576,12 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
             return (*self.positions(**kwargs), self.heights())
 
     def squeeze(self):
+        """
+        Evaluate the pipeline and return a `UniformLineScan` or
+        `Topography` that owns the resulting heights. The returned object
+        is serial: it contains the heights of the local subdomain and does
+        not carry the communicator or the domain decomposition.
+        """
         if self.dim == 1:
             return UniformLineScan(
                 self.heights(),
@@ -553,12 +601,13 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
 
 
 class ScaledUniformTopography(DecoratedUniformTopography):
-    """Scale heights, positions or both."""
+    """Convert heights and positions to a different length unit."""
 
     def __init__(self, topography, unit=None, info={}):
         """
         This topography wraps a parent topography and rescales x, y and z
-        coordinates according to certain rules.
+        coordinates by the conversion factor from the parent's unit to
+        `unit`.
 
         Arguments
         ---------
@@ -610,8 +659,9 @@ class StaticallyScaledUniformTopography(ScaledUniformTopography):
         info={},
     ):
         """
-        This topography wraps a parent topography and rescales x, y and z
-        coordinates according to certain rules.
+        This topography wraps a parent topography and multiplies heights by
+        `height_scale_factor` and lateral positions by
+        `position_scale_factor`.
 
         Arguments
         ---------
@@ -662,7 +712,7 @@ class StaticallyScaledUniformTopography(ScaledUniformTopography):
 
 class TransposedUniformTopography(DecoratedUniformTopography):
     """
-    Tranpose topography.
+    Transposed topography: exchanges the x- and y-axes.
     """
 
     def __init__(self, topography, info={}):
@@ -711,7 +761,7 @@ class TransposedUniformTopography(DecoratedUniformTopography):
             return iy, ix
 
     def heights(self):
-        """Computes the rescaled profile."""
+        """Return the transposed heights."""
         return self.parent_topography.heights().T
 
     def positions(self, **kwargs):
@@ -722,15 +772,23 @@ class TransposedUniformTopography(DecoratedUniformTopography):
 
 
 class TranslatedTopography(DecoratedUniformTopography):
-    """used when geometries are translated"""
+    """
+    Periodic topography that is shifted by an integer number of grid
+    points (with periodic wrap-around).
+    """
 
     name = "translated_topography"
 
     def __init__(self, topography, offset=(0, 0), info={}):
         """
-        Keyword Arguments:
-        topography  -- SurfaceTopography to translate
-        offset -- Translation offset in number of grid points
+        Parameters
+        ----------
+        topography : :obj:`UniformTopographyInterface`
+            Periodic topography to translate.
+        offset : tuple of ints, optional
+            Translation offset in number of grid points. (Default: (0, 0))
+        info : dict, optional
+            Additional entries for the info dictionary. (Default: {})
         """
         super().__init__(topography, info=info)
         if not isinstance(topography, UniformTopographyInterface):
@@ -768,15 +826,24 @@ class TranslatedTopography(DecoratedUniformTopography):
 
 
 class CompoundTopography(DecoratedUniformTopography):
-    """used when geometries are combined"""
+    """
+    Sum of the heights of two topographies with identical grids.
+    """
 
     name = "compound_topography"
 
     def __init__(self, topography_a, topography_b, info={}):
-        """Behaves like a topography that is a sum of two Topographies
-        Keyword Arguments:
-        topography_a   -- first topography of the compound
-        topography_b   -- second topography of the compound
+        """
+        Parameters
+        ----------
+        topography_a : :obj:`UniformTopographyInterface`
+            First topography of the compound. Geometry, unit and info are
+            taken from this topography.
+        topography_b : :obj:`UniformTopographyInterface`
+            Second topography of the compound. Must have the same
+            dimension, number of grid points and physical sizes.
+        info : dict, optional
+            Additional entries for the info dictionary. (Default: {})
         """
 
         super().__init__(topography_a, info=info)

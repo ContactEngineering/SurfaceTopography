@@ -36,8 +36,10 @@ class FourierDerivative:
     """
     Fourier derivative operator.
 
-    Computes the derivative in Fourier space by multiplication with i * 2π * q,
-    where q is the wave vector component in the specified direction.
+    Computes the derivative in Fourier space by multiplication with
+    i * 2π * f, where f is the frequency component (in cycles per scaled grid
+    spacing) in the specified direction. This is the spectrally exact
+    derivative of the Fourier interpolation of periodic data.
     """
 
     def __init__(self, dim, direction, shift=None):
@@ -51,7 +53,8 @@ class FourierDerivative:
         direction : int
             Direction of the derivative (0 for x, 1 for y, etc.).
         shift : array_like, optional
-            Shift vector for the derivative. Default is no shift.
+            Shift vector (in units of the scaled grid spacing) at which the
+        derivative is evaluated. Default is no shift.
         """
         self.dim = dim
         self.direction = direction
@@ -86,7 +89,9 @@ class DiscreteDerivative:
 
     The stencil coefficient ``stencil[k]`` multiplies the value at the grid
     point displaced by ``lbounds + k`` from the point where the derivative is
-    computed.
+    computed. The coefficients do not include the grid spacing; `derivative`
+    divides the result by the (scaled) grid spacing to the power of the
+    derivative order.
     """
 
     def __init__(self, lbounds, stencil):
@@ -185,10 +190,13 @@ def _operator_direction(op):
 
 
 #
-# Stencils for first and second derivatives
+# Stencils for first, second and third derivatives. The truncation order is
+# given with respect to the grid point at which the derivative is reported;
+# the upwind stencils are second order accurate at the center of the stencil,
+# which is displaced by half a grid spacing.
 #
 
-# First order upwind differences
+# First order upwind differences: h(x + dx) - h(x)
 first_1d = DiscreteDerivative([0], [-1, 1])
 
 # Second order central differences of the first derivative
@@ -197,7 +205,8 @@ first_central_1d = DiscreteDerivative([-1], [-1 / 2, 0, 1 / 2])
 # second order central differences of the second derivative
 second_1d = DiscreteDerivative([-1], [1, -2, 1])
 
-# first order upwind differences of the third derivative
+# first order upwind differences of the third derivative (stencil points
+# x - dx, ..., x + 2 dx)
 third_1d = DiscreteDerivative([-1], [-1, 3, -3, 1])
 
 # second order central differences of the third derivative
@@ -227,7 +236,9 @@ third_2d = (third_2d_x, third_2d_y)
 
 def _get_default_derivative_operator(n, dim):
     """
-    Return a default set of (finite-differences) derivative operators.
+    Return a default set of (finite-differences) derivative operators:
+    first-order upwind differences for n = 1, second-order central
+    differences for n = 2 and first-order upwind differences for n = 3.
 
     Parameters
     ----------
@@ -276,8 +287,8 @@ def trim_nonperiodic(arr, scale_factor, op):
     ----------
     arr : np.ndarray
         Array to be trimmed.
-    scale_factor : int, optional
-        Integer factor that scales the stencil difference.
+    scale_factor : np.ndarray
+        Factor that scales the stencil in each Cartesian direction.
     op : DiscreteDerivative
         Derivative operator that contains information about the size of the
         stencil.
@@ -316,27 +327,40 @@ def derivative(
     interpolation="linear",
     progress_callback=None,
 ):
-    """
+    r"""
     Compute derivative of topography or line scan stored on a uniform grid.
+
+    A finite-differences stencil with coefficients :math:`c_k` at offsets
+    :math:`k` is applied with a grid spacing scaled by the factor :math:`s`,
+
+    .. math::
+
+        h^{(n)}(x_i) \approx \frac{1}{(s\Delta x)^n} \sum_k c_k\, h(x_i + k s \Delta x).
+
+    Heights at positions between grid points (non-integer :math:`s`) are
+    obtained by linear or Fourier interpolation. The stencil is evaluated as
+    if the data were periodic; for nonperiodic data, values whose stencil
+    extends beyond the data are removed.
 
     Parameters
     ----------
-    self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+    self : :obj:`Topography` or :obj:`UniformLineScan`
         Surface topography object containing height information.
     n : int
         Order of the derivative.
-    scale_factor : int or list of ints or list of tuples of ints, optional
-        Integer factor that scales the stencil difference, i.e.
-        specifying 2 will compute the derivative using a discrete step of
-        2 * px. Either `scale_factor` or `distance` can be specified.
-            - Single int: Returns a single derivative scaled in all directions
-              with this value
-            - List of ints: Returns multiple derivatives, each scaled in all
+    scale_factor : float or list of floats or list of tuples of floats, optional
+        Factor that scales the stencil difference, i.e. specifying 2 will
+        compute the derivative using a discrete step of 2 * px. Non-integer
+        values require interpolation. Either `scale_factor` or `distance` can
+        be specified.
+            - Single number: Returns a single derivative scaled in all
+              directions with this value
+            - List of numbers: Returns multiple derivatives, each scaled in all
               direction with the respective value from the list
-            - List of tuples of ints: Each tuple contains a scale factor in
-              the two Cartesian (x- and y-) directions. Return multiple
-              derivatives, scaled with different factors in both directions.
-        (Default: None)
+            - List of tuples: Each tuple contains a scale factor in the two
+              Cartesian (x- and y-) directions. Return multiple derivatives,
+              scaled with different factors in both directions.
+        (Default: None, which corresponds to a scale factor of 1)
     distance : float or list of floats, optional
         Explicit distance scale for computation of the derivative. Either
         `scale_factor` or `distance` can be specified. Note that the distance
@@ -347,21 +371,23 @@ def derivative(
         (Default: None)
     operator : :obj:`DiscreteDerivative` or :obj:`FourierDerivative` object or tuple of these objects, optional
         Derivative operator used to compute the derivative. If unspecified,
-        a simple upwind differences scheme will be applied to compute the
-        derivative. A tuple contains the gradient, i.e. the derivative
-        operators in the Cartesian directions for multidimensional fields.
-        (Default: None)
+        first-order upwind differences (n = 1 and n = 3) or second-order
+        central differences (n = 2) are used. A tuple contains the gradient,
+        i.e. the derivative operators in the Cartesian directions for
+        multidimensional fields. :obj:`FourierDerivative` operators require
+        Fourier interpolation and periodic data. (Default: None)
     periodic : bool, optional
         Override periodic flag from topography. (Default: None)
     mask_function : function, optional
-        A function that takes as argument the output of FFT.fftfreq and
+        A function that takes as argument the frequencies of the Fourier grid
+        (array of shape (dim, ...), in units of 1/length, i.e. q / 2π) and
         returns a mask that will be multiplied with the Fourier transformed
         topography. This can be used to implement Fourier filtering before
         computing the derivative. This only works if interpolation is set to
         'fourier'. (Default: None)
     interpolation : str, optional
         Interpolation method to use for fractional scale factors. Use
-        'linear' for a local liner interpolation or 'fourier' for global
+        'linear' for a local linear interpolation or 'fourier' for global
         Fourier interpolation. Set to 'disable' to raise an error when
         interpolation is necessary. Note that Fourier interpolation carries
         large errors for nonperiodic topographies and should not be used with
@@ -376,10 +402,12 @@ def derivative(
         Array with derivative values. If dimension of the topography is
         unity (line scan), then an array of the same shape as the
         topography is returned. Otherwise, the first array index contains
-        the direction of the derivative. If the topgography is nonperiodic,
+        the direction of the derivative. If the topography is nonperiodic,
         then the returned arrays are trimmed at the boundary where the
         derivative stencil sticks out of the data region; the number of
-        trimmed points is the stencil extent times the scale factor.
+        trimmed points is the stencil extent times the scale factor. If
+        multiple scale factors or distances are given, a list with one entry
+        per scale is returned (for each direction).
     """
     if self.physical_sizes is None:
         raise ValueError(
@@ -594,52 +622,43 @@ def derivative(
 
 def fourier_derivative(self, scale_factor=None, distance=None, mask_function=None):
     r"""
-    First derivatives of the fourier interpolation of the topography.
+    First derivatives of the Fourier interpolation of the topography.
 
     For example in x direction:
 
     .. math::
 
         \left[ \frac{\partial h }{\partial x}\right]_{x_i, y_j} =
-        \frac{1}{2 \pi }
-        \sum_{kl} q_x^k \tilde h_{kl} e^{i (q_x^k x_i + q_y^l y_j}
+        \frac{1}{L_x L_y}
+        \sum_{kl} i q_x^k \tilde h_{kl} e^{i (q_x^k x_i + q_y^l y_j)}
 
-
-    With :math:`\tilde h_{kl}` the DFT of the heights :math:``h
-    For even number of points, the interpretation of the components at the
-    Niquist frequency is ambiguous (we are free to choose amplitude or phase)
-    Following (https://math.mit.edu/~stevenj/fft-deriv.pdf),
-    we assume it is cosinusoidal.
+    with :math:`\tilde h_{kl}` the Fourier transform of the heights
+    :math:`h_{ij}`. For an even number of points, the interpretation of the
+    components at the Nyquist frequency is ambiguous (we are free to choose
+    amplitude or phase). Following https://math.mit.edu/~stevenj/fft-deriv.pdf,
+    we assume it is cosinusoidal, i.e. its derivative vanishes on the grid
+    points. The Fourier derivative is spectrally accurate for periodic data
+    and requires a periodic topography.
 
     Parameters
     ----------
-    self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
-        Surface topography object containing height information.
-    scale_factor : int or list of ints or list of tuples of ints, optional
-        Integer factor that scales the stencil difference, i.e.
-        specifying 2 will compute the derivative using a discrete step of
-        2 * px. Either `scale_factor` or `distance` can be specified.
-            - Single int: Returns a single derivative scaled in all directions
-              with this value
-            - List of ints: Returns multiple derivatives, each scaled in all
-              direction with the respective value from the list
-            - List of tuples of ints: Each tuple contains a scale factor in
-              the two Cartesian (x- and y-) directions. Return multiple
-              derivatives, scaled with different factors in both directions.
-        (Default: None)
+    self : :obj:`Topography` or :obj:`UniformLineScan`
+        Periodic surface topography object containing height information.
+    scale_factor : float or list of floats or list of tuples of floats, optional
+        Factor that scales the derivative operator; see `derivative`. For the
+        Fourier derivative, this multiplies the shift of the operator and the
+        normalization, i.e. the result is the same for all scale factors
+        unless a shift is used. (Default: None)
     distance : float or list of floats, optional
         Explicit distance scale for computation of the derivative. Either
-        `scale_factor` or `distance` can be specified. Note that the distance
-        specifies the overall length of the stencil of lowest truncation
-        order, not the effective grid spacing used by this stencil. The scale
-        factor is then given by distance / (n * px) where n is the order of the
-        derivative and px the grid spacing.
+        `scale_factor` or `distance` can be specified. The scale factor is
+        then given by distance / px where px the grid spacing.
         (Default: None)
     mask_function : function, optional
-        A function that takes as argument the output of FFT.fftfreq and
-        returns a mask that will be multiplied with the Fourier transformed
-        topography. This can be used to implement Fourier filtering before
-        computing the derivative. (Default: None)
+        A function that takes as argument the frequencies of the Fourier grid
+        (in units of 1/length) and returns a mask that will be multiplied with
+        the Fourier transformed topography. This can be used to implement
+        Fourier filtering before computing the derivative. (Default: None)
 
     Returns
     -------
@@ -647,10 +666,12 @@ def fourier_derivative(self, scale_factor=None, distance=None, mask_function=Non
         Array with derivative values. If dimension of the topography is
         unity (line scan), then an array of the same shape as the
         topography is returned. Otherwise, the first array index contains
-        the direction of the derivative. If the topgography is nonperiodic,
-        then the returned arrays are trimmed at the boundary where the
-        derivative stencil sticks out of the data region; the number of
-        trimmed points is the stencil extent times the scale factor.
+        the direction of the derivative.
+
+    Raises
+    ------
+    ValueError
+        If the topography is nonperiodic.
     """
     dim = self.dim
     return self.derivative(

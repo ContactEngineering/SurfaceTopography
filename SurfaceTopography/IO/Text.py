@@ -45,12 +45,27 @@ def read_matrix(
     fobj, physical_sizes=None, unit=None, height_scale_factor=None, periodic=False
 ):
     """
-    Reads a surface profile from a text file and presents in in a
+    Reads a surface profile from a text file and presents it in a
     SurfaceTopography-conformant manner. No additional parsing of
     meta-information is carried out.
 
-    Keyword Arguments:
-    fobj -- filename or file object
+    Parameters
+    ----------
+    fobj : str or file object
+        File name or text stream.
+    physical_sizes : tuple of floats, optional
+        Physical sizes. (Default: None, which means the number of grid
+        points)
+    unit : str, optional
+        Length unit. (Default: None)
+    height_scale_factor : float, optional
+        Factor by which the heights are multiplied. (Default: None)
+    periodic : bool, optional
+        Whether the topography is periodic. (Default: False)
+
+    Returns
+    -------
+    topography : :obj:`Topography`
     """
     arr = np.loadtxt(fobj)
     if physical_sizes is None:
@@ -99,8 +114,8 @@ phase or voltage) are ignored.
 
 Topography data stored in plain text (ASCII) format needs to be stored in a
 matrix format. Each row contains the height information for subsequent
-points in x-direction separated by a whitespace. The next row belong to the
-following y-coordinate. Note that if the file has three or less columns, it
+points in x-direction separated by a whitespace. The next row belongs to the
+following y-coordinate. Note that if the file has three or fewer columns, it
 will be interpreted as a topography stored in a coordinate format (the three
 columns contain the x, y and z coordinates of the same points). The smallest
 topography that can be provided in this format is therefore 4 x 1.
@@ -671,8 +686,16 @@ When writing your own ASCII files, we recommend to prepend the header with a
 
 def write_matrix(self, fname):
     """
-    Saves the topography using `np.savetxt`. Warning: This only saves
-    the heights; the physical_sizes is not contained in the file
+    Save the heights of the topography as a text matrix using `np.savetxt`.
+    The file contains only the heights; physical sizes, unit and other
+    metadata are not written.
+
+    Parameters
+    ----------
+    self : :obj:`Topography` or :obj:`UniformLineScan`
+        The topography to write.
+    fname : str or file-like object
+        File name or stream to write to.
     """
     np.savetxt(fname, self.heights())
 

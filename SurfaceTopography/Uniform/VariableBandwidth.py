@@ -36,11 +36,11 @@ from ..Support import build_tuple
 
 def checkerboard_detrend_profile(self, subdivisions, order=1, return_plane=False):
     """
-    Perform tilt correction (and substract mean value) in each individual
-    line section of a checkerboard decomposition of a profile. For topography
-    maps, each horizontal slice is interpreted as a profile and this
-    decomposition is carried out for each slice. The tilt correction minimizes
-    the RMS height within each checkerboard.
+    Subtract a least-squares polynomial (by default, mean and tilt) in each
+    of `subdivisions` equally long sections of a line scan. For topography
+    maps, each profile along :math:`x` is subdivided and detrended
+    individually. The fit minimizes the rms height within each section;
+    undefined (masked) data points do not enter the fit.
 
     The main application of this function is to carry out a variable
     bandwidth analysis of the surface.
@@ -50,8 +50,7 @@ def checkerboard_detrend_profile(self, subdivisions, order=1, return_plane=False
     self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         Container storing the uniform topography map
     subdivisions : int
-        Number of subdivision, i.e. physical_sizes of the
-        checkerboard.
+        Number of sections along :math:`x`.
     order : int, optional
         Maximum order of the polynomial used for detrending. (Default: 1)
     return_plane : bool, optional
@@ -60,13 +59,11 @@ def checkerboard_detrend_profile(self, subdivisions, order=1, return_plane=False
     Returns
     -------
     arr : np.ndarray
-        Array with height information, tilt-corrected within each
-        checkerboard.
-
-    if return_plane == True:
+        Array with height information, detrended within each section.
     parameters : np.ndarray
-        Array of leading order `subdivisions` containing the fit
-        parameters.
+        Polynomial coefficients of shape `(order + 1, nb_sections)`, where
+        `parameters[i]` multiplies :math:`x^i`. Only returned if
+        `return_plane` is True.
     """
     # compute unique consecutive index for each subdivided region
     region_index = np.arange(self.nb_grid_pts[0]) * subdivisions // self.nb_grid_pts[0]
@@ -109,22 +106,22 @@ def checkerboard_detrend_profile(self, subdivisions, order=1, return_plane=False
 
 def checkerboard_detrend_area(self, subdivisions, order=1, return_plane=False):
     """
-    Perform tilt correction (and substract mean value) in each individual
+    Subtract a least-squares polynomial (by default, mean and tilt) in each
     rectangle of a checkerboard decomposition of the surface. This is
     identical to subdividing the surface into individual, nonoverlapping
-    rectangles and performing individual tilt corrections on them.
-    The tilt correction minimizes the RMS height within each checkerboard.
+    rectangles and detrending each of them. The fit minimizes the rms height
+    within each rectangle; undefined (masked) data points do not enter the
+    fit.
 
     The main application of this function is to carry out a variable
     bandwidth analysis of the surface.
 
     Parameters
     ----------
-    self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+    self : :obj:`Topography`
         Container storing the uniform topography map
-    subdivisions : tuple
-        Number of subdivision per dimension, i.e. physical_sizes of the
-        checkerboard.
+    subdivisions : tuple of int
+        Number of rectangles along :math:`x` and :math:`y`.
     order : int, optional
         Maximum order of the polynomial used for detrending. (Default: 1)
     return_plane : bool, optional
@@ -133,13 +130,12 @@ def checkerboard_detrend_area(self, subdivisions, order=1, return_plane=False):
     Returns
     -------
     arr : np.ndarray
-        Array with height information, tilt-corrected within each
-        checkerboard.
-
-    if return_plane == True:
+        Array with height information, detrended within each rectangle.
     parameters : np.ndarray
-        Array of leading order `subdivisions` containing the fit
-        parameters.
+        Polynomial coefficients of shape `(nb_coeff, nb_rectangles)` with
+        `nb_coeff = (order + 1) * (order + 2) // 2`. For `order=1`, the rows
+        multiply :math:`1`, :math:`x` and :math:`y`. Only returned if
+        `return_plane` is True.
     """
     if self.dim != 2:
         raise ValueError('Areal checkerboard tilt correction can only performed on topography maps, not on profiles.')
@@ -195,10 +191,17 @@ def checkerboard_detrend_area(self, subdivisions, order=1, return_plane=False):
 
 def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resampling_method=None, nb_grid_pts_cutoff=4,
                                     func=lambda h: np.sqrt(np.mean(h * h))):
-    """
-    Perform a variable bandwidth analysis by computing the mean
-    root-mean-square height within increasingly finer subdivisions of the
-    profiles (line scans).
+    r"""
+    Variable bandwidth analysis: compute the rms height of the profiles
+    (line scans) after detrending them in increasingly finer subdivisions.
+
+    At magnification :math:`M = 2^n` (:math:`n = 0, 1, \dots`), each
+    profile is divided into :math:`M` sections of length (bandwidth)
+    :math:`\ell = L/M`, mean and tilt are subtracted in each section (see
+    :func:`checkerboard_detrend_profile`), and `func` is evaluated on all
+    detrended heights together. Subdivision stops when a section would
+    contain fewer than `nb_grid_pts_cutoff` grid points. For self-affine
+    profiles, the rms height scales as :math:`\ell^H`.
 
     Parameters
     ----------
@@ -215,14 +218,14 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
         magnification, bandwidth, rms height.
         (Default: 'bh')
     reliable : bool, optional
-        Only return data deemed reliable. (Default: True)
+        Only return bandwidths larger than the short reliability cutoff.
+        (Default: True)
     resampling_method : str, optional
         Can only be None for the variable bandwidth analysis.
         (Default: None)
     nb_grid_pts_cutoff : int, optional
-        Minimum nb_grid_pts to allow for subdivision. The analysis will
-        automatically analyze subdivision down to this nb_grid_pts.
-        (Default: 4)
+        Minimum number of grid points per section. The analysis
+        subdivides down to this number of grid points. (Default: 4)
     func : callable, optional
         Function that computes a statistical property from an array of heights.
         (Default is the RMS height: np.sqrt(np.mean(h * h)))
@@ -232,15 +235,14 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
     magnifications : np.ndarray
         Array containing the magnifications.
     bandwidths : np.ndarray
-        Array containing the bandwidths, here the physical sizes of the
-        subdivided topography. For 2D topography maps, this is the mean of the
-        two physical sizes of the subdivided section of the topography.
+        Array containing the bandwidths, here the length of the sections
+        of the subdivided profiles.
     statistical_properties : np.ndarray
-        Array containing the rms height corresponding to the respective
-        magnification.
+        Array containing the value of `func` (by default the rms height)
+        for the respective magnification.
     rms_slopes : np.ndarray
-        Array containing the rms values of the detrending slopes corresponding
-        to the respective magnification.
+        Array containing the rms values of the slopes of the subtracted
+        lines for the respective magnification.
     """
     if resampling_method is not None:
         raise ValueError('`variable_bandwidth_from_profile` does not support resampling.')
@@ -283,14 +285,22 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
 
 def variable_bandwidth_from_area(self, quantities='bh', reliable=True, resampling_method=None, nb_grid_pts_cutoff=4,
                                  func=lambda h: np.sqrt(np.mean(h * h))):
-    """
-    Perform a variable bandwidth analysis by computing the mean
-    root-mean-square height within increasingly finer subdivisions of the
-    surface topography.
+    r"""
+    Variable bandwidth analysis: compute the rms height of a topography map
+    after detrending it in increasingly finer checkerboard subdivisions.
+
+    The map is first divided into squares (as close as possible) of the
+    shorter side length; at magnification :math:`M = 2^n`, each side is
+    subdivided further into :math:`M` parts. Mean and tilt are subtracted in
+    each rectangle (see :func:`checkerboard_detrend_area`), and `func` is
+    evaluated on all detrended heights together. The bandwidth is the mean
+    of the two side lengths of a rectangle. Subdivision stops when a
+    rectangle would contain fewer than `nb_grid_pts_cutoff` grid points
+    along either direction.
 
     Parameters
     ----------
-    self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+    self : :obj:`Topography`
         Container storing the uniform topography map.
     quantities : str, optional
         Specification of return tuple, where each string character
@@ -303,32 +313,31 @@ def variable_bandwidth_from_area(self, quantities='bh', reliable=True, resamplin
         magnification, bandwidth, rms height.
         (Default: 'bh')
     reliable : bool, optional
-        Only return data deemed reliable. (Default: True)
+        Only return bandwidths larger than the short reliability cutoff.
+        (Default: True)
     resampling_method : str, optional
         Can only be None for the variable bandwidth analysis.
         (Default: None)
     nb_grid_pts_cutoff : int, optional
-        Minimum nb_grid_pts to allow for subdivision. The analysis will
-        automatically analyze subdivision down to this nb_grid_pts.
-        (Default: 4)
+        Minimum number of grid points per section. The analysis
+        subdivides down to this number of grid points. (Default: 4)
     func : callable, optional
         Function that computes a statistical property from an array of heights.
         (Default is the RMS height: np.sqrt(np.mean(h * h)))
 
     Returns
     -------
-    magnifications : array
+    magnifications : np.ndarray
         Array containing the magnifications.
-    bandwidths : array
-        Array containing the bandwidths, here the physical sizes of the
-        subdivided topography. For 2D topography maps, this is the mean of the
-        two physical sizes of the subdivided section of the topography.
-    statistical_properties : array
-        Array containing the rms height corresponding to the respective
-        magnification.
+    bandwidths : np.ndarray
+        Array containing the bandwidths, here the mean of the two side
+        lengths of the rectangles of the subdivided topography.
+    statistical_properties : np.ndarray
+        Array containing the value of `func` (by default the rms height)
+        for the respective magnification.
     rms_gradients : np.ndarray
-        Array containing the rms values of the detrending gradients
-        corresponding to the respective magnification.
+        Array containing the rms values of the gradients of the subtracted
+        planes for the respective magnification.
     """
     if resampling_method is not None:
         raise ValueError('`variable_bandwidth_from_area` does not support resampling.')

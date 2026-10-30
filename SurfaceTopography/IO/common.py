@@ -102,7 +102,7 @@ class OpenFromAny(object):
             The file to be opened, specified either as a file name or a
             stream object.
         mode : str
-            Open as text ('r') or binary ('rb'). (Default: None)
+            Open as text ('r') or binary ('rb'). (Default: 'r')
         encoding : str
             Character encoding when opening text files. (Default: None)
         """

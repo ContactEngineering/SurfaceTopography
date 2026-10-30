@@ -24,7 +24,8 @@
 #
 
 """
-Scale-dependent slope
+Scale-dependent curvature computed from the height-difference
+autocorrelation function.
 """
 
 import numpy as np
@@ -66,26 +67,31 @@ def scale_dependent_curvature_from_profile(topography, **kwargs):
 
     The scale-dependent curvature is given by
 
-       .. math::
-         :nowrap:
+    .. math::
 
-         \begin{equation}
-         h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda^2
-         \end{equation}
+        h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda^2
 
-    where :math:`A(\lambda)` is the autocorrelation function.
+    where :math:`A(\lambda)` is the height-difference autocorrelation
+    function. This is the rms of the three-point finite difference
+    :math:`[h(x+\lambda)-2h(x)+h(x-\lambda)]/\lambda^2`. Note that
+    :math:`\lambda` is the spacing of the three-point stencil, i.e. half
+    of its total length. :math:`A(2\lambda)` is obtained by linear
+    interpolation, hence the curvature is only returned for
+    :math:`\lambda` up to half the largest distance of the autocorrelation
+    function, and the result is truncated at the first distance where
+    :math:`8A(\lambda) - 2A(2\lambda)` becomes negative.
 
     Parameters
     ----------
-    topography : :class:`SurfaceTopography.Topography` or :class:`SurfaceTopography.UniformLineScan`
-        Container storing the uniform topography map
+    topography : :class:`SurfaceTopography.Topography` or :class:`SurfaceTopography.UniformLineScan` or :class:`SurfaceTopography.NonuniformLineScan`
+        Container storing the topography map or line scan
     **kwargs : dict
         Additional keyword parameters are passed on to `autocorrelation_from_profile`
 
     Returns
     -------
     r : array
-        Distances. (Units: length)
+        Stencil spacing :math:`\lambda`. (Units: length)
     curvature : array
         Curvature. (Units: 1/length)
     """  # noqa: E501
@@ -100,18 +106,20 @@ def scale_dependent_curvature_from_area(topography, **kwargs):
 
     The scale-dependent curvature is given by
 
-       .. math::
-         :nowrap:
+    .. math::
 
-         \begin{equation}
-         h_\text{rms}^{\prime\prime}(\lambda) = 4\left[8A(\lambda/2) - 2A(\lambda)\right]^{1/2}/\lambda^2
-         \end{equation}
+        h_\text{rms}^{\prime\prime}(\lambda) = 4\left[8A(\lambda/2) - 2A(\lambda)\right]^{1/2}/\lambda^2
 
-    where :math:`A(\lambda)` is the autocorrelation function.
+    where :math:`A(\lambda)` is the radially averaged height-difference
+    autocorrelation function. Here, :math:`\lambda` is the total length of
+    the three-point stencil (spacing :math:`\lambda/2`), consistent with the
+    `distance` argument of `derivative`. See
+    :func:`scale_dependent_curvature_from_profile` for the evaluation of
+    :math:`A`.
 
     Parameters
     ----------
-    topography : SurfaceTopography or UniformLineScan
+    topography : :class:`SurfaceTopography.Topography`
         Container storing the uniform topography map
     **kwargs : dict
         Additional keyword parameters are passed on to `autocorrelation_from_area`
@@ -119,7 +127,7 @@ def scale_dependent_curvature_from_area(topography, **kwargs):
     Returns
     -------
     r : array
-        Distances. (Units: length)
+        Total stencil length :math:`\lambda`. (Units: length)
     curvature : array
         Curvature. (Units: 1/length)
     """  # noqa: E501

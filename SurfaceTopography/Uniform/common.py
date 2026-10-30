@@ -66,24 +66,24 @@ def domain_decompose(
 
     Parameters
     ----------
-    self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
-        SurfaceTopography object containing height information.
+    self : :obj:`Topography`
+        Two-dimensional topography that holds the heights of the whole
+        domain on every process.
     subdomain_locations : tuple of ints
         Origin (location) of the subdomain handled by the present MPI
         process.
     nb_subdomain_grid_pts : tuple of ints
         Number of grid points within the subdomain handled by the present
-        MPI process. This is only required if decomposition is set to
-        'domain'.
-    communicator, optional : mpi4py communicator or NuMPI stub communicator
+        MPI process.
+    communicator : mpi4py communicator or NuMPI stub communicator, optional
         Communicator object. Use communicator from topography object if not
         present. (Default: None)
 
     Returns
     -------
-    decomposed_topography : array
-        SurfaceTopography object that now holds only data local the MPI
-        process.
+    decomposed_topography : :obj:`Topography`
+        Topography that holds only the data of the subdomain of the present
+        MPI process.
     """
     if communicator is None and self.communicator is None:
         raise RuntimeError("Please provide an MPI communicator.")

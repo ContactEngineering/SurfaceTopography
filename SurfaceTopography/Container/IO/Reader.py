@@ -70,12 +70,17 @@ class ContainerReaderBase(metaclass=abc.ABCMeta):
     extracted without reading the full file.
 
     Readers should adhere to the following design rules:
+
     1. Opening a file should be fast and therefore not read the whole data.
-       The data is read only when requesting it via the `surface` method.
-    2. Data corruption must be detected when opening the file. The
-       `surface` method must not fail because of file corruption issues.
-    These rules are important to allow smooth operation of the readers in
-    the web application `TopoBank`.
+       The data is read only when requesting it via the `container` method
+       (or, for lazy containers, when accessing the individual topographies).
+    2. Corruption of the container structure (e.g. of the metadata) must be
+       detected when opening the file.
+
+    These rules allow format detection by trial-opening the file with every
+    reader and keep listing the contents of large containers cheap, e.g. in
+    the web application TopoBank. Corruption of an individual data file
+    surfaces when the respective topography is read.
     """
 
     _format = None  # Short internal format string, e.g. 'ce', 'zag', etc.

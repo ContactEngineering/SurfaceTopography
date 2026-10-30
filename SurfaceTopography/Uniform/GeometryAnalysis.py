@@ -23,7 +23,23 @@
 #
 
 """
-Analysis of island geometries
+Analysis of island geometries on boolean maps (e.g. contact areas or regions
+above a threshold height) defined on a uniform grid.
+
+Besides the functions defined here, this module exposes the compiled
+functions
+
+- `assign_patch_numbers_area(mask, periodic, stencil=None)`: label connected
+  patches of a two-dimensional boolean map (flood fill). The default stencil
+  is the 8-neighbor stencil `nnn_stencil`; a custom stencil is a flat integer
+  array of offset pairs. Returns the number of patches and a map of patch ids
+  (0 outside patches, 1, 2, ... inside).
+- `assign_segment_numbers_area(mask)`: label connected segments along the
+  second (y) axis, row by row; the map is always treated as periodic.
+  Returns the number of segments and a map of segment ids.
+- `distance_map(mask)`: Euclidean distance (in units of grid points) from
+  each pixel to the closest pixel where `mask` is true, measured with
+  periodic boundary conditions.
 """
 
 import numpy as np
@@ -45,14 +61,16 @@ def coordination(mask, periodic, stencil=nn_stencil):
     Parameters
     ----------
     mask : array of bool
-        Mask with true/false values (typically indenfying specified regions on
-        a two-dimensional map)
+        Mask with true/false values (typically identifying specified regions
+        on a two-dimensional map)
     periodic : bool
         Mask will be treated as periodic if true.
     stencil : list of tuples
         Stencil for determining neighborhood. Each entry of the stencil
         contains relative coordinates of neighboring pixels, i.e. an
-        entry (1, 0) indicates the the pixel to the right is a neighbor.
+        entry (1, 0) indicates that the pixel displaced by one along the
+        first axis is a neighbor. (Default: `nn_stencil`, the four nearest
+        neighbors)
 
     Returns
     -------
@@ -84,14 +102,18 @@ def coordination(mask, periodic, stencil=nn_stencil):
 
 def outer_perimeter_area(c, periodic, stencil=nn_stencil):
     """
-    Return a map where surface points on the outer perimeter are marked.
+    Return a map where surface points on the outer perimeter are marked,
+    i.e. points outside `c` that have at least one neighbor (as defined by
+    `stencil`) inside `c`.
     """
     return np.logical_and(np.logical_not(c), coordination(c, periodic, stencil=stencil) > 0)
 
 
 def inner_perimeter_area(c, periodic, stencil=nn_stencil):
     """
-    Return a map where surface points on the inner perimeter are marked.
+    Return a map where surface points on the inner perimeter are marked,
+    i.e. points inside `c` that have at least one neighbor (as defined by
+    `stencil`) outside `c`.
     """
 
     return np.logical_and(c, coordination(c, periodic, stencil=stencil) < len(stencil))
@@ -99,12 +121,32 @@ def inner_perimeter_area(c, periodic, stencil=nn_stencil):
 
 def patch_areas(patch_ids):
     """
-    Return a list containing patch areas
+    Return an array containing the area (number of pixels) of each patch,
+    given a map of patch ids as returned by `assign_patch_numbers_area`.
+    Entry `i` is the area of the patch with id `i + 1`.
     """
     return np.bincount(patch_ids.reshape((-1,)))[1:]
 
 
 def assign_patch_numbers_profile(mask, periodic):
+    """
+    Label connected patches (segments) of a one-dimensional boolean mask.
+
+    Parameters
+    ----------
+    mask : array of bool
+        One-dimensional mask.
+    periodic : bool
+        If true, a patch touching the end of the mask is joined with a patch
+        touching its start.
+
+    Returns
+    -------
+    nb_patches : int
+        Number of patches.
+    patch_ids : np.ndarray of int
+        Patch id for each point; 0 outside patches, 1, 2, ... inside.
+    """
     patch_ids = np.cumsum(np.abs(np.diff(mask)))
     if mask[0]:
         # Patches are odd numbers
@@ -128,6 +170,10 @@ def assign_patch_numbers_profile(mask, periodic):
 
 
 def outer_perimeter_profile(mask, periodic):
+    """
+    Return a mask marking points of a one-dimensional mask that are outside
+    `mask` but have a neighbor inside `mask`.
+    """
     p_left = np.logical_and(np.roll(mask, -1), np.logical_not(mask))
     p_right = np.logical_and(np.roll(mask, 1), np.logical_not(mask))
     if not periodic:

@@ -25,7 +25,12 @@
 #
 
 """
-defines all surface types used in SurfaceTopography
+SurfaceTopography: reading, analysis and generation of surface topography
+data. This module exports the topography classes (`Topography`,
+`UniformLineScan`, `NonuniformLineScan`), the readers (`open_topography`,
+`read_topography`, `open_container`, `read_container`,
+`read_published_container`) and special geometries (`make_sphere`,
+`PlasticTopography`).
 """
 
 # These imports are required to register the analysis functions!

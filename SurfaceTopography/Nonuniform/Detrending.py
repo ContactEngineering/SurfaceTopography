@@ -24,7 +24,10 @@
 #
 
 """
-Helper functions to compute trends of surfaces
+Polynomial trends of nonuniform line scans and the `detrend` pipeline step
+that removes them. In contrast to uniform data, trends are polynomials in the
+absolute position :math:`x`, and the fits treat the line scan as the
+piecewise-linear interpolant of its data points.
 """
 
 import numpy as np
@@ -57,11 +60,21 @@ def polyfit(self, deg):
 
         \min_{\{a_k\}} \left\{ \frac{1}{3L} \sum_{i=0}^{N-2} \left[ (h_i - p(x_i))^2 + (h_{i+1} - p(x_{i+1}))^2 + (h_i - p(x_i))(h_{i+1} - p(x_{i+1})) \right] \Delta x_i \right\}
 
-    This gives the system of linear equations (one for each :math:`k`)
+    This is the exact integral of the square of the piecewise-linear
+    interpolant of the residual :math:`h_i - p(x_i)`; for :math:`n \le 1` it
+    equals :math:`\int (h(x) - p(x))^2\,dx` of the piecewise-linear profile.
+    Setting the derivatives with respect to :math:`a_k` to zero gives the
+    system of linear equations (one for each :math:`k`)
 
     .. math::
 
         \sum_{i=0}^{N-2} \left( \left[ 2h_i + h_{i+1} \right] x_i^k + \left[ 2h_{i+1} + h_i \right] x_{i+1}^k \right) \Delta x_i = \sum_{l=0}^n a_l \sum_{i=0}^{N-2} \left( 2x_i^{k+l} + 2x_{i+1}^{k+l} + x_i^k x_{i+1}^l + x_{i+1}^k x_i^l \right) \Delta x_i
+
+    The system is assembled and solved in coordinates centered on the scan,
+    :math:`x - (x_0 + x_{N-1})/2`, and the coefficients are then transformed
+    back to monomials of :math:`x`. Raw monomials make the system
+    ill-conditioned when the scan is short compared to its distance from
+    :math:`x = 0`.
 
     Parameters
     ----------
@@ -73,7 +86,8 @@ def polyfit(self, deg):
     Returns
     -------
     a : array
-        Array with coefficients :math:`a_k`.
+        Array with coefficients :math:`a_0, \dots, a_n` (lowest order
+        first) of the polynomial in the absolute position :math:`x`.
     """  # noqa: E501
     x, h = self.positions_and_heights()
     # Solve the normal equations in coordinates centered on the scan:
@@ -123,44 +137,58 @@ def _slope_detrend_coeffs(topography):
 
 class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
     """
-    Remove trends from a topography. This is achieved by fitting polynomials
-    to the topography data to extract trend lines. The resulting topography
-    is then detrended by substracting these trend lines.
+    Remove a polynomial trend from a nonuniform line scan. The trend is a
+    polynomial in the absolute position :math:`x` whose coefficients are
+    determined according to `detrend_mode`; the result is the parent heights
+    minus this polynomial.
+
+    Note on periodicity: Detrended line scans with mode other than 'center'
+    have their `is_periodic` property set to False.
     """
 
     _detrend_functions = {
         'mean': lambda self: [self.parent_topography.mean()],
-        # same as 'mean', deprecate 'center' in the future
+        # alias of 'mean'
         'center': lambda self: [self.parent_topography.mean()],
         'median': lambda self: [self.parent_topography.median()],
         'rms-tilt': lambda self: self.parent_topography.polyfit(1),
-        # same as 'rms-tilt', deprecate 'height' in the future
+        # alias of 'rms-tilt'
         'height': lambda self: self.parent_topography.polyfit(1),
         'mad-tilt': lambda self: self.parent_topography.mad_polyfit(1),
         'slope': lambda self: _slope_detrend_coeffs(self.parent_topography),
         'rms-curvature': lambda self: self.parent_topography.polyfit(2),
-        # same as 'rms-curvature', deprecate 'curvature' in the future
+        # alias of 'rms-curvature'
         'curvature': lambda self: self.parent_topography.polyfit(2),
         'mad-curvature': lambda self: self.parent_topography.mad_polyfit(2),
     }
 
     def __init__(self, topography, detrend_mode='height', coeffs=None, info={}):
-        """
+        r"""
         Parameters
         ----------
-        topography : SurfaceTopography
-            SurfaceTopography to be detrended.
-        detrend_mode : str
-            'mean': center the topography to its mean, no trend correction.
-            'median': center the topography to its median, no trend correction.
-            'rms-tilt': adjust slope such that rms height is minimized.
-            'mad-tilt': adjust slope such that mad height is minimized.
+        topography : :obj:`NonuniformLineScan`
+            Line scan to be detrended.
+        detrend_mode : str, optional
+            'mean' (alias 'center'): center the line scan to its mean, no
+            trend correction.
+            'median': center the line scan to its median, no trend
+            correction.
+            'rms-tilt' (alias 'height'): adjust slope such that rms height is
+            minimized.
+            'mad-tilt': adjust slope such that the median absolute deviation
+            of the heights is minimized.
             'slope': adjust slope such that rms slope is minimized.
-            'rms-curvature': adjust slope and curvature such that rms height is minimized.
+            'rms-curvature' (alias 'curvature'): adjust slope and curvature
+            such that rms height is minimized.
+            'mad-curvature': adjust slope and curvature such that the median
+            absolute deviation of the heights is minimized.
             (Default: 'height')
         coeffs : array-like, optional
-            Coefficients of the detrending plane. If not given, they are
-            computed from the detrend_mode. (Default: None)
+            Coefficients :math:`a_0, a_1, \dots` of the detrending
+            polynomial in the absolute position :math:`x`. If given,
+            `detrend_mode` is not used to compute them. (Default: None)
+        info : dict, optional
+            Updated entries to the info dictionary. (Default: {})
         """
         super().__init__(topography, info=info)
         self._detrend_mode = detrend_mode
@@ -238,6 +266,16 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
                                'tuple.')
 
     def stringify_plane(self, fmt=lambda x: str(x)):
+        """
+        Return a string giving the expression for the detrending polynomial
+        in the absolute position `x`.
+
+        Parameters
+        ----------
+        fmt : callable, optional
+            Function that converts a coefficient to a string.
+            (Default: str)
+        """
         str_coeffs = [fmt(x) for x in self._coeffs]
         if len(self._coeffs) == 1:
             h0, = str_coeffs
@@ -252,6 +290,11 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
 
     @property
     def curvatures(self):
+        r"""
+        Curvature :math:`(\rho,)`, :math:`\rho = \partial^2 p/\partial x^2`,
+        of the detrending polynomial (inverse length); zero for modes
+        without second-order term.
+        """
         if len(self._coeffs) == 3:
             return 2 * self._coeffs[2],
         else:

@@ -9,12 +9,16 @@ import pydantic
 
 
 class ValueAndUnitModel(pydantic.BaseModel):
+    """A numerical value with an optional unit."""
+
     value: float
     # The unit may be None for data without unit information
     unit: Optional[str] = None
 
 
 class InstrumentParametersModel(pydantic.BaseModel):
+    """Parameters of the instrument used in a measurement."""
+
     # Name of the instrument
     name: Optional[str] = None
     # Measurement resolution (as a simple cutoff of lateral scales)
@@ -28,6 +32,8 @@ _SERIAL_PLACEHOLDERS = {"", "0", "not available", "n/a", "na", "none", "unknown"
 
 
 class InstrumentModel(pydantic.BaseModel):
+    """Identification of the measurement instrument."""
+
     name: Optional[str] = None
     vendor: Optional[str] = None
     # Serial number of the instrument itself: the whole system or, for
@@ -56,6 +62,11 @@ class InstrumentModel(pydantic.BaseModel):
 
 
 class InfoModel(pydantic.BaseModel):
+    """
+    Model of the `info` dictionary of a topography. The listed fields are
+    validated; additional keys are kept as they are.
+    """
+
     # The `info` dictionary is documented as free form: it can carry
     # auxiliary data that is never interpreted by this library but used by
     # third-party code. Unknown keys must therefore be preserved. (pydantic's

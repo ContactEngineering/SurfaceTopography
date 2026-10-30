@@ -35,9 +35,20 @@ from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 
 class InterpolateUndefinedDataHarmonic(DecoratedUniformTopography):
-    """
+    r"""
     Replace undefined data points by interpolation of neighboring
     points with harmonic functions (solutions of the Laplace equation).
+
+    The undefined heights solve the discrete Laplace equation
+    :math:`\sum_{n \in \mathcal N(p)} (h_n - h_p) = 0` for every undefined
+    grid point :math:`p`, where :math:`\mathcal N(p)` are the nearest
+    neighbors (two for line scans, four for topographies). Defined points
+    enter as Dirichlet boundary values. For nonperiodic data, neighbors
+    outside the domain are dropped from the stencil, which corresponds to a
+    vanishing normal derivative at the domain boundary. All undefined points
+    are solved for in a single sparse linear system with a direct solver.
+    The system is singular if a connected region of undefined points has no
+    defined neighbor (e.g. if all points are undefined).
     """
 
     name = 'interpolate_undefined_data_harmonic'
@@ -125,10 +136,16 @@ def interpolate_undefined_data(self, method='harmonic'):
     ----------
     self : SurfaceTopography.Topography or SurfaceTopography.UniformLineScan
         Input topography containing undefined data points.
-    method : str
+    method : str, optional
         Imputation methods. Options
-           'harmonic': Interpolate with harmonic functions
+           'harmonic': Interpolate with harmonic functions, see
+           `interpolate_undefined_data_with_harmonic_function`
         (Default: 'harmonic')
+
+    Returns
+    -------
+    topography : :obj:`UniformLineScan` or :obj:`Topography`
+        Topography without undefined data.
     """
     if method == 'harmonic':
         return self.interpolate_undefined_data_with_harmonic_function()

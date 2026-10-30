@@ -24,7 +24,7 @@
 
 """
 Round-trip CI gate for the format description contract
-(docs/format_description_contract.rst): for every reader that declares
+(docs/format-description-contract.md): for every reader that declares
 channel bindings,
 
 1. its exported description document contains zero opaque markers,

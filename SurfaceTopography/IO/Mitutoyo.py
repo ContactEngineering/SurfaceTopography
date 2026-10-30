@@ -103,14 +103,11 @@ latter are reported as metadata.
                 self._uniform = True
             else:
                 self._uniform = False
-                # height values are assigned to the "end" of each "pixel" in the
-                # xlsx format, starting at non-zero x. Here we used to shift
-                # positions by half a distance each to have non-uniform profiles
-                # element-centered positions:
-                # _x = _x - np.insert(_diff, 0, _x[0]) * 0.5
-                # However, UniformLinescan always starts at x0 = 0
-                # To conform with this convention, here we now simply remove the
-                # first grid point's absolute position.
+                # Height values are assigned to the "end" of each "pixel" in
+                # the xlsx format, starting at non-zero x. Uniform line scans
+                # always start at x0 = 0; to conform with this convention, the
+                # first grid point's absolute position is subtracted (rather
+                # than shifting positions to pixel centers).
                 _x -= _x[0]
 
             # try extracting simple roughness metrics from first column

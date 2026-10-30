@@ -34,12 +34,12 @@ from ..HeightContainer import NonuniformLineScanInterface
 
 
 def sinc(x):
-    """sinc function"""
+    r"""Unnormalized sinc function, :math:`\sin(x)/x`."""
     return np.sinc(x / np.pi)
 
 
 def dsinc(x):
-    """Derivative of the sinc function, d/dx [sin(x)/x]."""
+    r"""Derivative of the unnormalized sinc function, :math:`d/dx\,[\sin(x)/x]`."""
     # Note: cos(x) - sinc(x) is formed by cancellation of two O(1) terms
     # and loses accuracy for small x; the Taylor branch is accurate to
     # machine precision up to about x = 1e-2, so the crossover sits where
@@ -68,11 +68,11 @@ def ft_rectangle(q):
     r"""
     Fourier transform of a rectangle, :math:`f(x) = 1` for :math:`|x| < 1/2`,
 
-    .. math ::
+    .. math::
 
-        \tilde{f}(q) = 2\sin(q/2)/q = sinc(q/2)
+        \tilde{f}(q) = 2\sin(q/2)/q = \operatorname{sinc}(q/2)
     """
-    # np.sinc is sin(pi*x)/(pi*x), sinc is sin(x)/xCo
+    # np.sinc is sin(pi*x)/(pi*x), sinc is sin(x)/x
     return sinc(q / 2)
 
 
@@ -81,9 +81,10 @@ def ft_one_sided_triangle(q):
     Fourier transform of the one-sided triangle, :math:`f(x) = x` for
     :math:`|x| < 1/2`,
 
-    .. math ::
+    .. math::
 
-        \tilde{f}(q) = i [\cos(q/2)/q - 2\sin(q/2)/q^2] = d sinc(q/2)/dq
+        \tilde{f}(q) = i [\cos(q/2)/q - 2\sin(q/2)/q^2]
+        = i\,\frac{d}{dq}\operatorname{sinc}(q/2)
 
     Returned value does not contain the factor of :math:`i`, i.e. this
     function is real-valued.
@@ -92,8 +93,12 @@ def ft_one_sided_triangle(q):
 
 
 def apply_window(x, y, window=None):
-    """
-    Apply a window function to height data.
+    r"""
+    Apply a window function to the heights of a nonuniform line scan.
+
+    The Hann window is evaluated at the positions of the data points,
+    :math:`w(x) = \sqrt{2/3}\,[1 - \cos(2\pi(x - x_0)/L)]`; the prefactor
+    normalizes the mean of :math:`w^2` over the scan to one.
 
     Parameters
     ----------
@@ -124,68 +129,95 @@ def power_spectrum(self, reliable=True, algorithm='fft', wavevectors=None, nb_in
                    window=None, resampling_method='bin-average', collocation='log', nb_points=None,
                    nb_points_per_decade=10):
     r"""
-    Compute power-spectral density (PSD) for a nonuniform topography. The
-    topography is assumed to be given by a series of points connected by
-    straight lines.
+    Compute the power spectral density (PSD) of a nonuniform line scan.
+    The line scan is treated as a piecewise linear function, i.e. the data
+    points are connected by straight lines.
+
+    The 'fft' algorithm interpolates this function linearly onto a uniform
+    grid whose spacing is the smallest distance between data points divided
+    by `nb_interpolate` and then computes the PSD of the resulting uniform
+    line scan with the FFT, see
+    :func:`SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_profile`.
+
+    The 'brute-force' algorithm evaluates the Fourier integral of the
+    piecewise linear function exactly at the requested wavevectors. With
+    :math:`\Delta x_i = x_{i+1} - x_i`, segment midpoints
+    :math:`\bar x_i = (x_i + x_{i+1})/2`, mean heights
+    :math:`\bar h_i = (h_i + h_{i+1})/2` and
+    :math:`\Delta h_i = h_{i+1} - h_i`,
+
+    .. math::
+
+        \tilde h(q) = \sum_{i=0}^{N-2} \Delta x_i\, e^{-iq\bar x_i}
+        \left[\bar h_i \operatorname{sinc}(q\Delta x_i/2)
+        + \frac{i}{2}\,\Delta h_i \operatorname{sinc}'(q\Delta x_i/2)\right],
+        \qquad C^\text{1D}(q) = \frac{1}{L}\,|\tilde h(q)|^2,
+
+    with :math:`\operatorname{sinc}(x) = \sin(x)/x` and
+    :math:`L = x_{N-1} - x_0`.
 
     Parameters
     ----------
     self : :obj:`NonuniformLineScan`
         Container storing the nonuniform line scan.
     reliable : bool, optional
-        Only return data deemed reliable. (Default: True)
-    algorithm : str
-        Algorithm to compute autocorrelation.
-        * 'fft': Interpolates the nonuniform line scan on a grid and then uses
-        the FFT to compute the autocorrelation. Scales O(N log N)
-        * 'brute-force': Brute-force computation using between line segements.
-        Scale O(N^2 M) where M is the number of distance point.
+        Only return data deemed reliable. Only supported by the 'fft'
+        algorithm. (Default: True)
+    algorithm : {'fft', 'brute-force'}, optional
+        Algorithm to compute the PSD.
+
+        * 'fft': Interpolates the nonuniform line scan on a uniform grid
+          and then uses the FFT to compute the PSD. Scales as
+          :math:`O(N_\text{int}\log N_\text{int})`, where :math:`N_\text{int}`
+          is the number of interpolation points.
+        * 'brute-force': Exact Fourier transform of the piecewise linear
+          function. Scales as :math:`O(NM)`, where :math:`M` is the number
+          of wavevectors.
+
         (Default: 'fft')
-    wavevectors : array, optional
-        Wavevectors at which to compute the PSD. If omitted, wavevectors are
-        equally spaced with a spacing that corresponds to :math:`2\pi/\lambda`
-        where :math:`\lambda` is the shortest distance between two points in
-        the `x`-array. (Default: None)
+    wavevectors : array_like, optional
+        Wavevectors at which to compute the PSD. Required for, and only
+        accepted by, the 'brute-force' algorithm. (Default: None)
     nb_interpolate : int, optional
-        Number of grid points to put between closest points on surface. Only
-        used for 'fft' algorithm. (Default: 5)
-    short_cutoff : function, optional
-        Function that determines how the short cutoff for the returned PSD is
-        computed. If set to None, the full PSD of the interpolated data is
-        returned. If the user passes a function, that function is called with
-        an array that contains the distances between the points of the uniform
-        line scan. Pass `np.max`, `np.mean` or `np.min` to use the maximum,
-        mean or minimum of that distance as the cutoff.
+        Number of grid points to put between the closest pair of data
+        points. Only used for the 'fft' algorithm. (Default: 5)
+    short_cutoff : callable, optional
+        Function that determines the short-wavelength cutoff of the returned
+        PSD. It is called with the array of distances
+        :math:`\Delta x_i` between neighboring data points; wavevectors
+        :math:`q < 2\pi/\text{short\_cutoff}(\Delta x_i)` are returned.
+        Pass `np.max`, `np.mean` or `np.min` to use the maximum, mean or
+        minimum of the distances. If set to None, the full PSD of the
+        interpolated data is returned. This cutoff is applied in addition
+        to the reliability cutoff. (Default: np.mean)
     window : str, optional
         Name of the window function to apply before computing the PSD.
-        Presently only supports Hann window ('hann') or no window (None or
-        'None').
-        Default: no window for periodic Topographies, "hann" window for
-        nonperiodic Topographies
-    resampling_method : str, optional
-        Method can be None for no resampling (return on the grid of the
-        data) 'bin-average' for simple bin averaging and 'gaussian-process'
-        for Gaussian process regression.
-        (Default: 'bin-average')
-    collocation : {'log', 'quadratic', 'linear', array_like}, optional
-        Resampling grid. Specifying 'log' yields collocation points
-        equally spaced on a log scale, 'quadratic' yields bins with
-        similar number of data points and 'linear' yields linear bins.
-        Alternatively, it is possible to explicitly specify the bin edges.
-        If bin_edges are explicitly specified, then `rmax` and `nbins` is
-        ignored. (Default: 'log')
+        Supported are the Hann window ('hann') and no window (None or
+        'None'). (Default: no window for periodic line scans, 'hann' window
+        for nonperiodic line scans)
+    resampling_method : {None, 'bin-average', 'gaussian-process'}, optional
+        None returns the PSD on the wavevectors of the FFT (or the requested
+        wavevectors), 'bin-average' averages it within bins,
+        'gaussian-process' resamples it by Gaussian process regression.
+        The 'brute-force' algorithm requires None. (Default: 'bin-average')
+    collocation : {'log', 'quadratic', 'linear'}, optional
+        Resampling grid. 'log' yields collocation points equally spaced on
+        a log scale, 'quadratic' yields bins equally spaced in :math:`q^2`
+        and 'linear' yields linear bins. (Default: 'log')
     nb_points : int, optional
-        Number of bins for averaging. Bins are automatically determined if set
-        to None. (Default: None)
+        Number of bins for averaging. For 'log' collocation, the number of
+        bins is determined from `nb_points_per_decade` if set to None;
+        'linear' and 'quadratic' collocation require this argument.
+        (Default: None)
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
         (Default: 10)
 
     Returns
     -------
-    wavevectors : array
-        Wavevector array at which the PSD has been computed. (Units: 1/length)
-    psd : array
+    wavevectors : np.ndarray or np.ma.MaskedArray
+        Wavevectors at which the PSD has been computed. (Units: 1/length)
+    psd : np.ndarray or np.ma.MaskedArray
         PSD values. (Units: length³)
     """
     if not self.is_periodic and window is None:

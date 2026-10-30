@@ -35,11 +35,13 @@ from .SurfaceContainer import SurfaceContainer
 
 def bandwidth(self, unit):
     """
-    Computes lower and upper bound of bandwidth, i.e. of the wavelengths or
-    length scales occurring on any topography within the container. The lower
-    end of the bandwidth is given by the mean of the spacing of the individual
-    points on the line scan. The upper bound is given by the overall length of
-    the line scan.
+    Computes lower and upper bound of the bandwidth of the container, i.e. of
+    the range of wavelengths or length scales occurring on any topography
+    within the container. The bandwidth of each topography is obtained from
+    its `bandwidth` method (lower bound: grid spacing, upper bound: physical
+    size; for nonuniform line scans the lower bound is the mean point
+    spacing). The bandwidth of the container is the smallest lower bound and
+    the largest upper bound of all topographies, after conversion to `unit`.
 
     Parameters
     ----------
@@ -51,9 +53,9 @@ def bandwidth(self, unit):
     Returns
     -------
     lower_bound : float
-        Lower bound of the bandwidth.
+        Lower bound of the bandwidth. (Units: `unit`)
     upper_bound : float
-        Upper bound of the bandwidth.
+        Upper bound of the bandwidth. (Units: `unit`)
     """
     global_lower = global_upper = None
     for topography in self:
@@ -67,15 +69,16 @@ def bandwidth(self, unit):
 
 def suggest_length_unit(self, scale):
     """
-    Compute a suggestion for a unit to diplay container-wider information.
-    The unit is chose to minimize number of digits to the left and right of
-    the decimal point.
+    Compute a suggestion for a length unit to display container-wide
+    information. The unit is chosen to minimize the number of digits to the
+    left and right of the decimal point for the bandwidth of the container
+    (see `bandwidth`).
 
     Parameters
     ----------
     scale : str
         'linear': displaying data on a linear axis
-        'log' displaying data on a log-space axis
+        'log': displaying data on a log-space axis
 
     Returns
     -------

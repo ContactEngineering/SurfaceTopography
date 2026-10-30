@@ -52,7 +52,8 @@ def add_uniform(self, other, interpolate=False):
         Topography or line scan to add. It is converted to the unit of this
         topography.
     interpolate : bool, optional
-        If False, both must have the same grid and physical size. If True,
+        If False, both must have the same number of grid points and the same
+        physical size (compared exactly, without tolerance). If True,
         `other` is linearly interpolated onto the grid of this topography;
         it then needs to cover the domain of this topography. (Default:
         False)
@@ -60,7 +61,8 @@ def add_uniform(self, other, interpolate=False):
     Returns
     -------
     topography : Topography or UniformLineScan
-        Sum of both, on the grid of this topography.
+        Sum of both, on the grid of this topography (a `superpose` pipeline
+        step).
     """
     other = _in_unit_of(self, other)
     if interpolate:

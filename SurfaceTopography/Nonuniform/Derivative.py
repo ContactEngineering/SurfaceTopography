@@ -39,22 +39,33 @@ def derivative(self, n, scale_factor=None, distance=None, interpolation='linear'
     Compute derivative of nonuniform line-scan. Function assumes nonperiodic
     topographies.
 
-    First derivative: Central differences.
+    First derivative: Two-point differences
+    :math:`(h_{i+1}-h_i)/(x_{i+1}-x_i)`. This is the exact slope of the
+    piecewise-linear interpolation on each segment and a second-order
+    accurate (central) approximation at the segment midpoint.
 
-    Second derivative: Expand :math:`h(x+\Delta x_+)` and :math:`(x-\Delta x_-)` up to second order in the grid
-    spacing :math:`\Delta x_+` and :math:`\Delta x_+`. Then
-    :math:`\Delta x_- f(x+\Delta x_+) + \Delta x_+ f(x+\Delta x_-)` yields:
+    Second derivative: Expand :math:`h(x+\Delta x_+)` and :math:`h(x-\Delta x_-)` up to second order in the grid
+    spacings :math:`\Delta x_+=x_{i+1}-x_i` and :math:`\Delta x_-=x_i-x_{i-1}`. Then
+    :math:`\Delta x_- h(x+\Delta x_+) + \Delta x_+ h(x-\Delta x_-)` eliminates the first derivative and yields:
 
     .. math::
 
-         \frac{d^2h}{dx^2} \approx 2 \frac{\Delta x_-\left[f(x+\Delta x_+)-f(x)\right] + \Delta x_+\left[f(x+\Delta x_-)-f(x)\right]}{\Delta x_+\Delta x_-(\Delta x_++\Delta x_-)}
+         \frac{d^2h}{dx^2} \approx 2 \frac{\Delta x_-\left[h(x+\Delta x_+)-h(x)\right] + \Delta x_+\left[h(x-\Delta x_-)-h(x)\right]}{\Delta x_+\Delta x_-(\Delta x_++\Delta x_-)}
+
+    The truncation error is :math:`O(\Delta x_+ - \Delta x_-)` for unequal
+    spacings and :math:`O(\Delta x^2)` for equal spacings.
+
+    If `distance` is given, the line scan is instead interpolated onto a
+    uniform grid (see `to_uniform`) and the derivative is computed with the
+    uniform stencils at the requested distance.
 
     Parameters
     ----------
     self : :class:`SurfaceTopography.NonuniformLineScan`
         Object containing height information.
     n : int
-        Number of times the derivative is taken.
+        Number of times the derivative is taken. Only 1 and 2 are supported
+        without `distance`.
     scale_factor : int or list of ints or list of tuples of ints, optional
         Scale factors are not supported by nonuniform line scans.
         (Default: None)
@@ -76,7 +87,14 @@ def derivative(self, n, scale_factor=None, distance=None, interpolation='linear'
     -------
     derivative : np.ndarray
         Array with derivative values. Length of array is reduced by :math:`n` with
-        respect to the input array for the :math:`n`-th derivative.
+        respect to the input array for the :math:`n`-th derivative. If
+        `distance` is given, the derivatives on the interpolated uniform grid
+        (a list for multiple distances).
+
+    Raises
+    ------
+    ReentrantDataError
+        If the line scan has overhangs.
     """  # noqa: E501
     if scale_factor is not None:
         raise ValueError('Scale factors are not supported by nonuniform line scans.')
