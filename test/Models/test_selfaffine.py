@@ -165,3 +165,20 @@ def test_variance_derivatives(physical_size, rolloff_wavelength, shortcut_wavele
 #         plt.show()
 #
 #     np.testing.assert_allclose(Eel_log, Eel_brute_force, rtol=0.1)
+
+
+@pytest.mark.parametrize("hurst_exponent", [0.3, 0.5, 0.8, 1.0])
+@pytest.mark.parametrize("longcut_wavelength", [np.inf, 5e-5])
+@pytest.mark.parametrize("override", [{}, {"shortcut_wavelength": 4e-6}, {"longcut_wavelength": 1e-5}])
+def test_rms_height_is_integral_of_psd(hurst_exponent, longcut_wavelength, override):
+    # h_rms^2 = 1/(2 pi) int q C^iso(q) dq, evaluated by quadrature of the model PSD
+    import scipy.integrate
+    model_psd = SelfAffine(cr=5e-27, rolloff_wavelength=2e-5, hurst_exponent=hurst_exponent,
+                           longcut_wavelength=longcut_wavelength, shortcut_wavelength=1e-6)
+    q_long = 2 * np.pi / min(longcut_wavelength, override.get("longcut_wavelength", np.inf))
+    q_short = 2 * np.pi / max(1e-6, override.get("shortcut_wavelength", 0))
+    q_r = model_psd.rolloff_wavevector
+    integral = sum(scipy.integrate.quad(lambda q: q * model_psd.power_spectrum_isotropic(q) / (2 * np.pi),
+                                        a, b, epsabs=0, epsrel=1e-10, limit=200)[0]
+                   for a, b in [(q_long, max(q_long, q_r)), (max(q_long, q_r), q_short)])
+    np.testing.assert_allclose(model_psd.rms_height(**override) ** 2, integral, rtol=1e-8)

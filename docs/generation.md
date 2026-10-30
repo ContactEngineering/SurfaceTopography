@@ -261,11 +261,8 @@ longcut_wavelength=None)` evaluates $[h^{(\alpha)}_\text{rms}]^2$; it also
 handles cutoffs outside the roll-off region. The optional wavelengths
 restrict the integration range further (only a larger short cutoff or a
 smaller long cutoff than the model's takes effect), which gives scale-dependent
-parameters. `rms_height(shortcut_wavelength=None, longcut_wavelength=None)`
-evaluates $h_\text{rms}$ from the closed form, but omits the factor $1/H$ in
-the last term; the difference is small for $q_s \gg q_r$, and
-`np.sqrt(variance_derivative(0))` is exact.
-<!-- TODO: rationale for the omitted 1/H factor in SelfAffine.rms_height? (likely a bug) -->
+parameters. `rms_height(shortcut_wavelength=None, longcut_wavelength=None)` is
+the square root of `variance_derivative(0)` with the same cutoff arguments.
 
 ```python
 from SurfaceTopography.Models.SelfAffine import SelfAffine

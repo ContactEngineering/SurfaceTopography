@@ -23,6 +23,8 @@ v1.28.0 (not yet released)
   along x; low-wavevector values were off by up to a factor of six
 - BUG: Subtracting the mean or median of a periodic topography kept it periodic only for
   mode "center"; spectra of mean- and median-detrended topographies were windowed
+- BUG: The rms height of the self-affine PSD model omitted a factor 1/H, e.g. 31% too
+  large for H=0.3; cutoff overrides can only narrow the model's bandwidth, as for its derivatives
 
 v1.27.0 (28Oct26)
 -----------------
