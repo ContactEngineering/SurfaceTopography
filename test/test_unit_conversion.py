@@ -28,6 +28,7 @@ import pytest
 from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography.Support.UnitConversion import (
+    get_unit_conversion_factor,
     is_length_unit,
     mangle_length_unit_ascii,
     mangle_length_unit_utf8,
@@ -84,3 +85,21 @@ def test_ampere_is_not_angstrom():
     assert mangle_length_unit_utf8("A", ascii_angstrom=False) == "A"
     assert is_length_unit("Å", ascii_angstrom=False)
     assert mangle_length_unit_utf8("um", ascii_angstrom=False) == "µm"
+
+
+length_exponents = {'Gm': 9, 'Mm': 6, 'km': 3, 'm': 0, 'mm': -3, 'µm': -6, 'um': -6, 'nm': -9, 'Å': -10, 'A': -10,
+                    'pm': -12, 'fm': -15}
+
+
+def test_conversion_factors_are_powers_of_ten():
+    # Factors between length units are the floats closest to the exact
+    # powers of ten, so that sizes survive a round trip through another unit
+    for from_unit, from_exponent in length_exponents.items():
+        for to_unit, to_exponent in length_exponents.items():
+            assert get_unit_conversion_factor(from_unit, to_unit) == 10.0 ** (from_exponent - to_exponent)
+    assert 500 * get_unit_conversion_factor('µm', 'mm') * get_unit_conversion_factor('mm', 'µm') == 500
+
+
+def test_conversion_between_kinds():
+    with pytest.raises(ValueError, match="'mV' is of kind voltage"):
+        get_unit_conversion_factor('m', 'mV')

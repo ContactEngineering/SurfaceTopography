@@ -653,8 +653,9 @@ t.subtract(other, interpolate=False)
 
 `superpose` adds the heights of two uniform topographies with identical
 dimension, number of grid points and physical size; mismatching properties
-raise `ValueError`. The comparison is exact, so physical sizes that differ by
-rounding (e.g. after a unit round trip) are rejected.
+raise `ValueError`. Physical sizes are compared to a relative tolerance of
+$10^{-10}$, so sizes that differ only by rounding (e.g. after a unit
+conversion) are accepted.
 
 `add` and `subtract` (`subtract(b)` is `add(b.scale(-1))`) first convert
 `other` to the unit of `t` if both have units. For uniform data, `other` must

@@ -53,7 +53,7 @@ def add_uniform(self, other, interpolate=False):
         topography.
     interpolate : bool, optional
         If False, both must have the same number of grid points and the same
-        physical size (compared exactly, without tolerance). If True,
+        physical size (to a relative tolerance of 1e-10). If True,
         `other` is linearly interpolated onto the grid of this topography;
         it then needs to cover the domain of this topography. (Default:
         False)

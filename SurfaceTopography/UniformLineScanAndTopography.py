@@ -841,7 +841,8 @@ class CompoundTopography(DecoratedUniformTopography):
             taken from this topography.
         topography_b : :obj:`UniformTopographyInterface`
             Second topography of the compound. Must have the same
-            dimension, number of grid points and physical sizes.
+            dimension and number of grid points and the same physical
+            sizes (to a relative tolerance of :math:`10^{-10}`).
         info : dict, optional
             Additional entries for the info dictionary. (Default: {})
         """
@@ -871,9 +872,15 @@ class CompoundTopography(DecoratedUniformTopography):
         check_combined_val(
             topography_a.nb_grid_pts, topography_b.nb_grid_pts, "nb_grid_pts"
         )
-        check_combined_val(
-            topography_a.physical_sizes, topography_b.physical_sizes, "physical_sizes"
-        )
+        # Physical sizes are compared with a relative tolerance, since they
+        # typically result from floating-point operations (e.g. unit
+        # conversions)
+        if not np.allclose(topography_a.physical_sizes, topography_b.physical_sizes, rtol=1e-10, atol=0):
+            raise ValueError(
+                "physical_sizes incompatible: {} <-> {}".format(
+                    topography_a.physical_sizes, topography_b.physical_sizes
+                )
+            )
         self.parent_topography_a = topography_a
         self.parent_topography_b = topography_b
 

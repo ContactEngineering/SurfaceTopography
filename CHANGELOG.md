@@ -49,6 +49,8 @@ v1.28.0 (not yet released)
   scan and was up to 21% too small; heights are now taken as uncorrelated there
 - BUG: Half-derivative variance and elastic energy of line scans assume an isotropic
   surface, like the estimate from the autocorrelation function; values increase by pi/2
+- BUG: Adding topographies in different units failed because converted physical sizes
+  differed by rounding; unit conversion factors are exact powers of ten
 
 v1.27.0 (28Oct26)
 -----------------

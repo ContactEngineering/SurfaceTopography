@@ -95,7 +95,9 @@ def get_unit_conversion_factor(from_unit, to_unit):
     -------
     fac : float
         Unit conversion factors. A quantity in `from_unit` is converted to `to_unit`
-        by multiplication with this factor.
+        by multiplication with this factor. Factors between units that
+        differ by a power of ten are the floating-point number closest to
+        that power of ten.
     """
     if from_unit is None:
         raise ValueError('Cannot convert from None unit')
@@ -118,9 +120,17 @@ def get_unit_conversion_factor(from_unit, to_unit):
     if unit2_kind is None:
         raise ValueError(f"Unknown unit '{to_unit}'.")
     if unit1_kind != unit2_kind:
-        raise ValueError(f"Unit '{from_unit}' is of kind {unit1_kind} while unit '{to_unit}' is of kind {to_unit}."
-                         "I cannot convert between the two.")
-    return unit_scales[from_unit] / unit_scales[to_unit]
+        raise ValueError(f"Unit '{from_unit}' is of kind {unit1_kind} while unit '{to_unit}' is of kind "
+                         f"{unit2_kind}. I cannot convert between the two.")
+    fac = unit_scales[from_unit] / unit_scales[to_unit]
+    # The quotient of two rounded powers of ten is not necessarily the
+    # closest floating-point number to the exact power of ten (e.g.
+    # 1e-3 / 1e-6 = 1000.0000000000001), which makes sizes differ after a
+    # round trip through another unit
+    exponent = round(np.log10(fac))
+    if np.isclose(fac, 10.0 ** exponent, rtol=1e-12, atol=0):
+        fac = 10.0 ** exponent
+    return fac
 
 
 def mangle_length_unit_utf8(unit, ascii_angstrom=True):

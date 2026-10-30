@@ -72,3 +72,17 @@ def test_add_nonuniform_line_scans():
     # Line scans without overlap
     with pytest.raises(ValueError):
         a.add(NonuniformLineScan([5.0, 6.0], [0.0, 0.0]))
+
+
+def test_add_after_unit_conversion():
+    # Sizes that differ only by rounding (here after conversion from mm to
+    # µm) are compatible
+    h = np.random.default_rng(0).normal(size=(8, 6))
+    a = Topography(h, (500., 300.), unit='µm')
+    b = Topography(h, (0.5, 0.3), unit='mm')
+    np.testing.assert_allclose(a.add(b).heights(), h + 1000 * h)
+    c = Topography(h, (500. * (1 + 1e-14), 300.), unit='µm')
+    np.testing.assert_allclose(a.superpose(c).heights(), 2 * h)
+    d = Topography(h, (500. * (1 + 1e-6), 300.), unit='µm')
+    with pytest.raises(ValueError, match="physical_sizes incompatible"):
+        a.superpose(d)
