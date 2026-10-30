@@ -406,8 +406,8 @@ def test_container_uniform(file_format_examples, plot=False):
     assert isinstance(s, np.ma.MaskedArray)
     expected_mask = [True, False, False, False, False, False, False, False, False, False, False, True]
     np.testing.assert_array_equal(s.mask, expected_mask)
-    expected_values = [7.694374e-02, 3.486013e-02, 8.882600e-04, 8.680968e-05, 3.947691e-06, 4.912031e-07,
-                       1.136185e-08, 1.466590e-09, 9.681977e-12, 4.609198e-21]
+    expected_values = [1.5843575e-01, 3.735930e-02, 1.253602e-03, 1.136672e-04, 3.416895e-06, 4.659241e-07,
+                       1.037949e-08, 1.470900e-09, 9.613602e-12, 4.532699e-21]
     assert_allclose(s.compressed(), expected_values, atol=1e-8)
 
 
@@ -452,3 +452,28 @@ def test_large_container_mixed(plot=True):
         import matplotlib.pyplot as plt
         plt.loglog(d, s, 'kx-')
         plt.show()
+
+
+@pytest.mark.parametrize('window', [None, 'hann', 'blackman'])
+def test_profile_psd_of_map_is_average_of_line_scans(window):
+    # The profile PSD of a map is the average of the PSDs of its profiles
+    # along x; in particular, nonperiodic profiles are windowed along x only
+    np.random.seed(7)
+    nx, ny = 64, 48
+    sx, sy = 2.0, 1.5
+    heights = fourier_synthesis((nx, ny), (sx, sy), 0.8, rms_height=1., periodic=True).heights()
+    topography = Topography(heights, (sx, sy), periodic=False)
+    q, C = topography.power_spectrum_from_profile(window=window, resampling_method=None, reliable=False)
+    C_ref = 0
+    for j in range(ny):
+        line_scan = UniformLineScan(heights[:, j], sx, periodic=False)
+        q_ref, C_j = line_scan.power_spectrum_from_profile(window=window, resampling_method=None, reliable=False)
+        C_ref = C_ref + C_j / ny
+    assert_allclose(q, q_ref)
+    assert_allclose(C, C_ref, rtol=1e-12)
+
+    integral = topography.integrate_psd_from_profile(lambda qx: qx ** 2, window=window, reliable=False)
+    integral_ref = np.mean([
+        UniformLineScan(heights[:, j], sx, periodic=False).integrate_psd_from_profile(
+            lambda qx: qx ** 2, window=window, reliable=False) for j in range(ny)])
+    assert_allclose(integral, integral_ref, rtol=1e-12)

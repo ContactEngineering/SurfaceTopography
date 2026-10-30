@@ -16,6 +16,12 @@ Style for this changelog (keep to it so entries stay uniform):
 Change log for SurfaceTopography
 ================================
 
+v1.28.0 (not yet released)
+--------------------------
+
+- BUG: Profile PSD of nonperiodic maps windowed the profiles radially instead of
+  along x; low-wavevector values were off by up to a factor of six
+
 v1.27.0 (28Oct26)
 -----------------
 

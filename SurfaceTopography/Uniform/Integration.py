@@ -142,7 +142,7 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
         raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
                                  'computed for topographies with missing data points.')
 
-    h = self.window(window).heights()
+    h = self.window(window=window, direction='x').heights()
 
     sx = self.physical_sizes[0]
     nx = self.nb_grid_pts[0]

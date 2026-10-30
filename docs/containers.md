@@ -441,7 +441,7 @@ print(np.sqrt(container.integrate_psd_from_profile(lambda qx: qx**2, unit="µm")
 ```
 
 ```text
-0.0577387812545376
+0.05710934172300069
 ```
 
 **Integration of the averaged PSD.** `c1d_moment` and `ciso_moment` integrate
@@ -472,7 +472,7 @@ print(np.sqrt(container.ciso_moment(order=2, unit="µm")))
 ```
 
 ```text
-0.07338183285823531
+0.07246464478870794
 ```
 
 ### Isotropic PSD from the 1D PSD

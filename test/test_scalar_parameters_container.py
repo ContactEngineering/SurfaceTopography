@@ -40,7 +40,9 @@ def test_ciso_moment_from_container(file_format_examples):
     varhpp_ciso = c.ciso_moment(order=4, unit=unit)
     l, vbm = c.variable_bandwidth(unit=unit)
 
-    error_hrms = (abs(vbm[-1] - np.sqrt(varh_ciso)) / vbm[-1])
+    # For isotropic surfaces, the moment of order zero of the isotropic PSD
+    # estimated as (pi/q) C^1D is pi/2 times the mean square height
+    error_hrms = (abs(vbm[-1] - np.sqrt(varh_ciso / (np.pi / 2))) / vbm[-1])
     assert error_hrms < 0.1
 
     # topography with the smallest pixel size

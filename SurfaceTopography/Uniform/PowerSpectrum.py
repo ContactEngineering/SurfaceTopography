@@ -112,7 +112,7 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
         nx, = self.nb_grid_pts
         sx, = self.physical_sizes
 
-    h = self.window(window).heights()
+    h = self.window(window=window, direction='x').heights()
 
     # Compute FFT and normalize
     fourier_topography = sx / nx * np.fft.fft(h, axis=0)
