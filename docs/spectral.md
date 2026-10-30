@@ -563,15 +563,19 @@ surface; it does not require isotropy. It is computed by
 
 **Line scans.** A line scan does not contain the areal quantity, so any
 estimate from line scans needs an assumption about the surface perpendicular
-to the scan. Two assumptions are in use:
+to the scan. SurfaceTopography assumes an isotropic surface, which gives
 
-| Assumption | Estimate from $C^\text{1D}$ | Used by |
-|-|-|-|
-| Isotropic surface | $\frac{1}{2}\int_0^\infty dq\, q\, C^\text{1D}(q)$ | `variance_half_derivative_via_autocorrelation_from_profile`, `ciso_moment(order=1)` of containers |
-| Surface invariant perpendicular to the scan | $\frac{1}{\pi}\int_0^\infty dq\, q\, C^\text{1D}(q)$ | `variance_half_derivative` of line scans |
+$$
+\langle\lvert\nabla^{1/2}h\rvert^2\rangle
+= \frac{1}{2}\int_0^\infty dq\, q\, C^\text{1D}(q)
+$$
 
-The two differ by a factor $\pi/2$. The isotropic estimate is the half
-derivative of the map from which the line scans were taken. It can be written
+for `variance_half_derivative` and `elastic_energy` of line scans,
+`variance_half_derivative_via_autocorrelation_from_profile` and
+`ciso_moment(order=1)` of containers. (A surface that is invariant
+perpendicular to the scan would give $2/\pi$ times this value.) The estimate
+is the half derivative of the map from which the line scans were taken. It can
+be written
 as the moment of order one of the isotropic PSD obtained with the relation
 $C^\text{iso}(q) = \frac{\pi}{q}C^\text{1D}(q)$ (see
 [Isotropic PSD from the 1D PSD](containers.md#isotropic-psd-from-the-1d-psd)).

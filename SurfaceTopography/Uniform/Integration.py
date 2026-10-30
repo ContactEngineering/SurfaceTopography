@@ -229,10 +229,16 @@ def variance_half_derivative(self, window=None, reliable=True):
 
     computed from the full power spectral density, see
     :func:`integrate_psd`. For line scans, the surface is assumed to be
-    invariant perpendicular to the scan, which gives
-    :math:`\frac{1}{2\pi}\int dq\, |q|\, C^\text{1D}(q)`. This is
-    :math:`2/\pi` times the estimate for an isotropic surface, see
-    :func:`variance_half_derivative_via_autocorrelation_from_profile`.
+    isotropic, which gives
+
+    .. math::
+
+        \langle |\nabla^{1/2} h|^2 \rangle
+        = \frac{1}{2} \int_0^\infty dq\, q\, C^\text{1D}(q),
+
+    the same estimate as
+    :func:`variance_half_derivative_via_autocorrelation_from_profile`. For
+    an isotropic surface, this equals the areal value exactly.
 
     Parameters
     ----------
@@ -248,7 +254,9 @@ def variance_half_derivative(self, window=None, reliable=True):
     variance : float
         Variance of the half derivative.
     """
-    return self.integrate_psd(lambda q: q, window=window, reliable=reliable)
+    # integrate_psd gives (1/pi) int_0^inf dq q C^1D(q) for line scans
+    variance = self.integrate_psd(lambda q: q, window=window, reliable=reliable)
+    return np.pi / 2 * variance if self.dim == 1 else variance
 
 
 def elastic_energy(self, contact_modulus, window=None, reliable=True):
