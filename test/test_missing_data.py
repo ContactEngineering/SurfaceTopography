@@ -160,12 +160,10 @@ def test_exception(
     # with pytest.raises(UndefinedDataError):
     #    topo.rms_laplacian()
 
-    # This raises an exception because the autocorrelation is computed using an FFT
-    # which cannot be computed with missing data points
-    with pytest.raises(UndefinedDataError):
-        topo.autocorrelation_from_profile()
-    with pytest.raises(UndefinedDataError):
-        topo.autocorrelation_from_area()
+    # The autocorrelation functions average over pairs of defined points
+    for r, A in [topo.autocorrelation_from_profile(), topo.autocorrelation_from_area()]:
+        assert np.all(np.isfinite(A.compressed()))
+        assert np.all(A.compressed() >= 0)
 
     # This raises an exception because the PSD intrinsically requires a Fourier
     # transform which cannot be computed with missing data points
