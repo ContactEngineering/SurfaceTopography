@@ -43,6 +43,8 @@ v1.28.0 (not yet released)
 - BUG: Half-derivative variance from autocorrelation functions counted empty bins as zero,
   e.g. 40% too small at 50 points per decade
 - BUG: The profile half-derivative variance of containers failed with an attribute error
+- BUG: Binned scale-dependent slopes dropped the smallest distance; the half-derivative
+  variance computed from them was up to 9% too small
 
 v1.27.0 (28Oct26)
 -----------------

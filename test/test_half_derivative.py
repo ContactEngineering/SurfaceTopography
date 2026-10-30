@@ -76,3 +76,18 @@ def test_container_profile_half_derivative():
     c = InMemorySurfaceContainer([t])
     np.testing.assert_allclose(c.variance_half_derivative_via_autocorrelation_from_profile(unit='m'),
                                c.variance_half_derivative_from_autocorrelation(unit='m'))
+
+
+def test_container_and_topography_agree():
+    # A container with a single topography gives the result of the
+    # topography, up to the binning of the container average
+    t = fourier_synthesis((64, 64), (1., 1.), 0.8, rms_height=1., rng=1, unit='m')
+    c = InMemorySurfaceContainer([t])
+    reference = t.variance_half_derivative_via_autocorrelation_from_profile(resampling_method=None, reliable=False)
+    for nb_points_per_decade in [5, 20]:
+        np.testing.assert_allclose(
+            t.variance_half_derivative_via_autocorrelation_from_profile(nb_points_per_decade=nb_points_per_decade,
+                                                                        reliable=False), reference, rtol=0.03)
+        np.testing.assert_allclose(
+            c.variance_half_derivative_from_autocorrelation(unit='m', nb_points_per_decade=nb_points_per_decade,
+                                                            reliable=False), reference, rtol=0.03)

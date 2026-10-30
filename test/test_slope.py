@@ -64,3 +64,16 @@ def test_numeric_vs_analytical():
 
     x, y = t1.scale_dependent_slope_from_profile(resampling_method=None)
     assert_array_almost_equal(y, np.sqrt(1 - np.cos(qs * x)) / x)
+
+
+def test_scale_dependent_slope_starts_at_smallest_distance():
+    # Only distance zero is removed from the ACF; the smallest distance (one
+    # pixel) is kept, also when the ACF is averaged over log-spaced bins
+    t = fourier_synthesis((128, 128), (1., 1.), 0.8, rms_height=1., rng=2)
+    dx = t.pixel_size[0]
+    r, s = t.scale_dependent_slope_from_profile(resampling_method=None, reliable=False)
+    assert_almost_equal(r[0], dx)
+    assert_almost_equal(s[0], t.Rdq())
+    for function in [t.scale_dependent_slope_from_profile, t.scale_dependent_slope_from_area]:
+        r, s = function(nb_points_per_decade=10, reliable=False)
+        assert_almost_equal(r.compressed()[0] / dx, 1)
