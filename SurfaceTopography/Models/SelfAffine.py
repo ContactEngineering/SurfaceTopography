@@ -201,42 +201,27 @@ class SelfAffine(AbstractIsotropicRoughness):
             - \frac{1}{H}\left( \frac{q_s}{q_r}\right)^{-2H}\right]
 
         Note that :math:`C_r q_r^2` can be interchanged with :math:`C_0 q_r^{-2H}`.
-
-        Warning: the implementation omits the factor :math:`1/H` in the last
-        term; `variance_derivative(0)` evaluates the exact expression.
+        This is :func:`variance_derivative` of order zero, which also covers
+        the cases outside :math:`q_L \le q_r \le q_s`.
 
         Parameters
         ----------
         shortcut_wavelength: float, optional
             Makes the rms height scale dependent by overriding the short
-            cutoff. (Default: None, i.e. the model's value)
+            cutoff (only values larger than the model's short cutoff take
+            effect). (Default: None, i.e. the model's value)
         longcut_wavelength: float, optional
             Makes the rms height scale dependent by overriding the long
-            cutoff. (Default: None, i.e. the model's value)
+            cutoff (only values smaller than the model's long cutoff take
+            effect). (Default: None, i.e. the model's value)
 
         Returns
         -------
         rms_height : float
 
         """
-
-        if shortcut_wavelength is None:
-            shortcut_wavelength = self.shortcut_wavelength
-
-        if longcut_wavelength is None:
-            longcut_wavelength = self.longcut_wavelength
-
-        shortcut_wavevector = (2 * np.pi) / shortcut_wavelength if shortcut_wavelength > 0 else np.inf
-        longcut_wavevector = (2 * np.pi) / longcut_wavelength
-
-        # see labbook of 220304
-        return np.sqrt(
-            self.cr * self.rolloff_wavevector ** 2 / (4 * np.pi)
-            * (1 + 1 / self.hurst_exponent
-               - (longcut_wavevector / self.rolloff_wavevector) ** 2
-               - (shortcut_wavevector / self.rolloff_wavevector) ** (- 2 * self.hurst_exponent)
-               )
-        )
+        return np.sqrt(self.variance_derivative(0, shortcut_wavelength=shortcut_wavelength,
+                                                longcut_wavelength=longcut_wavelength))
 
     def variance_derivative(self, order, shortcut_wavelength=None, longcut_wavelength=None, ):
         r"""

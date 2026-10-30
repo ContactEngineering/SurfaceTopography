@@ -142,8 +142,9 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
     determined according to `detrend_mode`; the result is the parent heights
     minus this polynomial.
 
-    Note on periodicity: Detrended line scans with mode other than 'center'
-    have their `is_periodic` property set to False.
+    Note on periodicity: Detrended line scans are periodic if the parent
+    is periodic and only a constant is subtracted ('mean', 'center',
+    'median'); otherwise `is_periodic` is False.
     """
 
     _detrend_functions = {
@@ -233,10 +234,10 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
     @property
     def is_periodic(self):
         """
-        SurfaceTopography stays periodic only after detrend mode "center".
-        Otherwise the detrended SurfaceTopography is non-periodic.
+        Subtracting a constant ('mean', 'center', 'median') preserves the
+        periodicity of the parent; subtracting a tilt or curvature does not.
         """
-        if self.detrend_mode == "center":
+        if len(self._coeffs) == 1:
             return self.parent_topography.is_periodic
         else:
             return False

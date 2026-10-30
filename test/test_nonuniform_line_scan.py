@@ -210,3 +210,25 @@ def test_masked_input():
 
     with pytest.raises(ValueError):
         NonuniformLineScan(y=np.ma.array([1, 2, 3], mask=[0, 1, 0]), x=[4, 5, 6])
+
+
+@pytest.mark.parametrize("padding", [0, 3])
+def test_to_uniform_round_trip(padding):
+    # A nonperiodic uniform line scan converted to nonuniform and back on the
+    # same number of points is the original line scan
+    from SurfaceTopography import UniformLineScan
+    from SurfaceTopography.Generation import fourier_synthesis
+    h = fourier_synthesis((128,), (3.0,), 0.8, rms_height=1, rng=2).heights()
+    u = UniformLineScan(h, 3.0, periodic=False)
+    r = u.to_nonuniform().to_uniform(nb_points=128, padding=padding)
+    assert r.nb_grid_pts == (128 + padding,)
+    np.testing.assert_allclose(r.pixel_size, u.pixel_size)
+    np.testing.assert_allclose(r.physical_sizes, (u.physical_sizes[0] + padding * u.pixel_size[0],))
+    np.testing.assert_allclose(r.positions(), np.arange(128 + padding) * u.pixel_size[0])
+    np.testing.assert_allclose(r.heights()[:128], h)
+    if padding == 0:
+        for analysis in ["power_spectrum_from_profile", "autocorrelation_from_profile"]:
+            for result, reference in zip(getattr(r, analysis)(reliable=False, resampling_method=None),
+                                         getattr(u, analysis)(reliable=False, resampling_method=None)):
+                np.testing.assert_allclose(result, reference, rtol=1e-12, atol=1e-14)
+        np.testing.assert_allclose(r.rms_slope_from_profile(), u.rms_slope_from_profile())

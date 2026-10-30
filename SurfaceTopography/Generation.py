@@ -61,9 +61,9 @@ def _irfft2(karr, rarr, progress_callback=None):
 
 
 def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
-                          rms_slope=None, short_cutoff=None, long_cutoff=None):
+                          rms_slope=None, short_cutoff=None, long_cutoff=None, rolloff=1.0):
     r"""
-    Compute the amplitude prefactor used by `fourier_synthesis` for an ideal
+    Compute the amplitude prefactor used by `fourier_synthesis` for a
     self-affine topography with power-spectral density (PSD)
 
     .. math ::
@@ -77,26 +77,28 @@ def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
         C^\text{1D}(q) = C_0 q^{-1-2H}
 
     for one-dimensional line scans. Here :math:`H` is the Hurst exponent.
-    :math:`C_0` is determined such that the PSD between the long-wavelength
-    cutoff :math:`q_L` and the short-wavelength cutoff :math:`q_s` yields
-    the requested rms height or rms slope, using (Eqs. (1) and (4) in [1])
+    The PSD is zero above the short-wavelength cutoff :math:`q_s` and equal
+    to :math:`\text{rolloff}^2\, C(q_L)` below the long-wavelength cutoff
+    :math:`q_L`, as in `fourier_synthesis`.
+
+    :math:`C_0` is determined such that the expectation value of the mean
+    square height (or of the mean square slope) of the generated topography
+    equals the requested value. This is the sum over the wavevectors of the
+    grid,
 
     .. math ::
 
-        h^2_\text{rms} = \frac{1}{2 \pi} \int_{q_L}^{q_s} q C^\text{2D}(q) dq,
-        \quad
-        h^2_\text{rms} = \frac{1}{\pi} \int_{q_L}^{q_s} C^\text{1D}(q) dq,
+        \langle h^2 \rangle = \frac{1}{A} \sum_{\mathbf q} C(q),
+        \qquad
+        \langle |\nabla h|^2 \rangle = \frac{1}{A} \sum_{\mathbf q} q^2 C(q),
 
-    which give for the 2D case
-
-    .. math ::
-
-        C_0 = \frac{4 \pi H h_\text{rms}^2}{q_L^{-2H} - q_s^{-2H}}
-        \quad \text{or} \quad
-        C_0 = \frac{4 \pi (1 - H) {h'_\text{rms}}^2}{q_s^{2-2H} - q_L^{2-2H}}
-
-    and half of these values for the 1D case. The contribution of a
-    roll-off region below :math:`q_L` is not included.
+    with :math:`A = L_x L_y` (1D: :math:`L`), not the continuum integral
+    :math:`\frac{1}{2\pi}\int q\,C(q)\,dq` that it approaches for
+    :math:`q_L \gg 2\pi/L`. The two differ most where few wavevectors carry
+    most of the variance, i.e. for the rms height near the long-wavelength
+    cutoff. Coefficients that must be real (the Nyquist wavevectors) carry
+    on average half of the power of the others; this is included in the
+    sum. The slope is the spectral (not a finite-difference) slope.
 
     Parameters
     ----------
@@ -107,18 +109,21 @@ def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
     Hurst : float
         Hurst exponent :math:`H`.
     rms_height : float, optional
-        Root mean-squared height. Requires :math:`H > 0`. (Default: None)
+        Root mean-squared height. (Default: None)
     rms_slope : float, optional
-        Root mean-squared slope. Used if `rms_height` is None. Requires
-        :math:`H < 1`. (Default: None)
+        Root mean-squared slope. Used if `rms_height` is None.
+        (Default: None)
     short_cutoff : float, optional
         Short-wavelength cutoff :math:`\lambda_s = 2\pi/q_s`.
         (Default: None, i.e. :math:`q_s = \pi/\Delta x`, using the smallest
         Nyquist wavevector of the two directions)
     long_cutoff : float, optional
         Long-wavelength cutoff :math:`\lambda_L = 2\pi/q_L`.
-        (Default: None, i.e. :math:`q_L = 2\pi/L`, using the larger
-        fundamental wavevector of the two directions)
+        (Default: None, i.e. power law down to the smallest nonzero
+        wavevector)
+    rolloff : float, optional
+        Amplitude below the long-wavelength cutoff relative to the
+        amplitude at the cutoff, see `fourier_synthesis`. (Default: 1.0)
 
     Returns
     -------
@@ -132,47 +137,65 @@ def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
     [1]: Jacobs, Junge, Pastewka,
     Surf. Topogr.: Metrol. Prop. 5, 013001 (2017)
     """
-    nb_grid_pts = np.asarray(nb_grid_pts)
-    physical_sizes = np.asarray(physical_sizes)
+    nb_grid_pts = tuple(int(n) for n in np.atleast_1d(nb_grid_pts))
+    physical_sizes = tuple(float(s) for s in np.atleast_1d(physical_sizes))
+
+    if rms_height is not None:
+        target = rms_height
+        slope_order = 0
+    elif rms_slope is not None:
+        target = rms_slope
+        slope_order = 1
+    else:
+        raise ValueError('Neither rms height nor rms slope is defined!')
 
     if short_cutoff is not None:
         q_max = 2 * np.pi / short_cutoff
     else:
-        q_max = np.pi * np.min(nb_grid_pts / physical_sizes)
+        q_max = np.pi * np.min(np.asarray(nb_grid_pts) / np.asarray(physical_sizes))
+    q_min = None if long_cutoff is None else 2 * np.pi / long_cutoff
 
-    if long_cutoff is not None:
-        q_min = 2 * np.pi / long_cutoff
+    # Exponent of the PSD: C^2D ~ q^(-2-2H), C^1D ~ q^(-1-2H)
+    exponent = -len(nb_grid_pts) - 2 * Hurst
+
+    if len(nb_grid_pts) == 2:
+        nx, ny = nb_grid_pts
+        sx, sy = physical_sizes
     else:
-        q_min = 2 * np.pi * np.max(1 / physical_sizes)
+        nx, sx = 1, 1.0
+        ny, = nb_grid_pts
+        sy, = physical_sizes
+    kny = ny // 2 + 1
 
-    area = np.prod(physical_sizes)
+    # Each coefficient of the half-complex array (along y) stands for two
+    # wavevectors, +q and -q, except the q_y = 0 column and, for even ny, the
+    # Nyquist column. Coefficients that are their own complex conjugate are
+    # made real, which halves their expected power.
+    column_weight = np.full(kny, 2.0)
+    column_weight[0] = 1
+    if ny % 2 == 0:
+        column_weight[-1] = 1
+    self_conjugate_columns = [0, kny - 1] if ny % 2 == 0 else [0]
+    self_conjugate_rows = [0, nx // 2] if nx % 2 == 0 else [0]
 
-    if rms_height is not None:
-        if Hurst <= 0:
-            # The prefactor expression below has a 0/0 limit at Hurst = 0
-            # (the rms height integral diverges logarithmically); evaluating
-            # it would silently produce an all-NaN topography
-            raise ValueError(
-                'Scaling to a target rms height requires a positive Hurst exponent.')
-        # Assuming no rolloff region
-        fac = 2 * rms_height / np.sqrt(q_min ** (-2 * Hurst) -
-                                       q_max ** (-2 * Hurst)) * np.sqrt(
-            Hurst * np.pi)
-    elif rms_slope is not None:
-        if Hurst >= 1:
-            # Same 0/0 limit at Hurst = 1 for the rms slope integral
-            raise ValueError(
-                'Scaling to a target rms slope requires a Hurst exponent below unity.')
-        fac = 2 * rms_slope / np.sqrt(q_max ** (2 - 2 * Hurst) -
-                                      q_min ** (2 - 2 * Hurst)) * np.sqrt(
-            (1 - Hurst) * np.pi)
-    else:
-        raise ValueError('Neither rms height nor rms slope is defined!')
+    qy = 2 * np.pi * np.arange(kny) / sy
+    weighted_sum = 0.0
+    for x in range(nx):
+        qx = 2 * np.pi * min(x, nx - x) / sx
+        q_sq = qx ** 2 + qy ** 2
+        psd = np.zeros(kny)
+        inside = np.logical_and(q_sq > 0, q_sq <= q_max ** 2)
+        psd[inside] = q_sq[inside] ** (exponent / 2)
+        if q_min is not None:
+            below = np.logical_and(inside, q_sq < q_min ** 2)
+            psd[below] = rolloff ** 2 * q_min ** exponent
+        weight = column_weight.copy()
+        if x in self_conjugate_rows:
+            weight[self_conjugate_columns] /= 2
+        weighted_sum += np.sum(weight * psd * q_sq ** slope_order)
 
-    if len(nb_grid_pts) == 1:
-        fac /= np.sqrt(2)
-
-    return fac * np.prod(nb_grid_pts) / np.sqrt(area)
+    # <h^2> = fac^2 / (N_x N_y)^2 * weighted_sum for unit amplitudes
+    return target * nx * ny / np.sqrt(weighted_sum)
 
 
 def fourier_synthesis(nb_grid_pts, physical_sizes,
@@ -180,9 +203,9 @@ def fourier_synthesis(nb_grid_pts, physical_sizes,
                       rms_height=None, rms_slope=None, c0=None,
                       psd=None,
                       short_cutoff=None, long_cutoff=None, rolloff=1.0,
-                      amplitude_distribution=lambda n: np.random.normal(size=n),
+                      amplitude_distribution=None,
                       periodic=True, rfn=None, kfn=None,
-                      progress_callback=None, unit=None, info={}):
+                      progress_callback=None, unit=None, info={}, rng=None):
     r"""
     Create a randomly rough topography with prescribed power-spectral
     density (PSD) by Fourier filtering of random noise. The algorithm is
@@ -252,7 +275,7 @@ def fourier_synthesis(nb_grid_pts, physical_sizes,
         the cutoff. (Default: 1.0)
     amplitude_distribution : function, optional
         Function that returns `n` random amplitudes :math:`a_\mathbf{q}`.
-        (Default: standard normal distribution, `np.random.normal`)
+        (Default: None, i.e. standard normal distribution drawn from `rng`)
     periodic : bool, optional
         Value of the `is_periodic` flag of the returned topography. The
         heights are periodic in either case. (Default: True)
@@ -270,12 +293,24 @@ def fourier_synthesis(nb_grid_pts, physical_sizes,
         Length unit. (Default: None)
     info : dict, optional
         Initial info dictionary. (Default: {})
+    rng : int or np.random.Generator, optional
+        Seed or generator for the random phases and the default amplitudes.
+        (Default: None, i.e. numpy's global random state, `np.random`)
 
     Returns
     -------
     topography : Topography or UniformLineScan
         The topography.
     """
+    if rng is None:
+        # Global random state, such that np.random.seed controls the result
+        rng = np.random
+    else:
+        rng = np.random.default_rng(rng)
+    if amplitude_distribution is None:
+        def amplitude_distribution(n):
+            return rng.normal(size=n)
+
     if short_cutoff is not None:
         q_max = 2 * np.pi / short_cutoff
     else:
@@ -295,7 +330,7 @@ def fourier_synthesis(nb_grid_pts, physical_sizes,
     elif c0 is None:
         fac = self_affine_prefactor(nb_grid_pts, physical_sizes, hurst, rms_height=rms_height,
                                     rms_slope=rms_slope, short_cutoff=short_cutoff,
-                                    long_cutoff=long_cutoff)
+                                    long_cutoff=long_cutoff, rolloff=rolloff)
     else:
         # prefactor for the fourier heights
         fac = np.sqrt(c0) * np.prod(nb_grid_pts) / np.sqrt(np.prod(physical_sizes))
@@ -337,7 +372,7 @@ def fourier_synthesis(nb_grid_pts, physical_sizes,
         q_sq = qx ** 2 + qy ** 2
         if x == 0 and not psd:
             q_sq[0] = 1.
-        phase = np.exp(2 * np.pi * np.random.rand(kny) * 1j)
+        phase = np.exp(2 * np.pi * rng.random(kny) * 1j)
         ran = fac * phase * amplitude_distribution(kny)
         if psd is None:
             if len(nb_grid_pts) == 2:

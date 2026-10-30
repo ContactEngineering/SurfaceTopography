@@ -192,7 +192,7 @@ $$
 |-|-|-|
 | `scale_dependent_slope_from_profile(**kwargs)` | `autocorrelation_from_profile` (along $x$; also nonuniform) | $\lambda$ |
 | `scale_dependent_slope_from_area(**kwargs)` | `autocorrelation_from_area` (radial average) | $\lambda$ |
-| `scale_dependent_curvature_from_profile(**kwargs)` | `autocorrelation_from_profile` | stencil spacing $\lambda$ |
+| `scale_dependent_curvature_from_profile(**kwargs)` | `autocorrelation_from_profile` | total stencil length $2\lambda$ |
 | `scale_dependent_curvature_from_area(**kwargs)` | `autocorrelation_from_area` | total stencil length $2\lambda$ |
 
 Keyword arguments are passed on to the autocorrelation function. The
@@ -203,13 +203,12 @@ curvature functions are subject to the following restrictions:
   distance of the ACF.
 - The result is truncated at the first distance where
   $8A(\lambda)-2A(2\lambda) < 0$.
-- The profile and areal variants report the distance differently (see the
-  table above). Only the areal variant follows the `distance` convention of
-  `derivative`.
+- The curvature functions return the total stencil length $2\lambda$, which is
+  the `distance` convention of `derivative`.
 
 With `resampling_method=None` (the ACF on all grid distances), the results
 equal the statistics of the stretched stencils. The profile curvature at
-spacing $\lambda$ equals the rms of `derivative(2, distance=2λ)`. At
+distance $r$ equals the rms of `derivative(2, distance=r)`. At
 $\lambda = \Delta x$, the slope and curvature are `Rdq()` and `Rddq()`.
 Computing all scales through the ACF costs $O(N\log N)$ (one FFT), whereas
 explicit stencils cost $O(N)$ per scale.
@@ -283,18 +282,23 @@ $$
 | Function | Result |
 |-|-|
 | `variance_half_derivative_via_autocorrelation_from_area(**kwargs)` | uses the radially averaged ACF. Since $\int_0^\infty dr\,[1-J_0(qr)]/r^2 = q$, this equals $\int d^2q/(2\pi)^2\,q\,C^\text{2D}(\mathbf q) = \langle\lvert\nabla^{1/2}h\rvert^2\rangle$ |
-| `variance_half_derivative_via_autocorrelation_from_profile(**kwargs)` | uses the profile ACF along $x$. Since $\int_0^\infty dr\,[1-\cos(q_xr)]/r^2 = \pi\lvert q_x\rvert/2$, this equals $\langle\lvert\nabla^{1/2}h\rvert^2\rangle$ for isotropic surfaces. For a line scan, the result is $\pi/2$ times $\int dq/(2\pi)\,\lvert q\rvert C^\text{1D}(q)$ |
-| `variance_half_derivative_via_scale_dependent_slope(r, slope)` | the integral for a sampled slope |
-| `container.variance_half_derivative_from_autocorrelation(scale_dependent=False, **kwargs)` | the same for a [container](containers.md), from `container.autocorrelation`. With `scale_dependent=True`, it returns the cumulative integral up to each distance $r$ |
+| `variance_half_derivative_via_autocorrelation_from_profile(**kwargs)` | uses the profile ACF along $x$. Since $\int_0^\infty dr\,[1-\cos(q_xr)]/r^2 = \pi\lvert q_x\rvert/2$, this equals $\langle\lvert\nabla^{1/2}h\rvert^2\rangle$ for isotropic surfaces. For a line scan, the result is $\frac12\int_0^\infty dq\, q\, C^\text{1D}(q)$, the estimate for an isotropic surface |
+| `variance_half_derivative_via_scale_dependent_slope(r, slope, rms_height=None)` | the integral for a sampled slope |
+| `container.variance_half_derivative_from_autocorrelation(scale_dependent=False, **kwargs)` | the same for a [container](containers.md), from `container.autocorrelation` (also available as `container.variance_half_derivative_via_autocorrelation_from_profile`). With `scale_dependent=True`, it returns the cumulative integral up to each distance $r$, without the contribution beyond the largest distance |
 
 The integrals are discretized as follows:
 
 - Below the smallest sampled distance $r_0$, the slope is assumed constant,
   which contributes $r_0[h'_\text{rms}(r_0)]^2/2 = A(r_0)/r_0$.
-- The rest is integrated with the trapezoidal rule up to the largest sampled
-  distance. Because of this truncation, the estimate is lower than the
-  infinite integral.
-- NaN entries are dropped.
+- The integral between $r_0$ and the largest sampled distance $r_\text{max}$
+  is evaluated with the trapezoidal rule.
+- Beyond $r_\text{max}$, the heights are assumed to be uncorrelated,
+  $A(r) = \langle h^2\rangle$, which contributes $\langle
+  h^2\rangle/r_\text{max}$ (with `rms_height` for
+  `variance_half_derivative_via_scale_dependent_slope`; see
+  [spectral analysis](spectral.md#half-derivative-and-elastic-energy) for the
+  choice of $\langle h^2\rangle$).
+- Empty bins (masked) and NaN entries are dropped.
 
 ## Reliability cutoff
 

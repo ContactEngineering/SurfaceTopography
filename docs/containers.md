@@ -441,7 +441,7 @@ print(np.sqrt(container.integrate_psd_from_profile(lambda qx: qx**2, unit="µm")
 ```
 
 ```text
-0.0577387812545376
+0.05710934172300069
 ```
 
 **Integration of the averaged PSD.** `c1d_moment` and `ciso_moment` integrate
@@ -472,7 +472,7 @@ print(np.sqrt(container.ciso_moment(order=2, unit="µm")))
 ```
 
 ```text
-0.07338183285823531
+0.07246464478870794
 ```
 
 ### Isotropic PSD from the 1D PSD
@@ -489,23 +489,62 @@ of the 2D PSD,
 
 $$
 C^\text{1D}(q_x) = \frac{1}{2\pi}\int_{-\infty}^{\infty} dq_y\,
-C^\text{iso}\!\left(\sqrt{q_x^2+q_y^2}\right).
+C^\text{iso}\!\left(\sqrt{q_x^2+q_y^2}\right)
+= \frac{1}{\pi}\int_{q_x}^\infty dq\, \frac{q\, C^\text{iso}(q)}{\sqrt{q^2-q_x^2}}.
 $$
 
-For a self-affine PSD $C^\text{iso}(q) = C_0\,q^{-2-2H}$ this gives
+This Abel transform can be inverted exactly, but the inversion needs the
+derivative of $C^\text{1D}$ up to $q\to\infty$, which a measured PSD does not
+provide. For a self-affine PSD $C^\text{iso}(q) = C_0\,q^{-2-2H}$ the
+projection gives
 
 $$
 \frac{\pi}{q}\,C^\text{1D}(q) = \frac{\sqrt{\pi}\,\Gamma(H+\tfrac12)}{2\,\Gamma(H+1)}\, C^\text{iso}(q),
 $$
 
-so the relation is exact for $H=\tfrac12$ and otherwise underestimates
-$C^\text{iso}$ by a constant factor between $\pi/4 \approx 0.79$ ($H=1$) and
-$\pi/2 \approx 1.57$ ($H\to0$, i.e. an overestimate). Its assumptions are
-therefore an isotropic surface and a locally power-law PSD with Hurst
-exponent close to $\tfrac12$; the error is a constant factor and does not
-change the scaling of $C^\text{iso}$ with $q$. For anisotropic surfaces,
-$C^\text{1D}$ depends on the scan direction and the relation does not hold.
-<!-- TODO: rationale for using C^iso = (pi/q) C^1D rather than a Hurst-exponent-dependent prefactor? -->
+so the relation is exact only for $H=\tfrac12$. Otherwise it is off by a
+constant factor between $\pi/4 \approx 0.79$ ($H=1$) and
+$\pi/2 \approx 1.57$ ($H\to0$):
+
+| $H$ | 0.3 | 0.5 | 0.7 | 0.8 | 0.9 | 1.0 |
+|-|-|-|-|-|-|-|
+| $\frac{\pi}{q}C^\text{1D}/C^\text{iso}$ | 1.15 | 1.00 | 0.90 | 0.85 | 0.82 | 0.79 |
+
+With a finite self-affine region (short- and long-wavelength cutoffs or a
+roll-off), the ratio also varies with $q$ near the cutoffs. A prefactor that
+depends on $H$ would remove the error only for an ideal self-affine surface. A
+measured surface is not self-affine over its full bandwidth and has no
+well-defined Hurst exponent, so the $H$-free relation above is used and its
+error is accepted. For anisotropic surfaces, $C^\text{1D}$ depends on the scan
+direction and the relation does not hold.
+
+**Moments.** For the moments computed by `ciso_moment`, the error of the
+relation does not depend on $H$ or on the shape of the PSD. Inserting the
+projection above into $\frac{1}{2\pi}\int_0^\infty dq\, q^{\alpha+1}\,
+\frac{\pi}{q}C^\text{1D}(q)$ and exchanging the order of integration gives,
+for any isotropic surface that `ciso_moment(order=α)` returns
+
+$$
+\frac{1}{2}\int_0^\infty dq\, q^\alpha\, C^\text{1D}(q)
+= \kappa_\alpha\, m_\alpha^\text{iso},
+\qquad
+\kappa_\alpha = \int_0^1 dt\,\frac{t^\alpha}{\sqrt{1-t^2}}
+= \frac{\sqrt{\pi}\,\Gamma\!\left(\frac{\alpha+1}{2}\right)}{2\,\Gamma\!\left(\frac{\alpha}{2}+1\right)},
+$$
+
+where $m_\alpha^\text{iso}$ is the moment of the true isotropic PSD:
+
+| Order $\alpha$ | Quantity | $\kappa_\alpha$ |
+|-|-|-|
+| 0 | $h_\text{rms}^2$ | $\pi/2 \approx 1.571$ |
+| 1 | $\langle\lvert\nabla^{1/2}h\rvert^2\rangle$ | $1$ |
+| 2 | $h'^2_\text{rms}$ (full gradient) | $\pi/4 \approx 0.785$ |
+
+The pointwise errors of $C^\text{iso}$ cancel in the integral of order one, so
+the variance of the half derivative (and the elastic energy) obtained from
+line scans is exact for any isotropic surface. The moments of order zero and
+two are off by the constant factors $\kappa_0$ and $\kappa_2$. See
+[Half-derivative and elastic energy](spectral.md#half-derivative-and-elastic-energy).
 
 ## Custom analyses
 

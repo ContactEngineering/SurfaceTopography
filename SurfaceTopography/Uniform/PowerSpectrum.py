@@ -71,14 +71,14 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
         Only return data deemed reliable, i.e. wavevectors
         :math:`q < 2\pi/\lambda_c`, where :math:`\lambda_c` is the short
         reliability cutoff. (Default: True)
-    resampling_method : {None, 'bin-average', 'gaussian-process'}, optional
+    resampling_method : {None, 'bin-average'}, optional
         None returns the PSD on the wavevectors of the FFT, 'bin-average'
-        averages it within bins, 'gaussian-process' resamples it by
-        Gaussian process regression. (Default: 'bin-average')
-    collocation : {'log', 'quadratic', 'linear'}, optional
+        averages it within bins. (Default: 'bin-average')
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
         Resampling grid. 'log' yields collocation points equally spaced on
         a log scale, 'quadratic' yields bins equally spaced in :math:`q^2`
-        and 'linear' yields linear bins. (Default: 'log')
+        and 'linear' yields linear bins. An array specifies the bin edges
+        explicitly. (Default: 'log')
     nb_points : int, optional
         Number of bins for averaging. For 'log' collocation, the number of
         bins is determined from `nb_points_per_decade` if set to None;
@@ -112,7 +112,7 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
         nx, = self.nb_grid_pts
         sx, = self.physical_sizes
 
-    h = self.window(window).heights()
+    h = self.window(window=window, direction='x').heights()
 
     # Compute FFT and normalize
     fourier_topography = sx / nx * np.fft.fft(h, axis=0)
@@ -141,7 +141,7 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
             return q, C_all.mean(axis=1)
     else:
         short_cutoff = 2 * np.pi / self.short_reliability_cutoff(2 * sx / nx) if reliable else np.pi * nx / sx
-        if collocation == 'log':
+        if isinstance(collocation, str) and collocation == 'log':
             # Exclude zero distance because that does not work on a log-scale
             q = q[1:]
             C_all = C_all[1:]
@@ -192,11 +192,11 @@ def power_spectrum_from_area(self, window=None, reliable=True, collocation='log'
         nonperiodic topographies)
     reliable : bool, optional
         Only return data deemed reliable. (Default: True)
-    collocation : {'log', 'quadratic', 'linear'}, optional
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
         Resampling grid. 'log' yields collocation points equally spaced on
         a log scale, 'quadratic' yields bins equally spaced in :math:`q^2`
         (similar number of wavevectors per bin) and 'linear' yields linear
-        bins. (Default: 'log')
+        bins. An array specifies the bin edges explicitly. (Default: 'log')
     nb_points : int, optional
         Number of bins for averaging. For 'log' collocation, the number of
         bins is determined from `nb_points_per_decade` if set to None;
@@ -207,9 +207,8 @@ def power_spectrum_from_area(self, window=None, reliable=True, collocation='log'
         (Default: 10)
     return_map : bool, optional
         Return full 2D power spectrum map. (Default: False)
-    resampling_method : {'bin-average', 'gaussian-process'}, optional
-        'bin-average' for averaging within bins and 'gaussian-process' for
-        Gaussian process regression. (Default: 'bin-average')
+    resampling_method : {'bin-average'}, optional
+        'bin-average' for averaging within bins. (Default: 'bin-average')
 
     Returns
     -------
@@ -240,10 +239,11 @@ def power_spectrum_from_area(self, window=None, reliable=True, collocation='log'
     qmax = np.pi * min(nx / sx, ny / sy)
 
     if reliable:
-        # Update qmax
+        # The reliability cutoff can only lower qmax; a lateral resolution
+        # finer than the grid does not extend the spectrum beyond Nyquist
         short_cutoff = self.short_reliability_cutoff()
         if short_cutoff is not None:
-            qmax = 2 * np.pi / short_cutoff
+            qmax = min(qmax, 2 * np.pi / short_cutoff)
 
     h = self.window(window=window, direction='radial').heights()
 

@@ -412,34 +412,19 @@ For `'log'` collocation, $q = 0$ and $r = 0$ are excluded from the data.
 |-|-|-|
 | `None` | raw values on the FFT grid (not available for radial averages) | — |
 | `'bin-average'` (default) | arithmetic mean of all values within a bin; returned as `numpy.ma.MaskedArray`, empty bins are masked | $O(n\log B)$ for $n$ values and $B$ bins |
-| `'gaussian-process'` | Gaussian process regression evaluated at the bin centers | $O(n^3)$ time, $O(n^2)$ memory |
 
 For `'bin-average'`, the returned abscissa of each bin is the mean of the $q$
 (or $r$) values of the data in that bin, not the bin center; use
 `q.compressed()` and `C.compressed()` to drop empty bins. The arithmetic mean
 is the maximum-likelihood estimator of the expected PSD from noisy samples.
 
-The Gaussian process regression uses a squared exponential kernel
-$k(x_1,x_2) = \exp[-(x_1-x_2)^2/2]$ with noise variance $10^{-6}$. For `'log'`
-collocation it fits $\ln C$ as a function of $\ln q$ (all values must be
-positive, e.g. PSDs of topographies created with a short-wavelength cutoff
-contain zeros and fail); for other collocations it fits $C(q)$ with the same
-unit length scale in the units of $q$ and logs a warning. The regression
-smooths a function rather than averaging noisy samples, and the cost grows with
-the cube of the number of input values (all $N_x N_y/2$ values for the 1D PSD
-of a map), so it is suited for short line scans only.
-
 ```python
 q, C = topo.power_spectrum_from_profile(collocation='linear', nb_points=50)
 q, C = topo.power_spectrum_from_area(nb_points_per_decade=20)
-
-rng = np.random.default_rng(0)
-walk = UniformLineScan(np.cumsum(rng.normal(size=1024)), 1024.0, periodic=False)
-q, C = walk.power_spectrum_from_profile(resampling_method='gaussian-process')
 ```
 
-The underlying functions `resample`, `resample_radial`, `bin_average` and
-`gaussian_process_regression` are in `SurfaceTopography.Support.Regression`.
+The underlying functions `resample`, `resample_radial` and `bin_average` are
+in `SurfaceTopography.Support.Regression`.
 
 ### Reliability cutoff
 
@@ -521,9 +506,9 @@ print(np.sqrt(topo.integrate_psd_from_profile(lambda qx: qx ** 2)), topo.Rdq())
 
 ```
 True
-0.09608764018335536 0.09502575988252089
-14.734796100620015 13.9975199561429
-0.06677516476035944 0.0660249014536286
+0.07157361109307538 0.07078263935587487
+10.975631867211009 10.426450766162928
+0.04973938025862655 0.049180525300477014
 ```
 
 For a PSD that is only available on collocation points, e.g. a resampled PSD,
@@ -558,9 +543,103 @@ $$
 \frac{U}{A} = \frac{E^*}{4}\,\langle\lvert\nabla^{1/2}h\rvert^2\rangle .
 $$
 
-For line scans, the surface is assumed to be invariant perpendicular to the
-scan, which gives $\frac{1}{2\pi}\int dq\,\lvert q\rvert\,C^\text{1D}(q)$. The
-energy has the units of `contact_modulus` times length.
+The variance of the half derivative is defined by the spectral expression
+above, in analogy to the first and second derivatives
+($\langle\lvert\nabla h\rvert^2\rangle = m_2$,
+$\langle\lvert\nabla^2 h\rvert^2\rangle = m_4$). The energy has the units of
+`contact_modulus` times length.
+
+**Maps.** On a topography map, the same quantity follows from the radially
+averaged height-difference autocorrelation function $A(r)$ (see
+[Height-difference autocorrelation](#height-difference-autocorrelation)),
+
+$$
+\langle\lvert\nabla^{1/2}h\rvert^2\rangle = \int_0^\infty dr\,\frac{A(r)}{r^2},
+$$
+
+because $\int_0^\infty dr\,[1-J_0(qr)]/r^2 = q$. This identity holds for any
+surface; it does not require isotropy. It is computed by
+`variance_half_derivative_via_autocorrelation_from_area`.
+
+**Line scans.** A line scan does not contain the areal quantity, so any
+estimate from line scans needs an assumption about the surface perpendicular
+to the scan. SurfaceTopography assumes an isotropic surface, which gives
+
+$$
+\langle\lvert\nabla^{1/2}h\rvert^2\rangle
+= \frac{1}{2}\int_0^\infty dq\, q\, C^\text{1D}(q)
+$$
+
+for `variance_half_derivative` and `elastic_energy` of line scans,
+`variance_half_derivative_via_autocorrelation_from_profile` and
+`ciso_moment(order=1)` of containers. (A surface that is invariant
+perpendicular to the scan would give $2/\pi$ times this value.) The estimate
+is the half derivative of the map from which the line scans were taken. It can
+be written
+as the moment of order one of the isotropic PSD obtained with the relation
+$C^\text{iso}(q) = \frac{\pi}{q}C^\text{1D}(q)$ (see
+[Isotropic PSD from the 1D PSD](containers.md#isotropic-psd-from-the-1d-psd)).
+That relation holds pointwise only for a self-affine surface with Hurst
+exponent $H=\tfrac12$; it is used for all surfaces, because a measured surface
+is not self-affine and has no well-defined Hurst exponent. For the moment of
+order one, its error cancels: inserting the projection of an isotropic PSD,
+$C^\text{1D}(q_x) = \frac{1}{\pi}\int_{q_x}^\infty dq\,
+q\,C^\text{iso}(q)/\sqrt{q^2-q_x^2}$, and exchanging the order of integration
+gives
+
+$$
+\frac{1}{2}\int_0^\infty dq_x\, q_x\, C^\text{1D}(q_x)
+= \frac{1}{2\pi}\int_0^\infty dq\, q\, C^\text{iso}(q)
+\underbrace{\int_0^q dq_x\, \frac{q_x}{\sqrt{q^2-q_x^2}}}_{=\,q}
+= \frac{1}{2\pi}\int_0^\infty dq\, q^2\, C^\text{iso}(q),
+$$
+
+which is the areal $\langle\lvert\nabla^{1/2}h\rvert^2\rangle$ of any isotropic
+surface, independent of $H$ and of the shape of the PSD. For the moments of
+order zero and two, the same relation is off by the constant factors $\pi/2$
+and $\pi/4$.
+
+The profile autocorrelation function gives the isotropic estimate directly:
+with $\int_0^\infty dr\,[1-\cos(q_xr)]/r^2 = \frac{\pi}{2}\lvert q_x\rvert$,
+
+$$
+\int_0^\infty dr\,\frac{A(r)}{r^2}
+= \frac{1}{2}\int_0^\infty dq\, q\, C^\text{1D}(q).
+$$
+
+`variance_half_derivative_via_autocorrelation_from_profile` evaluates this
+integral. Unlike the PSD of a nonperiodic line scan, $A(r)$ needs no window.
+
+**Finite data.** The autocorrelation and spectral routes agree in the
+continuum limit. On a finite measurement, the autocorrelation route
+
+- assumes that the heights are uncorrelated beyond the largest distance
+  $r_\text{max}$, i.e. $A(r) = \langle h^2\rangle$ for $r > r_\text{max}$,
+  which adds $\langle h^2\rangle/r_\text{max}$ to the integral. $\langle
+  h^2\rangle$ is $R_q^2$ for profiles (relative to the mean of each profile),
+  $S_q^2$ for maps and, for containers, the mean $R_q^2$ of the topographies
+  that contribute at $r_\text{max}$;
+- assumes a constant slope below the smallest distance $r_0$, which adds
+  $A(r_0)/r_0$, while the spectral route ends at the Nyquist wavevector (or
+  the reliability cutoff).
+
+On periodic surfaces neither route needs a window, and both agree to within
+3.5% (2% if the PSD has a short-wavelength cutoff well above the pixel size);
+the remaining difference comes from the lattice scale. The tests of
+SurfaceTopography check this agreement. For nonperiodic data, the spectral
+route needs a window, which attenuates the longest wavelengths, while the
+autocorrelation route retains them. For $H > \tfrac12$, where these
+wavelengths carry much of the half derivative, the two routes then differ by
+up to tens of percent for an individual measurement.
+
+On a single realization, the profile estimate of a map also differs from its
+areal value, because the profiles weight each Fourier mode with $\lvert
+q_x\rvert$ instead of $\lvert\mathbf q\rvert$ and a few long-wavelength modes
+dominate. The two agree in expectation (to within the anisotropy of the lattice
+of wavevectors) and for many line scans in different directions.
+
+The autocorrelation functions raise `UndefinedDataError` for data with
+undefined (masked) points.
 
 ```python
 print(topo.variance_half_derivative())                 # mm
@@ -568,8 +647,8 @@ print(topo.elastic_energy(contact_modulus=1e3))        # with E* in MPa: N/mm
 ```
 
 ```
-7.483675491998579e-05
-0.018709188729996447
+4.1522715744081076e-05
+0.010380678936020269
 ```
 
 ## References

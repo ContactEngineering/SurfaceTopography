@@ -510,7 +510,7 @@ Nyquist frequency, the trigonometric interpolant with minimal oscillation
 ([S. G. Johnson, *Notes on FFT-based differentiation*](https://math.mit.edu/~stevenj/fft-deriv.pdf)).
 Cost is $O(M\log M)$ in the number $M$ of output points. Only 2D topographies
 are supported; the input is treated as periodic, so nonperiodic data shows
-ringing near the edges. The unit and info dictionary are not carried over.
+ringing near the edges. The unit and info dictionary are carried over.
 
 ```python
 fi = p.interpolate_fourier((1024, 1024))
@@ -575,7 +575,8 @@ throughout for nonuniform data). Exactly one of the following sets the grid:
 | `pixel_size` | $\lfloor L/\Delta x\rfloor + 1$ | given |
 
 The grid starts at the first data point $x_0$ (positions are reported starting
-at zero) and the result is nonperiodic with physical size $(M-1)\Delta x$.
+at zero) and the result is nonperiodic with physical size $M\Delta x$, i.e. its
+pixel size is $\Delta x$ like for any uniform line scan.
 `padding` appends that many points holding the last height. With
 `nb_interpolate`, the grid resolves the finest spacing of the data. Reentrant
 line scans raise `RuntimeError`. Cost: $O(M + N)$.
@@ -652,8 +653,9 @@ t.subtract(other, interpolate=False)
 
 `superpose` adds the heights of two uniform topographies with identical
 dimension, number of grid points and physical size; mismatching properties
-raise `ValueError`. The comparison is exact, so physical sizes that differ by
-rounding (e.g. after a unit round trip) are rejected.
+raise `ValueError`. Physical sizes are compared to a relative tolerance of
+$10^{-10}$, so sizes that differ only by rounding (e.g. after a unit
+conversion) are accepted.
 
 `add` and `subtract` (`subtract(b)` is `add(b.scale(-1))`) first convert
 `other` to the unit of `t` if both have units. For uniform data, `other` must

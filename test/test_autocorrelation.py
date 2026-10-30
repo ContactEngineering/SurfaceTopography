@@ -332,7 +332,6 @@ def test_resampling(nb_grid_pts, physical_sizes, plot=False):
                           amplitude_distribution=lambda n: 1.0)
     r1, A1 = t.autocorrelation_from_profile(resampling_method=None)
     r2, A2 = t.autocorrelation_from_profile(resampling_method='bin-average')
-    # r3, A3 = t.autocorrelation_from_profile(resampling_method='gaussian-process')
 
     assert len(r1) == len(A1)
     assert len(r2) == len(A2)
@@ -342,7 +341,6 @@ def test_resampling(nb_grid_pts, physical_sizes, plot=False):
         import matplotlib.pyplot as plt
         plt.loglog(r1, A1, 'x-', label='native')
         plt.loglog(r2, A2, 'o-', label='bin-average')
-        # plt.loglog(r3, A3, 's-', label='gaussian-process')
         plt.legend(loc='best')
         plt.show()
 

@@ -321,3 +321,56 @@ def test_prescribed_psd_1D():
     np.testing.assert_allclose(reference.power_spectrum_from_profile()[1],
                                from_function.power_spectrum_from_profile()[1],
                                atol=1e-5, rtol=1e-6)
+
+
+def _spectral_mean_square(topography, order):
+    # Mean square of the heights (order 0) or of the spectral gradient
+    # (order 1) of a periodic topography, from Parseval's theorem
+    h = topography.heights()
+    if topography.dim == 1:
+        q_sq = (2 * np.pi * np.fft.fftfreq(len(h), topography.physical_sizes[0] / len(h))) ** 2
+    else:
+        qx, qy = topography.fftfreq()
+        q_sq = qx ** 2 + qy ** 2
+    return np.sum(q_sq ** order * np.abs(np.fft.fftn(h)) ** 2) / h.size ** 2
+
+
+@pytest.mark.parametrize("nb_grid_pts,physical_sizes", [((64, 64), (1., 1.)), ((65, 48), (2., 1.)),
+                                                        ((256,), (3.,)), ((255,), (3.,))])
+@pytest.mark.parametrize("hurst", [0.3, 0.8])
+@pytest.mark.parametrize("cutoffs", [{}, {"short_cutoff": 0.1, "long_cutoff": 0.5},
+                                     {"long_cutoff": 0.5, "rolloff": 0}, {"long_cutoff": 0.5, "rolloff": 0.3}])
+@pytest.mark.parametrize("target,order", [("rms_height", 0), ("rms_slope", 1)])
+def test_fourier_synthesis_mean_square_with_unit_amplitudes(nb_grid_pts, physical_sizes, hurst, cutoffs, target,
+                                                            order):
+    # With unit amplitudes the generated power equals its expectation value
+    # (up to the random real part of the few Nyquist coefficients), so the
+    # requested rms height or slope must be reproduced exactly
+    value = 1.7
+    t = fourier_synthesis(nb_grid_pts, physical_sizes, hurst, **{target: value}, **cutoffs,
+                          amplitude_distribution=lambda n: np.ones(n), rng=11)
+    rel_tol = 1e-10 if "short_cutoff" in cutoffs else 5e-3
+    np.testing.assert_allclose(_spectral_mean_square(t, order), value ** 2, rtol=rel_tol)
+
+
+@pytest.mark.parametrize("nb_grid_pts,physical_sizes", [((32, 32), (1., 1.)), ((256,), (1.,))])
+def test_fourier_synthesis_expected_rms_height(nb_grid_pts, physical_sizes):
+    # The mean square height averaged over realizations equals the request;
+    # the statistical error of the mean of 400 realizations is a few percent
+    rng = np.random.default_rng(5)
+    mean_square = np.mean([_spectral_mean_square(fourier_synthesis(nb_grid_pts, physical_sizes, 0.8, rms_height=1.,
+                                                                   rng=rng), 0) for _ in range(400)])
+    np.testing.assert_allclose(mean_square, 1., rtol=0.1)
+
+
+def test_fourier_synthesis_rng():
+    t1 = fourier_synthesis((32, 16), (1., 1.), 0.8, rms_height=1., rng=3)
+    t2 = fourier_synthesis((32, 16), (1., 1.), 0.8, rms_height=1., rng=np.random.default_rng(3))
+    t3 = fourier_synthesis((32, 16), (1., 1.), 0.8, rms_height=1., rng=4)
+    np.testing.assert_array_equal(t1.heights(), t2.heights())
+    assert not np.allclose(t1.heights(), t3.heights())
+    np.random.seed(9)
+    t4 = fourier_synthesis((32, 16), (1., 1.), 0.8, rms_height=1.)
+    np.random.seed(9)
+    t5 = fourier_synthesis((32, 16), (1., 1.), 0.8, rms_height=1.)
+    np.testing.assert_array_equal(t4.heights(), t5.heights())

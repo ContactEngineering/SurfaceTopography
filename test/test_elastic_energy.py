@@ -27,6 +27,7 @@ import pytest
 from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography import Topography, UniformLineScan
+from SurfaceTopography.Generation import fourier_synthesis
 
 pytestmark = serial_only
 
@@ -48,8 +49,37 @@ def test_sinusoid(kx, ky):
 
 
 def test_line_scan():
+    # A line scan is taken as a profile of an isotropic surface, i.e.
+    # <|grad^(1/2) h|^2> = (1/2) int_0^inf dq q C^1D(q). For a sinusoidal
+    # profile, this is pi/2 times the value of a surface that is invariant
+    # perpendicular to the scan, q a^2 / 2.
     n, s, a, k = 128, 3.0, 0.2, 5
     q = 2 * np.pi * k / s
     t = UniformLineScan(a * np.sin(q * np.arange(n) * s / n), s, periodic=True)
-    np.testing.assert_allclose(t.variance_half_derivative(), q * a**2 / 2)
-    np.testing.assert_allclose(t.elastic_energy(1.0), q * a**2 / 8)
+    np.testing.assert_allclose(t.variance_half_derivative(), np.pi / 2 * q * a**2 / 2)
+    np.testing.assert_allclose(t.elastic_energy(1.0), np.pi / 2 * q * a**2 / 8)
+
+
+@pytest.mark.parametrize("hurst", [0.3, 0.5, 0.8])
+@pytest.mark.parametrize("long_cutoff,rtol", [(None, 0.08), (1 / 16, 1e-3)])
+def test_line_scan_is_isotropic_estimate_of_map(hurst, long_cutoff, rtol):
+    # For an isotropic surface, (1/2) int_0^inf dq q C^1D(q) of the profiles
+    # equals the areal <|grad^(1/2) h|^2> for any PSD. Unit amplitudes make
+    # the generated power equal to its expectation value, so the comparison
+    # is deterministic. The remaining difference is the anisotropy of the
+    # lattice of wavevectors, which is small if the PSD is resolved near its
+    # long-wavelength end (long cutoff).
+    t = fourier_synthesis((256, 256), (1., 1.), hurst, rms_height=1., short_cutoff=8 / 256, long_cutoff=long_cutoff,
+                          amplitude_distribution=lambda n: np.ones(n), rng=1)
+    areal = t.variance_half_derivative()
+    profiles = np.mean([UniformLineScan(t.heights()[:, j], 1., periodic=True).variance_half_derivative()
+                        for j in range(0, 256, 4)])
+    np.testing.assert_allclose(profiles, areal, rtol=rtol)
+
+
+def test_line_scan_spectral_and_autocorrelation_estimates_agree():
+    t = fourier_synthesis((512,), (1.,), 0.8, rms_height=1., short_cutoff=16 / 512, rng=3)
+    np.testing.assert_allclose(
+        t.variance_half_derivative(reliable=False),
+        t.variance_half_derivative_via_autocorrelation_from_profile(resampling_method=None, reliable=False),
+        rtol=0.03)

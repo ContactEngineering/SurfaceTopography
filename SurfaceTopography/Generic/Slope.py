@@ -33,6 +33,17 @@ import numpy as np
 from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
 
 
+def _slope_from_autocorrelation(r, A):
+    """
+    Slope :math:`[2A(r)]^{1/2}/r`, without distance zero (where the slope is
+    undefined). Masked (empty) bins stay masked.
+    """
+    nonzero = ~((np.ma.getdata(r) == 0) & ~np.ma.getmaskarray(r))
+    r = r[nonzero]
+    A = A[nonzero]
+    return r, np.sqrt(2 * A) / r
+
+
 def scale_dependent_slope_from_profile(topography, **kwargs):
     r"""
     Compute the one-dimensional scale-dependent slope.
@@ -64,7 +75,7 @@ def scale_dependent_slope_from_profile(topography, **kwargs):
         Slope. (Units: dimensionless)
     """  # noqa: E501
     r, A = topography.autocorrelation_from_profile(**kwargs)
-    return r[1:], np.sqrt(2 * A[1:]) / r[1:]
+    return _slope_from_autocorrelation(r, A)
 
 
 def scale_dependent_slope_from_area(topography, **kwargs):
@@ -98,7 +109,7 @@ def scale_dependent_slope_from_area(topography, **kwargs):
         Slope. (Units: dimensionless)
     """  # noqa: E501
     r, A = topography.autocorrelation_from_area(**kwargs)
-    return r[1:], np.sqrt(2 * A[1:]) / r[1:]
+    return _slope_from_autocorrelation(r, A)
 
 
 # Register analysis functions from this module. Note: the areal variant is

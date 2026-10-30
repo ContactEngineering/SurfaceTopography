@@ -23,18 +23,13 @@
 #
 
 """
-Functions for regression of noisy data and resampling/averaging from one grid
-to another: bin averages and Gaussian process regression.
+Resampling/averaging of noisy data from one grid to another by bin
+averages.
 """
 
-import logging
-
 import numpy as np
-from scipy.linalg import cho_factor, cho_solve
 
 from ..Exceptions import NoReliableDataError
-
-_log = logging.getLogger(__name__)
 
 
 def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_decade=10, dectol=0.01):
@@ -43,11 +38,13 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
 
     Parameters
     ----------
-    collocation : {'log', 'quadratic', 'linear'}
+    collocation : {'log', 'quadratic', 'linear', array_like}
         Resampling grid. Specifying 'log' yields collocation points
         equally spaced on a log scale, 'quadratic' yields bin edges
         equally spaced in the square of the value (similar number of data
         points per bin on a 2D radial grid) and 'linear' yields linear bins.
+        An array specifies the bin edges explicitly; `min_value`,
+        `max_value`, `nb_points` and `nb_points_per_decade` are then ignored.
     min_value : float
         Minimum value. For log-spaced collocation points, bin edges extend
         `dectol` decades beyond `min_value` and `max_value`.
@@ -75,7 +72,14 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
         respective bin. This array contains one more data point than
         the `collocation_points` array.
     """
-    if collocation == 'log':
+    if not isinstance(collocation, str):
+        # Explicit bin edges
+        bin_edges = np.asarray(collocation, dtype=float)
+        if bin_edges.ndim != 1 or len(bin_edges) < 2 or np.any(np.diff(bin_edges) <= 0):
+            raise ValueError('Bin edges must be a one-dimensional, strictly increasing array with at least two '
+                             'entries.')
+        collocation_points = (bin_edges[1:] + bin_edges[:-1]) / 2
+    elif collocation == 'log':
         # Power law -> equally spaced on a log-log plot
         if nb_points is None:
             # The size of the first bin should be equal to min_radius,
@@ -99,93 +103,8 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
         bin_edges = np.linspace(min_value, max_value, nb_points + 1)
         collocation_points = (bin_edges[1:] + bin_edges[:-1]) / 2
     else:
-        bin_edges = collocation
-        collocation_points = (bin_edges[1:] + bin_edges[:-1]) / 2
+        raise ValueError(f"Unknown collocation '{collocation}'.")
     return collocation_points, bin_edges
-
-
-def gaussian_kernel(x1, x2, length_scale=1, signal_variance=1):
-    r"""
-    Gaussian (squared exponential) kernel for Gaussian process regression,
-    :math:`k(x_1, x_2) = \sigma^2 \exp[-(x_1 - x_2)^2/(2\ell^2)]`.
-
-    Parameters
-    ----------
-    x1 : array_like
-        First set of input points.
-    x2 : array_like
-        Second set of input points.
-    length_scale : float, optional
-        Characteristic length scale :math:`\ell` of the kernel. (Default: 1)
-    signal_variance : float, optional
-        Signal variance (amplitude) :math:`\sigma^2`. (Default: 1)
-
-    Returns
-    -------
-    K : array_like
-        Covariance matrix.
-    """
-    return signal_variance * np.exp(-(x1 - x2) ** 2 / (2 * length_scale ** 2))
-
-
-def gaussian_log_kernel(x1, x2, length_scale=1, signal_variance=1):
-    r"""
-    Gaussian kernel operating in log-space, suitable for power-law data,
-    :math:`k(x_1, x_2) = \sigma^2
-    \exp[-(\log_{10} x_1 - \log_{10} x_2)^2/(2\ell^2)]`.
-
-    Parameters
-    ----------
-    x1 : array_like
-        First set of input points.
-    x2 : array_like
-        Second set of input points.
-    length_scale : float, optional
-        Characteristic length scale :math:`\ell` of the kernel in decades.
-        (Default: 1)
-    signal_variance : float, optional
-        Signal variance (amplitude) :math:`\sigma^2`. (Default: 1)
-
-    Returns
-    -------
-    K : array_like
-        Covariance matrix.
-    """
-    return signal_variance * np.exp(-(np.log10(x1) - np.log10(x2)) ** 2 / (2 * length_scale ** 2))
-
-
-def suggest_kernel_for_grid(collocation, nb_collocation_points, min_value, max_value):
-    """
-    Suggest a kernel function for Gaussian process regression with test
-    locations on a specific grid. The length scale (smoothening scale)
-    of the kernel is set to the characteristic spacing between the sampling
-    output points.
-
-    Parameters
-    ----------
-    collocation : {'log', 'quadratic', 'linear'}
-        Resampling grid. Specifying 'log' yields collocation points
-        equally spaced on a log scale, 'quadratic' yields bin edges
-        equally spaced in the square of the value (similar number of data
-        points per bin on a 2D radial grid) and 'linear' yields linear bins.
-    nb_collocation_points : int
-        Number of collocation points.
-    min_value : float
-        Minimum value.
-    max_value : float
-        Maximum value.
-
-    Returns
-    -------
-    kernel : func
-        Kernel function.
-    """
-    if collocation == 'log':
-        length_scale = (np.log10(max_value) - np.log10(min_value)) / nb_collocation_points
-        return lambda x1, x2: gaussian_log_kernel(x1, x2, length_scale=length_scale)
-    else:
-        length_scale = (max_value - min_value) / nb_collocation_points
-        return lambda x1, x2: gaussian_kernel(x1, x2, length_scale=length_scale)
 
 
 def bin_average(collocation_points, bin_edges, x, values):
@@ -248,71 +167,6 @@ def bin_average(collocation_points, bin_edges, x, values):
     return resampled_collocation_points, resampled_values, resampled_variance
 
 
-def gaussian_process_regression(output_x, x, values, kernel=gaussian_kernel, noise_variance=1e-6):
-    r"""
-    Gaussian process regression for resampling a simple function.
-
-    With the observation covariance matrix
-    :math:`K_{ij} = k(x_i, x_j) + \sigma_n^2\delta_{ij}` and the
-    covariance :math:`K_{*i} = k(x^*, x_i)` between test and observation
-    points, the predictive mean is :math:`K_* K^{-1} \mathbf y` and the
-    predictive variance :math:`k(x^*, x^*) - K_* K^{-1} K_*^T` (diagonal
-    only). :math:`K` is Cholesky-factorized, which costs :math:`O(n^3)`
-    operations and :math:`O(n^2)` memory for :math:`n` observations.
-
-    Parameters
-    ----------
-    output_x : array_like
-        Collocation points for resampled values.
-    x : array_like
-        Collocation points for `values` array.
-    values : array_like
-        Function values/variates.
-    kernel : func, optional
-        Kernel function/covariance model.
-        (Default: gaussian_kernel)
-    noise_variance : float, optional
-        Noise variance :math:`\sigma_n^2`.
-        (Default: 1e-6)
-
-    Returns
-    -------
-    resampled_values : np.ndarray
-        Predictive mean at `output_x`.
-    resampled_variance : np.ndarray
-        Predictive variance at `output_x`.
-    """
-    # Covariance between observations
-    obs_cov = kernel(x.reshape(-1, 1), x.reshape(1, -1))
-
-    # Add noise to observation covariance matrix
-    obs_cov += noise_variance * np.identity(len(x))
-
-    # The observation covariance matrix is symmetric positive definite;
-    # factorize it once and reuse the factorization for both the predictive
-    # mean and the predictive variance below
-    obs_cov_factor = cho_factor(obs_cov)
-
-    # Compute kernel coefficients
-    coeff = cho_solve(obs_cov_factor, values)
-
-    # Covariance between observation and test outputs
-    obs_test_cov = kernel(x.reshape(-1, 1), output_x.reshape(1, -1))
-
-    # Compute predictive mean
-    pred_mean = coeff.dot(obs_test_cov)
-
-    # Compute predictive variance. Only the diagonal of the predictive
-    # covariance is returned; computing the full matrix would additionally
-    # cost O(nb_output_points^2) memory. The kernels are elementwise
-    # functions, so kernel(output_x, output_x) is that diagonal.
-    pred_var = kernel(output_x, output_x) - \
-        np.sum(obs_test_cov * cho_solve(obs_cov_factor, obs_test_cov), axis=0)
-
-    # Return mean and variance
-    return pred_mean, pred_var
-
-
 def resample(x, values, collocation='log', nb_points=None, min_value=None, max_value=None, nb_points_per_decade=10,
              method='bin-average'):
     r"""
@@ -324,11 +178,12 @@ def resample(x, values, collocation='log', nb_points=None, min_value=None, max_v
         Evaluation points.
     values : array_like
         Function values.
-    collocation : {'log', 'quadratic', 'linear'}, optional
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
         Resampling grid. Specifying 'log' yields collocation points
         equally spaced on a log scale, 'quadratic' yields bin edges
         equally spaced in the square of the value (similar number of data
         points per bin on a 2D radial grid) and 'linear' yields linear bins.
+        An array specifies the bin edges explicitly.
         (Default: 'log')
     nb_points : int, optional
         Number of bins for averaging, see `make_grid`. For 'log'
@@ -345,29 +200,21 @@ def resample(x, values, collocation='log', nb_points=None, min_value=None, max_v
         Number of points per decade for log-spaced collocation points.
         (Default: 10)
     method : str, optional
-        Method can be 'bin-average' for simple bin averaging and
-        'gaussian-process' for Gaussian process regression. For 'log'
-        collocation, the Gaussian process regression fits
-        :math:`\ln y` as a function of :math:`\ln x` (all values must be
-        positive) with a squared exponential kernel of unit length scale
-        and noise variance :math:`10^{-6}`; for other collocations, it fits
-        :math:`y(x)` with the same kernel in the units of :math:`x`.
-        (Default: 'bin-average')
+        Resampling method; only 'bin-average', the average of the data
+        within each bin, is supported. (Default: 'bin-average')
 
     Returns
     -------
-    collocation_points : np.ndarray or np.ma.MaskedArray
-        Points where the data has been collected. For 'bin-average', this
-        is the mean of the data points in each bin; bins without data are
-        masked.
+    collocation_points : np.ma.MaskedArray
+        Points where the data has been collected, the mean of the data
+        points in each bin. Bins without data are masked.
     bin_edges : np.ndarray
         Bin edges.
-    resampled_values : np.ndarray or np.ma.MaskedArray
-        Resampled values. Returns masked array for 'bin-average' method with
-        bins without data masked.
-    resampled_variance : np.ndarray or np.ma.MaskedArray
-        Variance of resampled data. Returns masked array for 'bin-average'
-        method with bins without data masked.
+    resampled_values : np.ma.MaskedArray
+        Resampled values. Bins without data are masked.
+    resampled_variance : np.ma.MaskedArray
+        Variance of the data within each bin. Bins without data are
+        masked.
     """
     # pylint: disable=invalid-name
     if max_value is None:
@@ -383,28 +230,6 @@ def resample(x, values, collocation='log', nb_points=None, min_value=None, max_v
 
     if method == 'bin-average':
         collocation_points, resampled_values, resampled_variance = bin_average(collocation_points, bin_edges, x, values)
-    elif method == 'gaussian-process':
-        if collocation == 'log':
-            # For log-spaced sampling points we fit in log-space... because
-            # this is then most likely a power-law. Note that this is pure
-            # function fitting - if we are collecting noisy data to compute
-            # the ACF or PSD we should actually be averaging in linear space.
-            # (This is because the arithmetic mean is the max likelihood
-            # estimator for the underlying distribution of the data. The
-            # difference can be clearly seen in numerical experiments.)
-            resampled_values, resampled_variance = \
-                gaussian_process_regression(np.log(collocation_points), np.log(x), np.log(values))
-            resampled_values = np.exp(resampled_values)
-        else:
-            _log.warning('Gaussian process regression of log-spaced data should only be used for fitting functions, '
-                         'not for inference from noisy data.')
-            resampled_values, resampled_variance = \
-                gaussian_process_regression(collocation_points, x, values)
-    # FIXME: The variance is bogus when log-sampling and we should really use a different kernel function in that case.
-    #        resampled_values, resampled_variance = \
-    #            gaussian_process_regression(collocation_points, x, values,
-    #                                        kernel=suggest_kernel_for_grid(collocation, len(collocation_points),
-    #                                                                       min_value, max_value))
     else:
         raise ValueError(f"Unknown resampling method '{method}'.")
 
@@ -427,11 +252,12 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
     physical_sizes : (float, float), optional
         Physical size of the 2D grid. (Default: Size is equal to number of
         grid points.)
-    collocation : {'log', 'quadratic', 'linear'}, optional
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
         Resampling grid. Specifying 'log' yields collocation points
         equally spaced on a log scale, 'quadratic' yields bin edges
         equally spaced in the square of the value (similar number of data
         points per bin on a 2D radial grid) and 'linear' yields linear bins.
+        An array specifies the bin edges explicitly.
         (Default: 'log')
     nb_points : int, optional
         Number of bins for averaging, see `make_grid`. For 'log'
@@ -455,23 +281,21 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
         origin at index (0, 0). Radial average from 0 to pi/2.
         (Default: True)
     method : str, optional
-        Method can be 'bin-average' for simple bin averaging and
-        'gaussian-process' for Gaussian process regression.
-        (Default: 'bin-average')
+        Resampling method; only 'bin-average', the average of the data
+        within each bin, is supported. (Default: 'bin-average')
 
     Returns
     -------
-    collocation_points : np.ndarray or np.ma.MaskedArray
-        Points where the data has been collected. Returns masked array for
-        'bin-average' method with bins without data masked.
+    collocation_points : np.ma.MaskedArray
+        Points where the data has been collected, the mean of the data
+        points in each bin. Bins without data are masked.
     bin_edges : np.ndarray
         Bin edges.
-    resampled_values : np.ndarray or np.ma.MaskedArray
-        Resampled values. Returns masked array for 'bin-average' method with
-        bins without data masked.
-    resampled_variance : np.ndarray or np.ma.MaskedArray
-        Variance of resampled data. Returns masked array for 'bin-average'
-        method with bins without data masked.
+    resampled_values : np.ma.MaskedArray
+        Resampled values. Bins without data are masked.
+    resampled_variance : np.ma.MaskedArray
+        Variance of the data within each bin. Bins without data are
+        masked.
     """
     # pylint: disable=invalid-name
     nx, ny = data.shape

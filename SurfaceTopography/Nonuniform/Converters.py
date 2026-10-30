@@ -42,7 +42,8 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
     :math:`i \Delta x`), :math:`i = 0, \dots, M-1`, where :math:`x_0` is
     the first position of the nonuniform line scan; heights are linearly
     interpolated between the data points. The resulting line scan is
-    nonperiodic and its physical size is :math:`(M-1) \Delta x`.
+    nonperiodic and its physical size is :math:`M \Delta x`, as for any
+    uniform line scan (pixel size :math:`L/M`).
     """
 
     def __init__(self, topography, nb_points=None, padding=0, nb_interpolate=None, pixel_size=None, info={}):
@@ -137,7 +138,7 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
 
     @property
     def physical_sizes(self):
-        return (self._nb_points + self.padding - 1) * self._pixel_size,
+        return (self._nb_points + self.padding) * self._pixel_size,
 
     @property
     def is_periodic(self):

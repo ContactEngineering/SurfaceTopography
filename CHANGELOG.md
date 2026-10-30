@@ -16,6 +16,43 @@ Style for this changelog (keep to it so entries stay uniform):
 Change log for SurfaceTopography
 ================================
 
+v1.28.0 (not yet released)
+--------------------------
+
+- BUG: Profile PSD of nonperiodic maps windowed the profiles radially instead of
+  along x; low-wavevector values were off by up to a factor of six
+- BUG: Subtracting the mean or median of a periodic topography kept it periodic only for
+  mode "center"; spectra of mean- and median-detrended topographies were windowed
+- BUG: The rms height of the self-affine PSD model omitted a factor 1/H, e.g. 31% too
+  large for H=0.3; cutoff overrides can only narrow the model's bandwidth, as for its derivatives
+- BUG: Synthetic topographies with a requested rms height were 10-45% too rough on average;
+  the normalization now sums over the wavevectors of the grid, including the roll-off region
+- ENH: Synthetic topographies accept a seed or random number generator
+- API: The scale-dependent curvature of profiles reports the total stencil length as
+  distance, like the areal curvature and derivatives; distances doubled
+- BUG: Fourier filters (short and long cutoff) failed or lost a grid point for odd numbers
+  of grid points along y
+- BUG: Nonuniform line scans resampled on a uniform grid reported a physical size one pixel
+  too short, which distorted their spectra and autocorrelation functions
+- BUG: The areal PSD of topographies with a lateral resolution finer than the pixel size
+  extended beyond the Nyquist wavevector into the corners of the Fourier grid
+- API: Gaussian-process resampling of spectra and autocorrelation functions was removed; it
+  was biased by about a factor of two for noisy spectra. Bin averaging remains
+- BUG: Explicit bin edges (arrays or lists) for spectra and autocorrelation functions failed
+  with an error about the truth value of an array
+- BUG: Half-derivative variance from autocorrelation functions counted empty bins as zero,
+  e.g. 40% too small at 50 points per decade
+- BUG: The profile half-derivative variance of containers failed with an attribute error
+- BUG: Binned scale-dependent slopes dropped the smallest distance; the half-derivative
+  variance computed from them was up to 9% too small
+- BUG: Half-derivative variance from autocorrelation functions ignored distances beyond the
+  scan and was up to 21% too small; heights are now taken as uncorrelated there
+- BUG: Half-derivative variance and elastic energy of line scans assume an isotropic
+  surface, like the estimate from the autocorrelation function; values increase by pi/2
+- BUG: Adding topographies in different units failed because converted physical sizes
+  differed by rounding; unit conversion factors are exact powers of ten
+- BUG: Fourier interpolation of topographies dropped the unit and the metadata
+
 v1.27.0 (28Oct26)
 -----------------
 

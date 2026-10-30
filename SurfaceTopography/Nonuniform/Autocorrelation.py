@@ -143,15 +143,15 @@ def height_difference_autocorrelation(self, reliable=True, algorithm='fft', dist
         of the distances. If set to None, the full ACF is returned. This
         cutoff is applied in addition to the reliability cutoff.
         (Default: np.mean)
-    resampling_method : {None, 'bin-average', 'gaussian-process'}, optional
+    resampling_method : {None, 'bin-average'}, optional
         None returns the ACF on the distances of the interpolation grid (or
-        the requested distances), 'bin-average' averages it within bins,
-        'gaussian-process' resamples it by Gaussian process regression.
+        the requested distances), 'bin-average' averages it within bins.
         The 'brute-force' algorithm requires None. (Default: 'bin-average')
-    collocation : {'log', 'quadratic', 'linear'}, optional
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
         Resampling grid. 'log' yields collocation points equally spaced on
         a log scale, 'quadratic' yields bins equally spaced in :math:`r^2`
-        and 'linear' yields linear bins. (Default: 'log')
+        and 'linear' yields linear bins. An array specifies the bin edges
+        explicitly. (Default: 'log')
     nb_points : int, optional
         Number of bins for averaging. For 'log' collocation, the number of
         bins is determined from `nb_points_per_decade` if set to None;

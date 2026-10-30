@@ -213,3 +213,29 @@ def test_window_topography():
     np.testing.assert_almost_equal(t.heights()[0, 0], 0.0)
     np.testing.assert_almost_equal(t.heights()[nx//2, 0], 0.0)
     np.testing.assert_almost_equal((t.heights()**2).sum() / (nx*ny), 1.0)
+
+
+@pytest.mark.parametrize("nb_grid_pts", [(32, 32), (33, 32), (32, 33), (33, 31), (32,), (33,)])
+@pytest.mark.parametrize("isotropic", [True, False])
+def test_fourier_filter_against_explicit_fft(nb_grid_pts, isotropic):
+    # Filtering keeps the grid and equals multiplication of the full FFT
+    # with the transfer function, for even and odd numbers of grid points
+    physical_sizes = (2.0, 1.5)[:len(nb_grid_pts)]
+    t = fourier_synthesis(nb_grid_pts, physical_sizes, 0.8, rms_height=1, rng=1)
+    q_c = 2 * np.pi / 0.3
+    if len(nb_grid_pts) == 1 or isotropic:
+        def filter_function(*q):
+            return np.sqrt(sum(qi ** 2 for qi in q)) < q_c
+    else:
+        def filter_function(qx, qy):
+            return np.logical_and(np.abs(qx) < q_c, np.abs(qy) < q_c)
+    filtered = t.filter(filter_function=filter_function, isotropic=isotropic)
+    assert filtered.nb_grid_pts == t.nb_grid_pts
+    assert filtered.heights().shape == t.heights().shape
+    q = np.meshgrid(*[2 * np.pi * np.fft.fftfreq(n, s / n) for n, s in zip(nb_grid_pts, physical_sizes)],
+                    indexing='ij')
+    reference = np.fft.ifftn(np.fft.fftn(t.heights()) * filter_function(*q)).real
+    np.testing.assert_allclose(filtered.heights(), reference, atol=1e-12)
+    # Identity filter reproduces the heights
+    identity = t.filter(filter_function=(lambda *q: np.ones_like(q[0])), isotropic=isotropic)
+    np.testing.assert_allclose(identity.heights(), t.heights(), atol=1e-12)
