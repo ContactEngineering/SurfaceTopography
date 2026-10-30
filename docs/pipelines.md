@@ -575,7 +575,8 @@ throughout for nonuniform data). Exactly one of the following sets the grid:
 | `pixel_size` | $\lfloor L/\Delta x\rfloor + 1$ | given |
 
 The grid starts at the first data point $x_0$ (positions are reported starting
-at zero) and the result is nonperiodic with physical size $(M-1)\Delta x$.
+at zero) and the result is nonperiodic with physical size $M\Delta x$, i.e. its
+pixel size is $\Delta x$ like for any uniform line scan.
 `padding` appends that many points holding the last height. With
 `nb_interpolate`, the grid resolves the finest spacing of the data. Reentrant
 line scans raise `RuntimeError`. Cost: $O(M + N)$.

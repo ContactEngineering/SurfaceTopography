@@ -32,6 +32,8 @@ v1.28.0 (not yet released)
   distance, like the areal curvature and derivatives; distances doubled
 - BUG: Fourier filters (short and long cutoff) failed or lost a grid point for odd numbers
   of grid points along y
+- BUG: Nonuniform line scans resampled on a uniform grid reported a physical size one pixel
+  too short, which distorted their spectra and autocorrelation functions
 
 v1.27.0 (28Oct26)
 -----------------
