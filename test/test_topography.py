@@ -84,7 +84,9 @@ class NumpyTxtSurfaceTest(unittest.TestCase):
         with tmp_dir() as dir:
             fname = os.path.join(dir, "surface")
             S1.to_matrix(fname)
-            S2 = read_matrix(fname)
+            # The 2x2 map is too small for the format detection of the text
+            # reader; read_matrix reads rows along x, i.e. the transpose
+            S2 = Topography(read_matrix(fname).heights().T, h.shape)
             self.assertTrue(np.allclose(S2.heights(), S1.heights()))
 
         S3 = make_sphere(R, (res, res), (length, length), (x_c, y_c))

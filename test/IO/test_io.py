@@ -51,7 +51,6 @@ from SurfaceTopography.Exceptions import (
 from SurfaceTopography.IO import detect_format, readers
 from SurfaceTopography.IO.common import is_binary_stream
 from SurfaceTopography.IO.Reader import ChannelInfo
-from SurfaceTopography.IO.Text import read_matrix
 from SurfaceTopography.IO.XYZ import XYZReader
 from SurfaceTopography.Support.JSON import ExtendedJSONEncoder
 from SurfaceTopography.UniformLineScanAndTopography import Topography
@@ -832,8 +831,27 @@ def test_to_matrix():
     with tempfile.TemporaryDirectory() as d:
         t.to_matrix(f"{d}/topo.txt")
         t.detrend("center").to_matrix(f"{d}/topo.txt")
-        t2 = read_matrix(f"{d}/topo.txt")
+        t2 = read_topography(f"{d}/topo.txt")
         np.testing.assert_allclose(t.detrend("center").heights(), t2.heights())
+
+
+@pytest.mark.parametrize("unit", [None, "µm"])
+def test_to_matrix_round_trip(unit):
+    # The text reader reproduces heights, sizes, unit and undefined points
+    from SurfaceTopography import UniformLineScan
+    heights = np.ma.masked_array(np.arange(20.).reshape(5, 4) ** 1.5, mask=np.arange(20).reshape(5, 4) == 7)
+    for t in [Topography(heights, (2.5, 3.), unit=unit), UniformLineScan(np.arange(7.) ** 2, 3.5, unit=unit)]:
+        with tempfile.TemporaryDirectory() as d:
+            t.to_matrix(f"{d}/topo.txt")
+            reader = open_topography(f"{d}/topo.txt")
+            assert reader.format() == "asc"
+            t2 = reader.topography()
+            assert t2.nb_grid_pts == t.nb_grid_pts
+            np.testing.assert_allclose(t2.physical_sizes, t.physical_sizes)
+            assert t2.unit == unit
+            np.testing.assert_array_equal(np.ma.getmaskarray(t2.heights()), np.ma.getmaskarray(t.heights()))
+            np.testing.assert_allclose(np.ma.asarray(t2.heights()).compressed(),
+                                       np.ma.asarray(t.heights()).compressed())
 
 
 @pytest.mark.parametrize(

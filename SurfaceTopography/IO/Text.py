@@ -44,10 +44,13 @@ from .Reader import ChannelInfo
 def read_matrix(
     fobj, physical_sizes=None, unit=None, height_scale_factor=None, periodic=False
 ):
-    """
+    r"""
     Reads a surface profile from a text file and presents it in a
     SurfaceTopography-conformant manner. No additional parsing of
-    meta-information is carried out.
+    meta-information is carried out. Row :math:`i` of the file contains
+    :math:`h_{i0}, h_{i1}, \dots`, i.e. rows run along the first axis
+    :math:`x`. This is the transpose of the layout of the plain text
+    reader (`asc`) and of files written by `to_matrix`.
 
     Parameters
     ----------
@@ -686,9 +689,12 @@ When writing your own ASCII files, we recommend to prepend the header with a
 
 def write_matrix(self, fname):
     """
-    Save the heights of the topography as a text matrix using `np.savetxt`.
-    The file contains only the heights; physical sizes, unit and other
-    metadata are not written.
+    Save the heights of the topography as a text matrix using `np.savetxt`,
+    in the layout read by the text reader: each row contains the heights
+    along x at one y-position (line scans: one height per row). A header
+    with the physical sizes and the unit (`# Width`, `# Height`,
+    `# Value units`) is written; undefined data is written as NaN. Other
+    metadata is not written.
 
     Parameters
     ----------
@@ -697,7 +703,14 @@ def write_matrix(self, fname):
     fname : str or file-like object
         File name or stream to write to.
     """
-    np.savetxt(fname, self.heights())
+    unit = "" if self.unit is None else f" {self.unit}"
+    header = [f"Width: {self.physical_sizes[0]!r}{unit}"]
+    if self.dim == 2:
+        header += [f"Height: {self.physical_sizes[1]!r}{unit}"]
+    if self.unit is not None:
+        header += [f"Value units: {self.unit}"]
+    heights = np.ma.filled(np.ma.asarray(self.heights(), dtype=float), np.nan)
+    np.savetxt(fname, heights.T if self.dim == 2 else heights, header="\n".join(header))
 
 
 # Register analysis functions from this module

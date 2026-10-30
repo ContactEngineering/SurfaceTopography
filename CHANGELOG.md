@@ -59,6 +59,8 @@ v1.28.0 (not yet released)
   periodicity None is interpreted as nonperiodic
 - BUG: Phase, deflection, friction and voltage channels of IBW and MI files were reported as
   height channels; the kind of data is inferred from its unit and the channel name
+- BUG: Text matrices written by topographies were transposed when read back and contained no
+  sizes or unit; they now carry a header with physical sizes and unit
 
 v1.27.0 (28Oct26)
 -----------------
