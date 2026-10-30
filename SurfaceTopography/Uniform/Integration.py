@@ -230,7 +230,9 @@ def variance_half_derivative(self, window=None, reliable=True):
     computed from the full power spectral density, see
     :func:`integrate_psd`. For line scans, the surface is assumed to be
     invariant perpendicular to the scan, which gives
-    :math:`\frac{1}{2\pi}\int dq\, |q|\, C^\text{1D}(q)`.
+    :math:`\frac{1}{2\pi}\int dq\, |q|\, C^\text{1D}(q)`. This is
+    :math:`2/\pi` times the estimate for an isotropic surface, see
+    :func:`variance_half_derivative_via_autocorrelation_from_profile`.
 
     Parameters
     ----------

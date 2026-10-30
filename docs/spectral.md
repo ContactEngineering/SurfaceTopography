@@ -558,9 +558,82 @@ $$
 \frac{U}{A} = \frac{E^*}{4}\,\langle\lvert\nabla^{1/2}h\rvert^2\rangle .
 $$
 
-For line scans, the surface is assumed to be invariant perpendicular to the
-scan, which gives $\frac{1}{2\pi}\int dq\,\lvert q\rvert\,C^\text{1D}(q)$. The
-energy has the units of `contact_modulus` times length.
+The variance of the half derivative is defined by the spectral expression
+above, in analogy to the first and second derivatives
+($\langle\lvert\nabla h\rvert^2\rangle = m_2$,
+$\langle\lvert\nabla^2 h\rvert^2\rangle = m_4$). The energy has the units of
+`contact_modulus` times length.
+
+**Maps.** On a topography map, the same quantity follows from the radially
+averaged height-difference autocorrelation function $A(r)$ (see
+[Height-difference autocorrelation](#height-difference-autocorrelation)),
+
+$$
+\langle\lvert\nabla^{1/2}h\rvert^2\rangle = \int_0^\infty dr\,\frac{A(r)}{r^2},
+$$
+
+because $\int_0^\infty dr\,[1-J_0(qr)]/r^2 = q$. This identity holds for any
+surface; it does not require isotropy. It is computed by
+`variance_half_derivative_via_autocorrelation_from_area`.
+
+**Line scans.** A line scan does not contain the areal quantity, so any
+estimate from line scans needs an assumption about the surface perpendicular
+to the scan. Two assumptions are in use:
+
+| Assumption | Estimate from $C^\text{1D}$ | Used by |
+|-|-|-|
+| Isotropic surface | $\frac{1}{2}\int_0^\infty dq\, q\, C^\text{1D}(q)$ | `variance_half_derivative_via_autocorrelation_from_profile`, `ciso_moment(order=1)` of containers |
+| Surface invariant perpendicular to the scan | $\frac{1}{\pi}\int_0^\infty dq\, q\, C^\text{1D}(q)$ | `variance_half_derivative` of line scans |
+
+The two differ by a factor $\pi/2$. The isotropic estimate is the half
+derivative of the map from which the line scans were taken. It can be written
+as the moment of order one of the isotropic PSD obtained with the relation
+$C^\text{iso}(q) = \frac{\pi}{q}C^\text{1D}(q)$ (see
+[Isotropic PSD from the 1D PSD](containers.md#isotropic-psd-from-the-1d-psd)).
+That relation holds pointwise only for a self-affine surface with Hurst
+exponent $H=\tfrac12$; it is used for all surfaces, because a measured surface
+is not self-affine and has no well-defined Hurst exponent. For the moment of
+order one, its error cancels: inserting the projection of an isotropic PSD,
+$C^\text{1D}(q_x) = \frac{1}{\pi}\int_{q_x}^\infty dq\,
+q\,C^\text{iso}(q)/\sqrt{q^2-q_x^2}$, and exchanging the order of integration
+gives
+
+$$
+\frac{1}{2}\int_0^\infty dq_x\, q_x\, C^\text{1D}(q_x)
+= \frac{1}{2\pi}\int_0^\infty dq\, q\, C^\text{iso}(q)
+\underbrace{\int_0^q dq_x\, \frac{q_x}{\sqrt{q^2-q_x^2}}}_{=\,q}
+= \frac{1}{2\pi}\int_0^\infty dq\, q^2\, C^\text{iso}(q),
+$$
+
+which is the areal $\langle\lvert\nabla^{1/2}h\rvert^2\rangle$ of any isotropic
+surface, independent of $H$ and of the shape of the PSD. For the moments of
+order zero and two, the same relation is off by the constant factors $\pi/2$
+and $\pi/4$.
+
+The profile autocorrelation function gives the isotropic estimate directly:
+with $\int_0^\infty dr\,[1-\cos(q_xr)]/r^2 = \frac{\pi}{2}\lvert q_x\rvert$,
+
+$$
+\int_0^\infty dr\,\frac{A(r)}{r^2}
+= \frac{1}{2}\int_0^\infty dq\, q\, C^\text{1D}(q).
+$$
+
+`variance_half_derivative_via_autocorrelation_from_profile` evaluates this
+integral. Unlike the PSD of a nonperiodic line scan, $A(r)$ needs no window.
+
+**Finite data.** The autocorrelation and spectral routes agree in the
+continuum limit. On a finite measurement they differ because
+
+- the integral over $A(r)$ ends at the largest distance $r_\text{max}$, which
+  leaves out a contribution of order $\langle h^2\rangle/r_\text{max}$;
+- below the smallest distance $r_0$ the slope is assumed constant, which adds
+  $A(r_0)/r_0$, while the spectral route drops wavevectors above the
+  reliability cutoff;
+- the PSD of nonperiodic data is computed with a window.
+
+Periodic surfaces need no window, so comparing both routes on periodic
+surfaces isolates the first two effects. The autocorrelation functions raise `UndefinedDataError` for data
+with undefined (masked) points.
 
 ```python
 print(topo.variance_half_derivative())                 # mm

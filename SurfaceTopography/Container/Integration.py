@@ -210,6 +210,23 @@ def ciso_moment(self, order=1, cumulative=False, **kwargs):
 
         m_\alpha = \frac{1}{2\pi} \int dq\, q^{\alpha+1} C^\text{iso}(q).
 
+    The relation for :math:`C^\text{iso}` holds pointwise only for an
+    isotropic, self-affine surface with Hurst exponent :math:`H=1/2`. It is
+    used for all surfaces, because measured surfaces are not self-affine and
+    have no well-defined Hurst exponent. For any isotropic surface, the
+    returned moment is :math:`\kappa_\alpha` times the moment of the true
+    isotropic PSD, with
+
+    .. math::
+
+        \kappa_\alpha = \frac{\sqrt{\pi}\,\Gamma\left(\frac{\alpha+1}{2}\right)}
+        {2\,\Gamma\left(\frac{\alpha}{2}+1\right)},
+
+    i.e. :math:`\kappa_0 = \pi/2`, :math:`\kappa_1 = 1` and
+    :math:`\kappa_2 = \pi/4`. The moment of order one (the variance of the
+    half derivative) is therefore exact for isotropic surfaces, independent
+    of :math:`H`.
+
     Masked (empty) bins of the averaged PSD are dropped before integration.
 
     Parameters

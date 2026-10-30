@@ -83,7 +83,14 @@ def variance_half_derivative_via_autocorrelation_from_profile(topography, **kwar
     :math:`2q/\pi`, so this estimates the areal
     :math:`\langle|\nabla^{1/2}h|^2\rangle = \int d^2q/(2\pi)^2\, q\, C^\text{2D}(q)`.
     For a line scan, the result is :math:`\pi/2` times
-    :math:`\int dq/(2\pi)\,|q|\,C^\text{1D}(q)`.
+    :math:`\int dq/(2\pi)\,|q|\,C^\text{1D}(q)`, i.e.
+    :math:`\frac{1}{2}\int_0^\infty dq\, q\, C^\text{1D}(q)`. This estimates
+    the half derivative of the map from which the line scan was taken,
+    assuming that this map is isotropic. For any isotropic surface it equals
+    the areal value exactly, independent of the Hurst exponent, and it
+    equals the moment of order one of the isotropic PSD estimated as
+    :math:`C^\text{iso}(q) = \pi C^\text{1D}(q)/q`. The autocorrelation
+    function needs no window, unlike the PSD of nonperiodic data.
     See :func:`variance_half_derivative_via_scale_dependent_slope` for the
     discretization.
 
