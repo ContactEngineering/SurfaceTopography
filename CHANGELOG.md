@@ -42,6 +42,7 @@ v1.28.0 (not yet released)
   with an error about the truth value of an array
 - BUG: Half-derivative variance from autocorrelation functions counted empty bins as zero,
   e.g. 40% too small at 50 points per decade
+- BUG: The profile half-derivative variance of containers failed with an attribute error
 
 v1.27.0 (28Oct26)
 -----------------

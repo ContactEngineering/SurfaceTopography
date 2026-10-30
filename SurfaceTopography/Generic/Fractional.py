@@ -104,8 +104,9 @@ def variance_half_derivative_via_autocorrelation_from_profile(topography, **kwar
 
     Parameters
     ----------
-    topography : :obj:`Topography` or :obj:`UniformLineScan` or :obj:`NonuniformLineScan` or :obj:`SurfaceContainer`
-        Topography, line scan or container of these
+    topography : :obj:`Topography` or :obj:`UniformLineScan` or :obj:`NonuniformLineScan`
+        Topography or line scan. For containers, this function is
+        :func:`container_variance_half_derivative_from_autocorrelation`.
     **kwargs : dict
         Additional keyword parameters are passed on to
         `scale_dependent_slope_from_profile`, i.e. to
@@ -224,5 +225,5 @@ UniformTopographyInterface.register_function(
 )
 SurfaceContainer.register_function(
     "variance_half_derivative_via_autocorrelation_from_profile",
-    variance_half_derivative_via_autocorrelation_from_profile,
+    container_variance_half_derivative_from_autocorrelation,
 )

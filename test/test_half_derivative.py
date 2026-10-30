@@ -68,3 +68,11 @@ def test_container_with_empty_bins():
     fine = container_variance_half_derivative_from_autocorrelation(c, unit='m', nb_points_per_decade=50,
                                                                    reliable=False)
     np.testing.assert_allclose(fine, coarse, rtol=0.01)
+
+
+def test_container_profile_half_derivative():
+    # Containers provide the profile half derivative under both names
+    t = fourier_synthesis((64, 64), (1., 1.), 0.8, rms_height=1., rng=1, unit='m')
+    c = InMemorySurfaceContainer([t])
+    np.testing.assert_allclose(c.variance_half_derivative_via_autocorrelation_from_profile(unit='m'),
+                               c.variance_half_derivative_from_autocorrelation(unit='m'))
