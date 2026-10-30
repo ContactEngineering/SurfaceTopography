@@ -40,6 +40,8 @@ v1.28.0 (not yet released)
   was biased by about a factor of two for noisy spectra. Bin averaging remains
 - BUG: Explicit bin edges (arrays or lists) for spectra and autocorrelation functions failed
   with an error about the truth value of an array
+- BUG: Half-derivative variance from autocorrelation functions counted empty bins as zero,
+  e.g. 40% too small at 50 points per decade
 
 v1.27.0 (28Oct26)
 -----------------

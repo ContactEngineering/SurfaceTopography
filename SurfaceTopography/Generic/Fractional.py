@@ -36,6 +36,14 @@ from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInte
 from ..Support import doi
 
 
+def _drop_undefined(x, y):
+    """Remove entries where `x` or `y` is masked (empty bins) or NaN."""
+    x = np.ma.filled(np.ma.asarray(x, dtype=float), np.nan)
+    y = np.ma.filled(np.ma.asarray(y, dtype=float), np.nan)
+    defined = np.isfinite(x) & np.isfinite(y)
+    return x[defined], y[defined]
+
+
 @doi("10.1016/j.apsadv.2021.100190")
 def variance_half_derivative_via_autocorrelation_from_area(topography, **kwargs):
     r"""
@@ -125,7 +133,8 @@ def variance_half_derivative_via_scale_dependent_slope(r, slope):
 
     where :math:`s^2(r) = 2A(r)/r^2`. Below the smallest distance
     :math:`r_0`, the slope is assumed constant; the remaining integral is
-    evaluated with the trapezoidal rule. NaN entries are dropped.
+    evaluated with the trapezoidal rule. Masked (empty bins) and NaN entries
+    are dropped.
 
     Parameters
     ----------
@@ -139,10 +148,7 @@ def variance_half_derivative_via_scale_dependent_slope(r, slope):
         Variance of the half derivative. (Units: length)
     """
 
-    # handle nans
-    nan_args = np.isnan(slope)
-    r = np.delete(r, nan_args)
-    slope = np.delete(slope, nan_args)
+    r, slope = _drop_undefined(r, slope)
     return 0.5 * (r[0] * slope[0] ** 2 + scipy.integrate.trapezoid(slope**2, x=r))
 
 
@@ -187,8 +193,7 @@ def container_variance_half_derivative_from_autocorrelation(
     """
 
     r, acf = container.autocorrelation(**kwargs)
-    r = r[~np.isnan(acf)]
-    acf = acf[~np.isnan(acf)]
+    r, acf = _drop_undefined(r, acf)
 
     # we assume continuity below the smallest distance, i.e. that the slope is constant
     small_scale_contrib = acf[0] / r[0]
