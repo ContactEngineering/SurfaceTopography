@@ -54,6 +54,7 @@ v1.28.0 (not yet released)
 - BUG: Fourier interpolation of topographies dropped the unit and the metadata
 - ENH: Autocorrelation functions, scale-dependent slopes and the half-derivative variance
   from them accept topographies with missing data points
+- BUG: Channels of most file formats had no channel identifier and could not be selected by it
 
 v1.27.0 (28Oct26)
 -----------------

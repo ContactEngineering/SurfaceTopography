@@ -866,3 +866,19 @@ def test_json_encode_info(fn):
 
     # This should simply pass without an exception
     json.dumps(t.info, cls=ExtendedJSONEncoder)
+
+
+@pytest.mark.parametrize("fn", text_example_file_list + binary_example_file_list)
+def test_channel_ids_and_height_indices(fn):
+    # Every channel has a unique, stable identifier by which it can be
+    # selected; height channels are numbered consecutively
+    reader = open_topography(fn)
+    channels = reader.channels
+    ids = [ch.channel_id for ch in channels]
+    assert None not in ids, fn
+    assert len(set(ids)) == len(ids), fn
+    for ch in channels:
+        assert reader._get_channel_by_id(ch.channel_id).index == ch.index, fn
+    height_indices = [ch.height_index for ch in channels if ch.is_height_channel]
+    assert height_indices == list(range(len(height_indices))), fn
+    assert all(ch.height_index is None for ch in channels if not ch.is_height_channel), fn

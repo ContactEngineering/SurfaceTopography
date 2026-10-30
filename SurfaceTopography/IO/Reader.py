@@ -454,6 +454,8 @@ class ChannelInfo:
 
     def _compute_id_and_height_index(self):
         """Compute channel_id and height_index by looking at reader's channels."""
+        # Channels are identified by their index: readers may construct new
+        # ChannelInfo objects on every access of `channels`
         channels = self._reader.channels
         # Count channels with the same name before this one
         name_counts = {}
@@ -462,13 +464,13 @@ class ChannelInfo:
             ch_name = ch.name
             if ch_name not in name_counts:
                 name_counts[ch_name] = 0
-            if ch is self:
+            if ch.index == self.index:
                 # Found ourselves
                 count = name_counts[ch_name]
                 if count == 0:
                     # Check if there are more channels with this name after us
                     has_duplicate = any(
-                        c.name == ch_name for c in channels if c is not self
+                        c.name == ch_name for c in channels if c.index != self.index
                     )
                     if has_duplicate:
                         self._channel_id = f"{ch_name}#1"
