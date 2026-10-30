@@ -69,17 +69,18 @@ def scale_dependent_curvature_from_profile(topography, **kwargs):
 
     .. math::
 
-        h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda^2
+        h_\text{rms}^{\prime\prime}(\lambda) = 4\left[8A(\lambda/2) - 2A(\lambda)\right]^{1/2}/\lambda^2
 
     where :math:`A(\lambda)` is the height-difference autocorrelation
     function. This is the rms of the three-point finite difference
-    :math:`[h(x+\lambda)-2h(x)+h(x-\lambda)]/\lambda^2`. Note that
-    :math:`\lambda` is the spacing of the three-point stencil, i.e. half
-    of its total length. :math:`A(2\lambda)` is obtained by linear
-    interpolation, hence the curvature is only returned for
-    :math:`\lambda` up to half the largest distance of the autocorrelation
-    function, and the result is truncated at the first distance where
-    :math:`8A(\lambda) - 2A(2\lambda)` becomes negative.
+    :math:`[h(x+\lambda/2)-2h(x)+h(x-\lambda/2)]/(\lambda/2)^2`. Here,
+    :math:`\lambda` is the total length of the three-point stencil (spacing
+    :math:`\lambda/2`), consistent with the `distance` argument of
+    `derivative`. :math:`A(\lambda)` is obtained by linear interpolation,
+    hence the curvature is only returned for :math:`\lambda` up to the
+    largest distance of the autocorrelation function, and the result is
+    truncated at the first distance where :math:`8A(\lambda/2) - 2A(\lambda)`
+    becomes negative.
 
     Parameters
     ----------
@@ -91,13 +92,13 @@ def scale_dependent_curvature_from_profile(topography, **kwargs):
     Returns
     -------
     r : array
-        Stencil spacing :math:`\lambda`. (Units: length)
+        Total stencil length :math:`\lambda`. (Units: length)
     curvature : array
         Curvature. (Units: 1/length)
     """  # noqa: E501
     r, A = topography.autocorrelation_from_profile(**kwargs)
     r, B = _curvature_stencil(r, A)
-    return r, np.sqrt(B) / r ** 2
+    return 2 * r, np.sqrt(B) / r ** 2
 
 
 def scale_dependent_curvature_from_area(topography, **kwargs):

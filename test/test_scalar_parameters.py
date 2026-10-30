@@ -932,3 +932,18 @@ def test_integrate_psd_from_profile_remove_tip_artefacts_areal_scan():
 
     np.testing.assert_allclose(c_hrms_f_unreliable, hrms_f_unreliable)
     np.testing.assert_allclose(c_hrms_f_reliable, hrms_f_reliable)
+
+
+def test_scale_dependent_curvature_distance_convention():
+    # The profile scale-dependent curvature returns the total stencil
+    # length, i.e. the `distance` argument of `derivative`. On periodic data,
+    # the ACF and the explicit stencil average over the same points, so both
+    # agree to machine precision.
+    t = fourier_synthesis((128, 128), (1.0, 1.0), 0.8, rms_height=1, short_cutoff=0.05, rng=3)
+    r, curvature = t.scale_dependent_curvature_from_profile(resampling_method=None, reliable=False)
+    dx = t.pixel_size[0]
+    for distance in [2 * dx, 4 * dx, 10 * dx]:
+        i = np.argmin(np.abs(r - distance))
+        np.testing.assert_allclose(r[i], distance)
+        d2 = t.derivative(2, distance=distance)[0]
+        np.testing.assert_allclose(curvature[i], np.sqrt(np.mean(d2 ** 2)), rtol=1e-10)

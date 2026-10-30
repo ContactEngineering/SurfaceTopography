@@ -28,6 +28,8 @@ v1.28.0 (not yet released)
 - BUG: Synthetic topographies with a requested rms height were 10-45% too rough on average;
   the normalization now sums over the wavevectors of the grid, including the roll-off region
 - ENH: Synthetic topographies accept a seed or random number generator
+- API: The scale-dependent curvature of profiles reports the total stencil length as
+  distance, like the areal curvature and derivatives; distances doubled
 
 v1.27.0 (28Oct26)
 -----------------

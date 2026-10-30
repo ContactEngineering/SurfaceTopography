@@ -192,7 +192,7 @@ $$
 |-|-|-|
 | `scale_dependent_slope_from_profile(**kwargs)` | `autocorrelation_from_profile` (along $x$; also nonuniform) | $\lambda$ |
 | `scale_dependent_slope_from_area(**kwargs)` | `autocorrelation_from_area` (radial average) | $\lambda$ |
-| `scale_dependent_curvature_from_profile(**kwargs)` | `autocorrelation_from_profile` | stencil spacing $\lambda$ |
+| `scale_dependent_curvature_from_profile(**kwargs)` | `autocorrelation_from_profile` | total stencil length $2\lambda$ |
 | `scale_dependent_curvature_from_area(**kwargs)` | `autocorrelation_from_area` | total stencil length $2\lambda$ |
 
 Keyword arguments are passed on to the autocorrelation function. The
@@ -203,13 +203,12 @@ curvature functions are subject to the following restrictions:
   distance of the ACF.
 - The result is truncated at the first distance where
   $8A(\lambda)-2A(2\lambda) < 0$.
-- The profile and areal variants report the distance differently (see the
-  table above). Only the areal variant follows the `distance` convention of
-  `derivative`.
+- The curvature functions return the total stencil length $2\lambda$, which is
+  the `distance` convention of `derivative`.
 
 With `resampling_method=None` (the ACF on all grid distances), the results
 equal the statistics of the stretched stencils. The profile curvature at
-spacing $\lambda$ equals the rms of `derivative(2, distance=2λ)`. At
+distance $r$ equals the rms of `derivative(2, distance=r)`. At
 $\lambda = \Delta x$, the slope and curvature are `Rdq()` and `Rddq()`.
 Computing all scales through the ACF costs $O(N\log N)$ (one FFT), whereas
 explicit stencils cost $O(N)$ per scale.
