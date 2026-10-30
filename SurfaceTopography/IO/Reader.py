@@ -33,6 +33,7 @@ import numpy as np
 
 from ..Exceptions import ERROR_CLASSES, CorruptFile, MetadataAlreadyFixedByFile
 from ..Metadata import InfoModel
+from ..Support.UnitConversion import is_length_unit
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
 from .binary import AttrDict, LayoutWithNameBase, _identity
 from .common import OpenFromAny
@@ -59,6 +60,62 @@ class DataKind(Enum):
     DEFLECTION = "deflection"  # Cantilever deflection
     FRICTION = "friction"  # Friction/lateral force
     OTHER = "other"  # Generic non-height data
+
+
+# Keywords in channel names that identify the kind of non-height data
+_DATA_KIND_KEYWORDS = [
+    ("phase", DataKind.PHASE),
+    ("amplitude", DataKind.AMPLITUDE),
+    ("deflection", DataKind.DEFLECTION),
+    ("friction", DataKind.FRICTION),
+    ("lateral", DataKind.FRICTION),
+    ("current", DataKind.CURRENT),
+    ("error", DataKind.ERROR),
+]
+
+# Units that identify the kind of non-height data
+_DATA_KIND_UNITS = {
+    "V": DataKind.VOLTAGE,
+    "mV": DataKind.VOLTAGE,
+    "µV": DataKind.VOLTAGE,
+    "nA": DataKind.CURRENT,
+    "pA": DataKind.CURRENT,
+    "deg": DataKind.PHASE,
+    "°": DataKind.PHASE,
+    "rad": DataKind.PHASE,
+}
+
+
+def data_kind_from_unit(data_unit, name=None):
+    """
+    Kind of the data of a channel, inferred from the unit of its values and
+    its name.
+
+    Data with a length unit (or without unit) is height data. Otherwise,
+    the channel name is searched (case-insensitively) for the keywords
+    phase, amplitude, deflection, friction, lateral (friction), current and
+    error; if none matches, the unit decides (voltages, currents, angles);
+    all other data is `DataKind.OTHER`.
+
+    Parameters
+    ----------
+    data_unit : str or None
+        Unit of the data values.
+    name : str, optional
+        Name of the channel. (Default: None)
+
+    Returns
+    -------
+    data_kind : DataKind
+        Kind of the data.
+    """
+    if data_unit is None or is_length_unit(data_unit):
+        return DataKind.HEIGHT
+    lower_name = "" if name is None else name.lower()
+    for keyword, data_kind in _DATA_KIND_KEYWORDS:
+        if keyword in lower_name:
+            return data_kind
+    return _DATA_KIND_UNITS.get(data_unit, DataKind.OTHER)
 
 
 class ChannelInfo:
@@ -119,7 +176,9 @@ class ChannelInfo:
             Length unit of measurement (lateral dimensions).
         data_kind : DataKind, optional
             Kind of data stored in this channel (HEIGHT, VOLTAGE, etc.).
-            Defaults to HEIGHT if not specified.
+            If not specified, it is inferred from `data_unit` and `name`
+            with :func:`data_kind_from_unit`, i.e. HEIGHT for length units
+            or without `data_unit`.
         data_unit : str, optional
             Unit for data values (z-axis). For height channels, this is
             typically the same as unit. For non-height channels, this could
@@ -146,7 +205,7 @@ class ChannelInfo:
         self._uniform = uniform
         self._undefined_data = undefined_data
         self._unit = unit
-        self._data_kind = data_kind if data_kind is not None else DataKind.HEIGHT
+        self._data_kind = data_kind if data_kind is not None else data_kind_from_unit(data_unit, self._name)
         self._data_unit = data_unit
         # Computed lazily from the reader's channel list (see
         # `_compute_id_and_height_index`)
@@ -1467,7 +1526,9 @@ class DeclarativeReaderBase(ReaderBase):
       expressions; channels with `dim` 1 are returned as line scans
     - `data_kind`, `data_unit`: optional literals or expressions for
       channels that do not contain heights; `data_kind` is the value of a
-      `DataKind` (e.g. "phase"), `data_unit` the unit of the data values
+      `DataKind` (e.g. "phase"), `data_unit` the unit of the data values.
+      Without `data_kind`, the kind is inferred from `data_unit` and
+      `name` (see `data_kind_from_unit`)
     - `nb_grid_pts`, `physical_sizes`: expressions evaluating to tuples
     - `height_scale_factor`: literal, expression or absent (unscaled)
     - `info`: (nested) dictionary of literals or expressions; entries

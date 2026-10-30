@@ -57,6 +57,8 @@ v1.28.0 (not yet released)
 - BUG: Channels of most file formats had no channel identifier and could not be selected by it
 - BUG: Topographies obtained from a channel of a periodic NetCDF file were not periodic;
   periodicity None is interpreted as nonperiodic
+- BUG: Phase, deflection, friction and voltage channels of IBW and MI files were reported as
+  height channels; the kind of data is inferred from its unit and the channel name
 
 v1.27.0 (28Oct26)
 -----------------

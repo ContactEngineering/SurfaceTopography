@@ -481,3 +481,19 @@ class TestMigrationUtilities:
             ch_by_old, _ = reader._resolve_channel(height_channel_index=old_idx)
             ch_by_new, _ = reader._resolve_channel(channel_id=new_id)
             assert ch_by_old.name == ch_by_new.name
+
+
+def test_data_kind_from_unit():
+    from SurfaceTopography.IO.Reader import data_kind_from_unit
+    assert data_kind_from_unit(None) == DataKind.HEIGHT
+    assert data_kind_from_unit("nm", "Phase") == DataKind.HEIGHT  # length unit
+    assert data_kind_from_unit("deg", "PhaseRetrace") == DataKind.PHASE
+    assert data_kind_from_unit("V", "Deflection") == DataKind.DEFLECTION
+    assert data_kind_from_unit("V", "Friction") == DataKind.FRICTION
+    assert data_kind_from_unit("V", "NapPotentialTrace") == DataKind.VOLTAGE
+    assert data_kind_from_unit("pA", "Tunneling") == DataKind.CURRENT
+    assert data_kind_from_unit("N", "Force") == DataKind.OTHER
+    # Without explicit data kind, ChannelInfo infers it
+    assert ChannelInfo(None, 0, name="Deflection", data_unit="V").data_kind == DataKind.DEFLECTION
+    assert ChannelInfo(None, 0, name="Height", data_unit="nm").data_kind == DataKind.HEIGHT
+    assert ChannelInfo(None, 0, name="Height").data_kind == DataKind.HEIGHT

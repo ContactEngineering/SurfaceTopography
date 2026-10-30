@@ -97,7 +97,7 @@ none is selected, typically the first channel with height information.
 | `data_unit` | unit of the data values; for height channels the length unit |
 | `height_scale_factor` | factor applied to the raw values, `None` if not stored in the file |
 | `is_periodic`, `is_uniform`, `has_undefined_data` | as stored in the file (may be `None` if unknown) |
-| `data_kind` | `DataKind` of the values (`HEIGHT`, `PHASE`, `AMPLITUDE`, `VOLTAGE`, ...) |
+| `data_kind` | `DataKind` of the values (`HEIGHT`, `PHASE`, `AMPLITUDE`, `VOLTAGE`, ...); if the reader does not set it, it is inferred from `data_unit` and the channel name (`data_kind_from_unit`) |
 | `is_height_channel` | `data_kind == DataKind.HEIGHT` |
 | `height_index` | position among the height channels, `None` for other channels |
 | `info` | metadata found in the file, see [topographies](topographies.md) |

@@ -907,3 +907,14 @@ def test_periodicity_from_netcdf_file():
         assert reader.topography().is_periodic
         assert reader.channels[0].topography().is_periodic
         assert not reader.channels[0].topography(periodic=False).is_periodic
+
+
+@pytest.mark.parametrize("fn", text_example_file_list + binary_example_file_list)
+def test_data_kind_matches_data_unit(fn):
+    # Channels whose values are not lengths are not height channels, and
+    # their lateral unit is a length unit
+    from SurfaceTopography.Support.UnitConversion import is_length_unit
+    for ch in open_topography(fn).channels:
+        if isinstance(ch.data_unit, str) and not is_length_unit(ch.data_unit):
+            assert not ch.is_height_channel, f"{fn}: {ch.name}"
+            assert ch.unit is None or is_length_unit(ch.unit), f"{fn}: {ch.name}"
