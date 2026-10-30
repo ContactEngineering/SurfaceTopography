@@ -31,6 +31,7 @@ height-difference autocorrelation function.
 import numpy as np
 import scipy.integrate
 
+from ..Container.Averaging import log_average
 from ..Container.SurfaceContainer import SurfaceContainer
 from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
 from ..Support import doi
@@ -57,7 +58,8 @@ def variance_half_derivative_via_autocorrelation_from_area(topography, **kwargs)
 
     This identity follows from :math:`\int_0^\infty dr\,[1-J_0(qr)]/r^2 = q`.
     See :func:`variance_half_derivative_via_scale_dependent_slope` for the
-    discretization.
+    discretization; the mean square height in the tail term is
+    :math:`S_q^2`.
 
     Parameters
     ----------
@@ -73,7 +75,7 @@ def variance_half_derivative_via_autocorrelation_from_area(topography, **kwargs)
         Variance of the half derivative. (Units: length)
     """
     r, s = topography.scale_dependent_slope_from_area(**kwargs)
-    return variance_half_derivative_via_scale_dependent_slope(r, s)
+    return variance_half_derivative_via_scale_dependent_slope(r, s, rms_height=topography.Sq())
 
 
 @doi("10.1016/j.apsadv.2021.100190")
@@ -100,7 +102,9 @@ def variance_half_derivative_via_autocorrelation_from_profile(topography, **kwar
     :math:`C^\text{iso}(q) = \pi C^\text{1D}(q)/q`. The autocorrelation
     function needs no window, unlike the PSD of nonperiodic data.
     See :func:`variance_half_derivative_via_scale_dependent_slope` for the
-    discretization.
+    discretization; the mean square height in the tail term is
+    :math:`R_q^2`, the mean square height relative to the mean of each
+    profile.
 
     Parameters
     ----------
@@ -118,24 +122,28 @@ def variance_half_derivative_via_autocorrelation_from_profile(topography, **kwar
         Variance of the half derivative. (Units: length)
     """
     r, s = topography.scale_dependent_slope_from_profile(**kwargs)
-    return variance_half_derivative_via_scale_dependent_slope(r, s)
+    return variance_half_derivative_via_scale_dependent_slope(r, s, rms_height=topography.Rq())
 
 
 @doi("10.1016/j.apsadv.2021.100190")
-def variance_half_derivative_via_scale_dependent_slope(r, slope):
+def variance_half_derivative_via_scale_dependent_slope(r, slope, rms_height=None):
     r"""
-    Integrate the squared scale-dependent slope :math:`s(r)` to obtain
+    Integrate the squared scale-dependent slope :math:`s(r)`,
+    :math:`s^2(r) = 2A(r)/r^2`, to obtain
 
     .. math::
 
-        \frac{1}{2}\int_0^{r_\text{max}} dr\, s^2(r)
-        = \int_0^{r_\text{max}} dr\, \frac{A(r)}{r^2}
-        \approx \frac{1}{2}\left[r_0 s^2(r_0) + \int_{r_0}^{r_\text{max}} dr\, s^2(r)\right],
+        \int_0^\infty dr\, \frac{A(r)}{r^2}
+        \approx \frac{1}{2}\left[r_0 s^2(r_0) + \int_{r_0}^{r_\text{max}} dr\, s^2(r)\right]
+        + \frac{\langle h^2 \rangle}{r_\text{max}}.
 
-    where :math:`s^2(r) = 2A(r)/r^2`. Below the smallest distance
-    :math:`r_0`, the slope is assumed constant; the remaining integral is
-    evaluated with the trapezoidal rule. Masked (empty bins) and NaN entries
-    are dropped.
+    Below the smallest distance :math:`r_0`, the slope is assumed constant;
+    the integral between :math:`r_0` and the largest distance
+    :math:`r_\text{max}` is evaluated with the trapezoidal rule. Beyond
+    :math:`r_\text{max}`, the heights are assumed to be uncorrelated,
+    :math:`A(r) = \langle h^2 \rangle`, which gives the last term. It is
+    only included if `rms_height` is given. Masked (empty bins) and NaN
+    entries are dropped.
 
     Parameters
     ----------
@@ -143,6 +151,11 @@ def variance_half_derivative_via_scale_dependent_slope(r, slope):
         Distances. (Units: length)
     slope : array
         Slope. (Units: dimensionless)
+    rms_height : float, optional
+        Root mean square height :math:`\langle h^2 \rangle^{1/2}` for the
+        contribution beyond the largest distance. (Default: None, i.e. the
+        integral ends at the largest distance)
+
     Returns
     -------
     variance_half_derivative : float
@@ -150,7 +163,10 @@ def variance_half_derivative_via_scale_dependent_slope(r, slope):
     """
 
     r, slope = _drop_undefined(r, slope)
-    return 0.5 * (r[0] * slope[0] ** 2 + scipy.integrate.trapezoid(slope**2, x=r))
+    variance = 0.5 * (r[0] * slope[0] ** 2 + scipy.integrate.trapezoid(slope**2, x=r))
+    if rms_height is not None:
+        variance += rms_height ** 2 / r[-1]
+    return variance
 
 
 def container_variance_half_derivative_from_autocorrelation(
@@ -171,6 +187,20 @@ def container_variance_half_derivative_from_autocorrelation(
     only up to the distance :math:`r`. This is the scale-dependent elastic
     energy of Wang and Müser (their Eq. 44), up to the prefactor
     :math:`E^*/4`.
+
+    The variance of the half derivative (`scale_dependent=False`) is
+
+    .. math::
+
+        V(r_\text{max}) + \frac{\langle h^2 \rangle}{r_\text{max}},
+
+    where the second term is the integral of :math:`A(r)/r^2` beyond the
+    largest distance :math:`r_\text{max}`, assuming that the heights are
+    uncorrelated there, :math:`A(r) = \langle h^2 \rangle`. The mean square
+    height :math:`\langle h^2 \rangle` is the average of
+    :math:`R_q^2` over the topographies that contribute to the
+    autocorrelation function at :math:`r_\text{max}`. The scale-dependent
+    result :math:`V(r)` does not contain this term.
 
     .. TODO: full reference for Wang and Müser?
 
@@ -193,7 +223,9 @@ def container_variance_half_derivative_from_autocorrelation(
         Variance of the half derivative. (Units: length)
     """
 
-    r, acf = container.autocorrelation(**kwargs)
+    r, acf, contributors = log_average(container, "autocorrelation_from_profile", return_contributors=True, **kwargs)
+    defined = np.nonzero(np.isfinite(np.ma.filled(r, np.nan)) & np.isfinite(np.ma.filled(acf, np.nan)))[0]
+    last_contributors = contributors[defined[-1]]
     r, acf = _drop_undefined(r, acf)
 
     # we assume continuity below the smallest distance, i.e. that the slope is constant
@@ -203,7 +235,9 @@ def container_variance_half_derivative_from_autocorrelation(
             [[0], scipy.integrate.cumulative_trapezoid(acf / r**2, x=r)]
         )
     else:
-        return small_scale_contrib + scipy.integrate.trapezoid(acf / r**2, x=r)
+        unit = kwargs.get("unit")
+        mean_square_height = np.mean([container[i].to_unit(unit).Rq() ** 2 for i in last_contributors])
+        return small_scale_contrib + scipy.integrate.trapezoid(acf / r**2, x=r) + mean_square_height / r[-1]
 
 
 SurfaceContainer.register_function(

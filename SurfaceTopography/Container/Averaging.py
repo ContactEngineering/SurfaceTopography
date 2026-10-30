@@ -37,7 +37,8 @@ from .SurfaceContainer import SurfaceContainer
 _log = logging.getLogger(__name__)
 
 
-def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=True, progress_callback=None, **kwargs):
+def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=True, progress_callback=None,
+                return_contributors=False, **kwargs):
     r"""
     Return average property on a logarithmic grid.
 
@@ -78,6 +79,9 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
     progress_callback : func, optional
         Function taking iteration and the total number of iterations as
         arguments for progress reporting. (Default: None)
+    return_contributors : bool, optional
+        Also return the indices of the topographies that contribute to each
+        bin. (Default: False)
     **kwargs
         Additional keyword arguments are passed to `function_name`.
 
@@ -88,6 +92,10 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
         (Units: `unit` or 1/`unit`)
     y : np.ma.MaskedArray
         Averaged property.
+    contributors : list of lists of int
+        Indices (in the container) of the topographies that contribute to
+        each bin, i.e. the set :math:`S_k`. Only returned if
+        `return_contributors` is true.
 
     Raises
     ------
@@ -130,7 +138,7 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
 
         # Store for later averaging
         for j, (xval, yval) in enumerate(zip(collocation_points, resampled_y)):
-            results[lower_decade * nb_points_per_decade + j] += [(xval, yval)]
+            results[lower_decade * nb_points_per_decade + j] += [(xval, yval, i)]
 
     if progress_callback is not None:
         progress_callback(len(self), len(self))
@@ -148,6 +156,7 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
     x_out = np.ma.zeros(n_bins)
     y_out = np.ma.zeros(n_bins)
     mask = np.ones(n_bins, dtype=bool)  # Start with all masked
+    contributors = [[] for _ in range(n_bins)]
 
     for key in sorted_keys:
         idx = key - min_key
@@ -161,9 +170,12 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
             x_out[idx] = np.mean(vals[valid_mask, 0])
             y_out[idx] = np.mean(vals[valid_mask, 1])
             mask[idx] = False
+            contributors[idx] = [int(i) for i in vals[valid_mask, 2]]
 
     x_out.mask = mask
     y_out.mask = mask
+    if return_contributors:
+        return x_out, y_out, contributors
     return x_out, y_out
 
 

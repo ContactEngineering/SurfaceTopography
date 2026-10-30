@@ -45,6 +45,8 @@ v1.28.0 (not yet released)
 - BUG: The profile half-derivative variance of containers failed with an attribute error
 - BUG: Binned scale-dependent slopes dropped the smallest distance; the half-derivative
   variance computed from them was up to 9% too small
+- BUG: Half-derivative variance from autocorrelation functions ignored distances beyond the
+  scan and was up to 21% too small; heights are now taken as uncorrelated there
 
 v1.27.0 (28Oct26)
 -----------------

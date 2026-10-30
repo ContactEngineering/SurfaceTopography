@@ -91,3 +91,36 @@ def test_container_and_topography_agree():
         np.testing.assert_allclose(
             c.variance_half_derivative_from_autocorrelation(unit='m', nb_points_per_decade=nb_points_per_decade,
                                                             reliable=False), reference, rtol=0.03)
+
+
+@pytest.mark.parametrize("hurst", [0.3, 0.5, 0.8])
+@pytest.mark.parametrize("short_cutoff,rtol", [(None, 0.035), (16 / 512, 0.02)])
+def test_autocorrelation_and_spectral_definitions_agree(hurst, short_cutoff, rtol):
+    # On periodic surfaces no window is needed, so the autocorrelation route
+    # and the spectral definition differ only by the finite range of
+    # distances: the tail beyond the largest distance (included with
+    # <h^2>/r_max) and the lattice scale (constant slope below the pixel size
+    # vs. the sum up to the Nyquist wavevector). Without the tail term, the
+    # autocorrelation route is up to 21% too small here.
+    t = fourier_synthesis((512, 512), (1., 1.), hurst, rms_height=1., short_cutoff=short_cutoff, rng=2)
+    # Profiles: (1/2) int_0^inf dq q C^1D(q)
+    profile_spectral = np.pi / 2 * t.integrate_psd_from_profile(lambda q: np.abs(q), window=None, reliable=False)
+    for kwargs in [dict(resampling_method=None), dict(nb_points_per_decade=10)]:
+        np.testing.assert_allclose(
+            t.variance_half_derivative_via_autocorrelation_from_profile(reliable=False, **kwargs),
+            profile_spectral, rtol=rtol)
+    # Areal: int d^2q/(2 pi)^2 |q| C^2D(q)
+    np.testing.assert_allclose(t.variance_half_derivative_via_autocorrelation_from_area(reliable=False),
+                               t.variance_half_derivative(window=None, reliable=False), rtol=rtol)
+
+
+def test_container_tail_uses_topographies_at_largest_distance():
+    # The tail <h^2>/r_max uses the mean square height of the topographies
+    # that contribute at r_max, here only the large scan; the scale-dependent
+    # curve has no tail
+    large = fourier_synthesis((128, 128), (10., 10.), 0.8, rms_height=1., rng=1, unit='m')
+    small = fourier_synthesis((128, 128), (0.1, 0.1), 0.8, rms_height=0.01, rng=2, unit='m')
+    c = InMemorySurfaceContainer([small, large])
+    r, V = c.variance_half_derivative_from_autocorrelation(unit='m', scale_dependent=True, reliable=False)
+    total = c.variance_half_derivative_from_autocorrelation(unit='m', reliable=False)
+    np.testing.assert_allclose(total, V[-1] + large.Rq() ** 2 / r[-1])
