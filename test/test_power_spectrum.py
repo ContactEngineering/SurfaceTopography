@@ -364,7 +364,6 @@ def test_resampling(nb_grid_pts, physical_sizes, plot=False):
                           amplitude_distribution=lambda n: 1.0)
     q1, C1 = t.power_spectrum_from_profile(resampling_method=None)
     q2, C2 = t.power_spectrum_from_profile(resampling_method='bin-average')
-    # q3, C3 = t.power_spectrum_from_profile(resampling_method='gaussian-process')
 
     assert len(q1) == len(C1)
     assert len(q2) == len(C2)
@@ -374,7 +373,6 @@ def test_resampling(nb_grid_pts, physical_sizes, plot=False):
         import matplotlib.pyplot as plt
         plt.loglog(q1, C1, 'x-', label='native')
         plt.loglog(q2, C2, 'o-', label='bin-average')
-        # plt.loglog(q3, C3, 's-', label='gaussian-process')
         plt.legend(loc='best')
         plt.show()
 

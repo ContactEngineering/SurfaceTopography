@@ -71,10 +71,9 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
         Only return data deemed reliable, i.e. wavevectors
         :math:`q < 2\pi/\lambda_c`, where :math:`\lambda_c` is the short
         reliability cutoff. (Default: True)
-    resampling_method : {None, 'bin-average', 'gaussian-process'}, optional
+    resampling_method : {None, 'bin-average'}, optional
         None returns the PSD on the wavevectors of the FFT, 'bin-average'
-        averages it within bins, 'gaussian-process' resamples it by
-        Gaussian process regression. (Default: 'bin-average')
+        averages it within bins. (Default: 'bin-average')
     collocation : {'log', 'quadratic', 'linear'}, optional
         Resampling grid. 'log' yields collocation points equally spaced on
         a log scale, 'quadratic' yields bins equally spaced in :math:`q^2`
@@ -207,9 +206,8 @@ def power_spectrum_from_area(self, window=None, reliable=True, collocation='log'
         (Default: 10)
     return_map : bool, optional
         Return full 2D power spectrum map. (Default: False)
-    resampling_method : {'bin-average', 'gaussian-process'}, optional
-        'bin-average' for averaging within bins and 'gaussian-process' for
-        Gaussian process regression. (Default: 'bin-average')
+    resampling_method : {'bin-average'}, optional
+        'bin-average' for averaging within bins. (Default: 'bin-average')
 
     Returns
     -------

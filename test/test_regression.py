@@ -58,9 +58,6 @@ def test_make_linear_grid():
     ('bin-average', lambda x: x, dict(atol=1e-12)),
     ('bin-average', lambda x: np.sin(x), dict(atol=1e-3)),
     ('bin-average', lambda x: x ** 2, dict(atol=1e-3)),
-    ('gaussian-process', lambda x: x, dict(atol=1e-3)),
-    ('gaussian-process', lambda x: np.sin(x), dict(atol=1e-4)),
-    ('gaussian-process', lambda x: x ** 2, dict(atol=1e-3)),
 ])
 def test_resample(method, func, tol_kwargs):
     x = np.linspace(0, 1, 101)
@@ -73,8 +70,6 @@ def test_resample(method, func, tol_kwargs):
 @pytest.mark.parametrize('method,func,tol_kwargs', [
     ('bin-average', lambda x: x ** 2, dict(rtol=0.03)),
     ('bin-average', lambda x: x ** -2.8, dict(rtol=0.2)),
-    ('gaussian-process', lambda x: x ** 2, dict(rtol=0.001)),
-    ('gaussian-process', lambda x: x ** -2.8, dict(rtol=0.03)),
 ])
 def test_logresample(method, func, tol_kwargs):
     x = np.linspace(0.1, 10, 1001)
@@ -82,3 +77,16 @@ def test_logresample(method, func, tol_kwargs):
 
     x_resampled, bin_edges, y_resampled, _ = resample(x, y, collocation='log', nb_points_per_decade=3, method=method)
     np.testing.assert_allclose(y_resampled, func(x_resampled), **tol_kwargs)
+
+
+def test_unknown_resampling_method():
+    # Only bin averaging is supported; Gaussian process regression was removed
+    from SurfaceTopography.Generation import fourier_synthesis
+    x = np.linspace(0.1, 10, 101)
+    with pytest.raises(ValueError, match="Unknown resampling method"):
+        resample(x, x ** 2, method='gaussian-process')
+    t = fourier_synthesis((64,), (1.,), 0.8, rms_height=1, rng=0)
+    with pytest.raises(ValueError, match="Unknown resampling method"):
+        t.power_spectrum_from_profile(resampling_method='gaussian-process')
+    with pytest.raises(ValueError, match="Unknown resampling method"):
+        t.autocorrelation_from_profile(resampling_method='gaussian-process')

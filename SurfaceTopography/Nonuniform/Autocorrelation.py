@@ -143,10 +143,9 @@ def height_difference_autocorrelation(self, reliable=True, algorithm='fft', dist
         of the distances. If set to None, the full ACF is returned. This
         cutoff is applied in addition to the reliability cutoff.
         (Default: np.mean)
-    resampling_method : {None, 'bin-average', 'gaussian-process'}, optional
+    resampling_method : {None, 'bin-average'}, optional
         None returns the ACF on the distances of the interpolation grid (or
-        the requested distances), 'bin-average' averages it within bins,
-        'gaussian-process' resamples it by Gaussian process regression.
+        the requested distances), 'bin-average' averages it within bins.
         The 'brute-force' algorithm requires None. (Default: 'bin-average')
     collocation : {'log', 'quadratic', 'linear'}, optional
         Resampling grid. 'log' yields collocation points equally spaced on

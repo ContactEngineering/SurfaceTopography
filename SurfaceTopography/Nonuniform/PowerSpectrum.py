@@ -195,10 +195,9 @@ def power_spectrum(self, reliable=True, algorithm='fft', wavevectors=None, nb_in
         Supported are the Hann window ('hann') and no window (None or
         'None'). (Default: no window for periodic line scans, 'hann' window
         for nonperiodic line scans)
-    resampling_method : {None, 'bin-average', 'gaussian-process'}, optional
+    resampling_method : {None, 'bin-average'}, optional
         None returns the PSD on the wavevectors of the FFT (or the requested
-        wavevectors), 'bin-average' averages it within bins,
-        'gaussian-process' resamples it by Gaussian process regression.
+        wavevectors), 'bin-average' averages it within bins.
         The 'brute-force' algorithm requires None. (Default: 'bin-average')
     collocation : {'log', 'quadratic', 'linear'}, optional
         Resampling grid. 'log' yields collocation points equally spaced on

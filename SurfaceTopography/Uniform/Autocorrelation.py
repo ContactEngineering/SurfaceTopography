@@ -79,10 +79,9 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
         Only return data deemed reliable, i.e. distances
         :math:`r > \lambda_c/2`, where :math:`\lambda_c` is the short
         reliability cutoff. (Default: True)
-    resampling_method : {None, 'bin-average', 'gaussian-process'}, optional
+    resampling_method : {None, 'bin-average'}, optional
         None returns the ACF on the distances of the grid, 'bin-average'
-        averages it within bins, 'gaussian-process' resamples it by
-        Gaussian process regression. (Default: 'bin-average')
+        averages it within bins. (Default: 'bin-average')
     collocation : {'log', 'quadratic', 'linear'}, optional
         Resampling grid. 'log' yields collocation points equally spaced on
         a log scale, 'quadratic' yields bins equally spaced in :math:`r^2`
@@ -231,9 +230,8 @@ def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=
         (Default: 5)
     return_map : bool, optional
         Return full 2D autocorrelation map. (Default: False)
-    resampling_method : {'bin-average', 'gaussian-process'}, optional
-        'bin-average' for averaging within bins and 'gaussian-process' for
-        Gaussian process regression. (Default: 'bin-average')
+    resampling_method : {'bin-average'}, optional
+        'bin-average' for averaging within bins. (Default: 'bin-average')
 
     Returns
     -------
