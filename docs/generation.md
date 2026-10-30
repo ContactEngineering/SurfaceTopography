@@ -19,9 +19,9 @@ transform are those of [spectral analysis](spectral.md).
 fourier_synthesis(nb_grid_pts, physical_sizes, hurst=None, rms_height=None,
                   rms_slope=None, c0=None, psd=None, short_cutoff=None,
                   long_cutoff=None, rolloff=1.0,
-                  amplitude_distribution=lambda n: np.random.normal(size=n),
-                  periodic=True, rfn=None, kfn=None, progress_callback=None,
-                  unit=None, info={})
+                  amplitude_distribution=None, periodic=True, rfn=None,
+                  kfn=None, progress_callback=None, unit=None, info={},
+                  rng=None)
 ```
 
 `fourier_synthesis` returns a `Topography` for `nb_grid_pts` $=(N_x, N_y)$
@@ -94,7 +94,23 @@ coefficient there. `psd` cannot be combined with `hurst`, `c0`,
 ### Normalization
 
 The prefactor $C_0$ is given directly (`c0`) or determined from `rms_height`
-or `rms_slope` by `self_affine_prefactor`. For maps,
+or `rms_slope` by `self_affine_prefactor`. By Parseval's theorem, the
+expected mean square height and gradient of a realization are sums over the
+wavevectors of the grid,
+
+$$
+\langle h_\text{rms}^2 \rangle = \frac{1}{A}\sum_{\mathbf q} C_\text{synth}(q),
+\qquad
+\langle {h'_\text{rms}}^2 \rangle = \frac{1}{A}\sum_{\mathbf q} q^2\, C_\text{synth}(q),
+$$
+
+where $C_\text{synth}$ is the PSD placed on the grid, including the cutoffs
+and the roll-off region. $C_0$ is chosen such that these expectation values
+equal the requested `rms_height` or `rms_slope`. $h'_\text{rms}$ is the
+spectral rms gradient for maps and the rms slope for line scans; a
+finite-difference slope (e.g. `rms_gradient`) is slightly smaller near the
+short-wavelength cutoff. For many wavevectors in the self-affine region
+($q_L \gg 2\pi/L$), the sums approach the continuum expressions for maps
 
 $$
 h_\text{rms}^2 = \frac{1}{2\pi}\int_{q_L}^{q_s} q\,C(q)\,\mathrm dq
@@ -103,44 +119,27 @@ h_\text{rms}^2 = \frac{1}{2\pi}\int_{q_L}^{q_s} q\,C(q)\,\mathrm dq
 = \frac{C_0}{4\pi(1-H)}\left(q_s^{2-2H} - q_L^{2-2H}\right),
 $$
 
-and for line scans
+and line scans
 
 $$
 h_\text{rms}^2 = \frac{1}{\pi}\int_{q_L}^{q_s} C(q)\,\mathrm dq
 = \frac{C_0}{2\pi H}\left(q_L^{-2H} - q_s^{-2H}\right),\qquad
-{h'_\text{rms}}^2 = \frac{C_0}{2\pi(1-H)}\left(q_s^{2-2H} - q_L^{2-2H}\right),
+{h'_\text{rms}}^2 = \frac{C_0}{2\pi(1-H)}\left(q_s^{2-2H} - q_L^{2-2H}\right).
 $$
 
-which are solved for $C_0$. Here $q_L = 2\pi/\lambda_L$ if `long_cutoff` is
-given and otherwise $q_L = 2\pi/L$ (for maps with the larger of
-$2\pi/L_x$, $2\pi/L_y$). $h'_\text{rms}$ is the rms gradient for maps and the
-rms slope for line scans. The rms height requires $H>0$, the rms slope
-$H<1$; at these limits the integrals diverge logarithmically. The roll-off
-region $q<q_L$ is not included, so `rolloff > 0` together with `long_cutoff`
-adds to the rms values.
+When few long-wavelength modes carry most of the variance (large $H$, no
+long cutoff), the sums and the integrals differ by tens of percent; the
+normalization uses the sums.
 
-The normalization uses the continuous integral, while a realization contains
-the discrete wavevectors of the grid. By Parseval's theorem the expected
-variance of a realization is
-
-$$
-\langle h_\text{rms}^2 \rangle = \frac{1}{A}\sum_{\mathbf q \ne 0} C_\text{synth}(q),
-$$
-
-which differs from the integral when few long-wavelength modes dominate,
-i.e. for large $H$ and without a long cutoff (for $N=128$, $H=0.8$ and no
-long cutoff, $\langle h_\text{rms}^2\rangle$ is about 1.7 times the
-requested value). Moreover, the rms height of an individual realization
-fluctuates strongly because it is dominated by these few modes. The rms
-slope is dominated by the many short-wavelength modes and is accurate. If a
+The rms height of an individual realization still fluctuates around the
+requested value, because it is dominated by these few modes. The rms slope is
+dominated by the many short-wavelength modes and fluctuates little. If a
 topography with an exact rms height is needed, rescale it:
 
 ```python
-import numpy as np
 from SurfaceTopography.Generation import fourier_synthesis
 
-np.random.seed(0)
-t = fourier_synthesis((256, 256), (1.0, 1.0), hurst=0.8, rms_height=1.0)
+t = fourier_synthesis((256, 256), (1.0, 1.0), hurst=0.8, rms_height=1.0, rng=0)
 t = t.scale(1.0 / t.Sq()).squeeze()
 print(t.Sq())  # 1.0
 ```
@@ -155,8 +154,9 @@ with numpy slicing of `heights()`.
 
 ### Randomness, cost and memory
 
-Phases and amplitudes are drawn from numpy's global random number
-generator; seed it with `np.random.seed` for reproducible results. The cost
+Phases and amplitudes are drawn from `rng`, a seed or a
+`np.random.Generator`; without `rng`, they are drawn from numpy's global
+random state, which `np.random.seed` controls. The cost
 is dominated by the inverse FFT, $O(N_xN_y\log(N_xN_y))$. The real-space
 array ($N_xN_y$ floats) and the Fourier-space array
 ($N_x(N_y/2+1)$ complex numbers) can be memory-mapped files (`rfn`,

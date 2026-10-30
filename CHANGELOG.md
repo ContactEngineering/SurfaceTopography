@@ -25,6 +25,9 @@ v1.28.0 (not yet released)
   mode "center"; spectra of mean- and median-detrended topographies were windowed
 - BUG: The rms height of the self-affine PSD model omitted a factor 1/H, e.g. 31% too
   large for H=0.3; cutoff overrides can only narrow the model's bandwidth, as for its derivatives
+- BUG: Synthetic topographies with a requested rms height were 10-45% too rough on average;
+  the normalization now sums over the wavevectors of the grid, including the roll-off region
+- ENH: Synthetic topographies accept a seed or random number generator
 
 v1.27.0 (28Oct26)
 -----------------
