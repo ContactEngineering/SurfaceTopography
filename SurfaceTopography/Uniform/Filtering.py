@@ -356,10 +356,10 @@ class FourierFilteredUniformTopography(DecoratedUniformTopography):
 
             if self.is_filter_isotropic:
                 h_qs = np.fft.irfftn(np.fft.rfftn(self.parent_topography.heights()) *
-                                     self.filter_function(np.sqrt(qx ** 2 + qy ** 2)))
+                                     self.filter_function(np.sqrt(qx ** 2 + qy ** 2)), s=(nx, ny))
             else:
                 h_qs = np.fft.irfftn(np.fft.rfftn(self.parent_topography.heights()) *
-                                     self.filter_function(qx, qy))
+                                     self.filter_function(qx, qy), s=(nx, ny))
 
             return h_qs
         elif self.dim == 1:
@@ -369,7 +369,7 @@ class FourierFilteredUniformTopography(DecoratedUniformTopography):
 
             h = self.parent_topography.heights()
             h_q = np.fft.rfft(h)
-            h_q_filtered = np.fft.irfft(h_q * self.filter_function(q))
+            h_q_filtered = np.fft.irfft(h_q * self.filter_function(q), n=n)
 
             # Max_imaginary = np.max(np.imag(shifted_pot))
             # assert Max_imaginary < 1e-14 *np.max(np.real(shifted_pot)) ,
