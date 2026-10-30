@@ -21,6 +21,8 @@ v1.28.0 (not yet released)
 
 - BUG: Profile PSD of nonperiodic maps windowed the profiles radially instead of
   along x; low-wavevector values were off by up to a factor of six
+- BUG: Subtracting the mean or median of a periodic topography kept it periodic only for
+  mode "center"; spectra of mean- and median-detrended topographies were windowed
 
 v1.27.0 (28Oct26)
 -----------------

@@ -119,9 +119,23 @@ def test_uniform_detrended_periodicity():
     topography = Topography(
         np.array([[0, 1, 0], [0, 0, 0]]), physical_sizes=(4.0, 3.0), periodic=True
     )
-    assert topography.detrend("center").is_periodic
+    for mode in ["center", "mean", "median"]:
+        assert topography.detrend(mode).is_periodic
     assert not topography.detrend("height").is_periodic
     assert not topography.detrend("curvature").is_periodic
+
+
+@pytest.mark.parametrize("mode", ["mean", "center", "median"])
+def test_constant_detrending_leaves_psd_unchanged(mode):
+    # Subtracting a constant from a periodic topography changes only q=0,
+    # so the PSD must not change (in particular, no window may be applied)
+    t = fourier_synthesis((64, 48), (1.0, 0.75), 0.8, rms_height=1, periodic=True)
+    _, _, C = t.power_spectrum_from_area(reliable=False, return_map=True)
+    _, _, C_detrended = t.detrend(mode).power_spectrum_from_area(reliable=False, return_map=True)
+    np.testing.assert_allclose(C_detrended.ravel()[1:], C.ravel()[1:], rtol=1e-10, atol=1e-12 * C.max())
+    q, C = t.power_spectrum_from_profile(resampling_method=None, reliable=False)
+    q_detrended, C_detrended = t.detrend(mode).power_spectrum_from_profile(resampling_method=None, reliable=False)
+    np.testing.assert_allclose(C_detrended[1:], C[1:], rtol=1e-10)
 
 
 def test_passing_of_docstring():

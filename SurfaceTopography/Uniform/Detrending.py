@@ -276,8 +276,9 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
     :math:`y/L_y`) whose coefficients are determined according to
     `detrend_mode`; the result is the parent heights minus this polynomial.
 
-    Note on periodicity: Detrended topographies with mode other than
-    'center' have their `is_periodic` property set to False.
+    Note on periodicity: Detrended topographies are periodic if the parent
+    is periodic and only a constant is subtracted ('mean', 'center',
+    'median'); otherwise `is_periodic` is False.
     """
 
     _detrend_functions = {
@@ -298,8 +299,9 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
 
     def __init__(self, topography, detrend_mode='height', coeffs=None, info={}):
         """
-        Note on periodicity: Detrended topographies with mode other than
-        'center' have their `is_periodic` property set to False.
+        Note on periodicity: Detrended topographies are periodic if the
+        parent is periodic and only a constant is subtracted ('mean',
+        'center', 'median'); otherwise `is_periodic` is False.
 
         Parameters
         ----------
@@ -369,10 +371,10 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
     @property
     def is_periodic(self):
         """
-        SurfaceTopography stays periodic only after detrend mode "center".
-        Otherwise the detrended SurfaceTopography is non-periodic.
+        Subtracting a constant ('mean', 'center', 'median') preserves the
+        periodicity of the parent; subtracting a tilt or curvature does not.
         """
-        if self.detrend_mode == "center":
+        if len(self._coeffs) == 1:
             return self.parent_topography.is_periodic
         else:
             return False
