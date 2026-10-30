@@ -50,9 +50,9 @@ from SurfaceTopography import Topography
 def test_domain_decomposed_mean(comm):
     nb_grid_pts = (64, 32)
     fft = make_fft_engine(nb_grid_pts, communicator=comm)
-    heights = np.ones(fft.nb_subdomain_grid_pts)
-    topography = Topography(heights, (1.0, 1.0), decomposition='domain-decomposed',
-                            nb_subdomain_grid_pts=fft.nb_subdomain_grid_pts,
+    heights = np.ones(fft.nb_subdomain_grid_pts)  # local part of the heights
+    topography = Topography(heights, (1.0, 1.0), decomposition='subdomain',
+                            nb_grid_pts=nb_grid_pts,
                             subdomain_locations=fft.subdomain_locations,
                             communicator=comm)
     assert np.isclose(topography.mean(), 1.0)
