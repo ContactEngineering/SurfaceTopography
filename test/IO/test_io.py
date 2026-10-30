@@ -936,3 +936,23 @@ def test_data_kind_matches_data_unit(fn):
         if isinstance(ch.data_unit, str) and not is_length_unit(ch.data_unit):
             assert not ch.is_height_channel, f"{fn}: {ch.name}"
             assert ch.unit is None or is_length_unit(ch.unit), f"{fn}: {ch.name}"
+
+
+@pytest.mark.parametrize("fn", text_example_file_list + binary_example_file_list)
+def test_detect_format_with_communicator(fn):
+    # Detection with a communicator gives the same result as without
+    from NuMPI import MPI
+    assert detect_format(fn, comm=MPI.COMM_WORLD) == detect_format(fn)
+    assert open_topography(fn, communicator=MPI.COMM_WORLD).format() == detect_format(fn)
+
+
+def test_open_non_parallel_format_with_parallel_communicator(file_format_examples):
+    # A file whose reader does not support parallel I/O raises an error that
+    # names the format, during detection as well as with explicit format
+    class FakeCommunicator:
+        size = 2
+    fn = os.path.join(file_format_examples, "di-1.di")
+    with pytest.raises(ValueError, match="'di'.*does not support parallel I/O"):
+        open_topography(fn, communicator=FakeCommunicator())
+    with pytest.raises(ValueError, match="does not support parallel I/O"):
+        open_topography(fn, format="di", communicator=FakeCommunicator())

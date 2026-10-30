@@ -61,6 +61,8 @@ v1.28.0 (not yet released)
   height channels; the kind of data is inferred from its unit and the channel name
 - BUG: Text matrices written by topographies were transposed when read back and contained no
   sizes or unit; they now carry a header with physical sizes and unit
+- BUG: Format detection failed for every file when given an MPI communicator; opening a file
+  whose reader does not support parallel I/O in parallel names the format instead of failing detection
 
 v1.27.0 (28Oct26)
 -----------------
