@@ -55,6 +55,8 @@ v1.28.0 (not yet released)
 - ENH: Autocorrelation functions, scale-dependent slopes and the half-derivative variance
   from them accept topographies with missing data points
 - BUG: Channels of most file formats had no channel identifier and could not be selected by it
+- BUG: Topographies obtained from a channel of a periodic NetCDF file were not periodic;
+  periodicity None is interpreted as nonperiodic
 
 v1.27.0 (28Oct26)
 -----------------

@@ -168,7 +168,7 @@ reader.channel_id_to_height_index("Height#2")   # 1
 ```python
 reader.topography(channel_index=None, physical_sizes=None,
                   height_scale_factor=None, unit=None, info={},
-                  periodic=False, subdomain_locations=None,
+                  periodic=None, subdomain_locations=None,
                   nb_subdomain_grid_pts=None)
 
 read_topography(fn, format=None, communicator=None, **kwargs)
@@ -203,11 +203,9 @@ topography = read_topography("example-2d.npy", physical_sizes=(10.0, 10.0),
 ```
 
 Periodicity affects the windowing in spectral analysis (see
-[spectral analysis](spectral.md)). The default of `periodic` depends on the
-reader: readers of formats that store periodicity (e.g. NetCDF) have the
-default `None` and then take it from the file; the others default to
-`False`. `ChannelInfo.topography` always passes `periodic=False` unless
-`periodic` is given.
+[spectral analysis](spectral.md)). Without `periodic`, readers of formats that
+store periodicity (e.g. NetCDF) take it from the file; for all other formats
+the topography is nonperiodic. `ChannelInfo.topography` behaves the same.
 
 ## MPI-parallel reading
 

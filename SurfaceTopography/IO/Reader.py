@@ -185,7 +185,7 @@ class ChannelInfo:
         height_scale_factor=None,
         unit=None,
         info={},
-        periodic=False,
+        periodic=None,
         subdomain_locations=None,
         nb_subdomain_grid_pts=None,
     ):
@@ -214,7 +214,8 @@ class ChannelInfo:
         periodic : bool, optional
             Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
-            calculations (windowing). (Default: False)
+            calculations (windowing). (Default: None, i.e. the periodicity
+            stored in the file, or False if the file does not specify it)
         subdomain_locations : tuple of ints, optional
             Origin (location) of the subdomain handled by the present MPI
             process. (Default: None)
@@ -867,7 +868,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         height_scale_factor=None,
         unit=None,
         info={},
-        periodic=False,
+        periodic=None,
         subdomain_locations=None,
         nb_subdomain_grid_pts=None,
     ):
@@ -919,7 +920,8 @@ class ReaderBase(metaclass=abc.ABCMeta):
         periodic : bool, optional
             Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
-            calculations (windowing). (Default: False)
+            calculations (windowing). (Default: None, i.e. the periodicity
+            stored in the file, or False if the file does not specify it)
         subdomain_locations : tuple of ints, optional
             Origin (location) of the subdomain handled by the present MPI
             process. (Default: None)

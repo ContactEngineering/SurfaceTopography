@@ -882,3 +882,28 @@ def test_channel_ids_and_height_indices(fn):
     height_indices = [ch.height_index for ch in channels if ch.is_height_channel]
     assert height_indices == list(range(len(height_indices))), fn
     assert all(ch.height_index is None for ch in channels if not ch.is_height_channel), fn
+
+
+@pytest.mark.parametrize("fn", text_example_file_list + binary_example_file_list)
+def test_channel_topography_has_periodicity_of_reader(fn):
+    # Without `periodic`, the channel and the reader return the periodicity
+    # stored in the file (or False); it is always a bool
+    reader = open_topography(fn)
+    ch = reader.default_channel
+    physical_sizes = (1.0,) * ch.dim if ch.physical_sizes is None else None
+    t_reader = reader.topography(physical_sizes=physical_sizes)
+    t_channel = ch.topography(physical_sizes=physical_sizes)
+    assert isinstance(t_reader.is_periodic, bool), fn
+    assert t_channel.is_periodic == t_reader.is_periodic, fn
+
+
+def test_periodicity_from_netcdf_file():
+    from SurfaceTopography import Topography
+    with tempfile.TemporaryDirectory() as d:
+        fn = os.path.join(d, "periodic.nc")
+        Topography(np.arange(48.).reshape(8, 6), (1., 1.), periodic=True, unit="m").to_netcdf(fn)
+        reader = open_topography(fn)
+        assert reader.channels[0].is_periodic
+        assert reader.topography().is_periodic
+        assert reader.channels[0].topography().is_periodic
+        assert not reader.channels[0].topography(periodic=False).is_periodic

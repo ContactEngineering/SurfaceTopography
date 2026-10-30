@@ -831,3 +831,8 @@ def test_fourier_interpolate_keeps_unit_and_info():
     np.testing.assert_allclose(interpolated.heights()[::2, ::2], t.heights(), atol=1e-12)
     # Unit conversion of the result works
     np.testing.assert_allclose(interpolated.to_unit('mm').physical_sizes, (2e-3, 1.5e-3))
+
+
+def test_periodic_none_is_false():
+    assert Topography(np.zeros((2, 3)), (1., 1.), periodic=None).is_periodic is False
+    assert UniformLineScan(np.zeros(3), 1., periodic=None).is_periodic is False

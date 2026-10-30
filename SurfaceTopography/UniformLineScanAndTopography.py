@@ -66,7 +66,8 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
         physical_sizes : float or tuple of one float
             Physical length :math:`L` of the line scan.
         periodic : bool, optional
-            The line scan is periodic. (Default: False)
+            The line scan is periodic. None is interpreted as False.
+            (Default: False)
         unit : str, optional
             The length unit. (Default: None)
         info : dict, optional
@@ -89,7 +90,7 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
             heights = np.ma.masked_invalid(heights)
         self._heights = np.asanyarray(heights, dtype=float)
         self._size = np.asarray(physical_sizes).item()
-        self._periodic = periodic
+        self._periodic = bool(periodic)
 
     def __getstate__(self):
         state = super().__getstate__(), self._heights, self._size, self._periodic
@@ -217,7 +218,8 @@ class Topography(AbstractTopography, UniformTopographyInterface):
         physical_sizes : tuple of floats
             Physical size :math:`(L_x, L_y)` of the topography map.
         periodic : bool, optional
-            The topography is periodic. (Default: False)
+            The topography is periodic. None is interpreted as False.
+            (Default: False)
         nb_grid_pts : tuple of ints, optional
             Number of grid points for the full topography. This is only
             required if decomposition is set to 'subdomain'.
@@ -367,7 +369,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
             raise ValueError("`decomposition` can be either 'domain' or 'subdomain'.")
 
         self._size = physical_sizes
-        self._periodic = periodic
+        self._periodic = bool(periodic)
 
     def __getstate__(self):
         state = (
