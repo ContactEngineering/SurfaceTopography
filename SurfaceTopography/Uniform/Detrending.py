@@ -281,6 +281,8 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
     'median'); otherwise `is_periodic` is False.
     """
 
+    _supports_domain_decomposition = True
+
     _detrend_functions = {
         'mean': lambda self: [self.parent_topography.mean()],
         # alias of 'mean'

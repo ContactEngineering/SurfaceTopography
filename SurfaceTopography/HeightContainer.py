@@ -187,7 +187,14 @@ class DecoratedTopography(AbstractTopography):
     transformations on that data. This is a simple realization of a
     processing pipeline. Note that child topographies don't store their
     own physical_sizes etc. but pass this information through to the parent.
+
+    Pipeline steps whose result on each subdomain depends only on the
+    parent's data on that subdomain (e.g. scaling) set
+    `_supports_domain_decomposition` to True. All others raise
+    `NotImplementedError` for domain-decomposed (MPI-parallel) parents.
     """
+
+    _supports_domain_decomposition = False
 
     def __init__(self, topography, unit=None, info={}):
         """
@@ -198,6 +205,10 @@ class DecoratedTopography(AbstractTopography):
         """
         super().__init__(unit=unit, info=info)
         assert isinstance(topography, AbstractTopography)
+        if getattr(topography, "is_domain_decomposed", False) and not self._supports_domain_decomposition:
+            raise NotImplementedError(
+                f"{type(self).__name__} does not support domain-decomposed (MPI-parallel) topographies."
+            )
         self.parent_topography = topography
         self._communicator = self.parent_topography.communicator
 

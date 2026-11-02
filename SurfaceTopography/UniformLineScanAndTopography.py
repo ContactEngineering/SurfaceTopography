@@ -508,7 +508,8 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
 
     @property
     def is_domain_decomposed(self):
-        return False
+        # The parent may be a nonuniform line scan (e.g. for `to_uniform`)
+        return getattr(self.parent_topography, "is_domain_decomposed", False)
 
     @property
     def is_periodic(self):
@@ -578,10 +579,22 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
     def squeeze(self):
         """
         Evaluate the pipeline and return a `UniformLineScan` or
-        `Topography` that owns the resulting heights. The returned object
-        is serial: it contains the heights of the local subdomain and does
-        not carry the communicator or the domain decomposition.
+        `Topography` that owns the resulting heights. For domain-decomposed
+        topographies, the result has the same decomposition and
+        communicator.
         """
+        if self.is_domain_decomposed:
+            return Topography(
+                self.heights(),
+                self.physical_sizes,
+                periodic=self.is_periodic,
+                info=self.info,
+                unit=self.unit,
+                decomposition="subdomain",
+                nb_grid_pts=self.nb_grid_pts,
+                subdomain_locations=self.subdomain_locations,
+                communicator=self.communicator,
+            )
         if self.dim == 1:
             return UniformLineScan(
                 self.heights(),
@@ -602,6 +615,8 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
 
 class ScaledUniformTopography(DecoratedUniformTopography):
     """Convert heights and positions to a different length unit."""
+
+    _supports_domain_decomposition = True
 
     def __init__(self, topography, unit=None, info={}):
         """
@@ -829,6 +844,8 @@ class CompoundTopography(DecoratedUniformTopography):
     """
     Sum of the heights of two topographies with identical grids.
     """
+
+    _supports_domain_decomposition = True
 
     name = "compound_topography"
 

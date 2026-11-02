@@ -183,6 +183,8 @@ def plot(topography, subplot_location=111, axes_in_grid_points=False):
 
 
 class FilledTopography(DecoratedUniformTopography):
+    _supports_domain_decomposition = True
+
     def __init__(self, topography, fill_value=-np.inf, info={}):
         """
         masked (undefined) data is replaced with `fill_value`.

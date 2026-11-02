@@ -54,6 +54,10 @@ v1.28.0 (not yet released)
 - BUG: Fourier interpolation of topographies dropped the unit and the metadata
 - ENH: Autocorrelation functions, scale-dependent slopes and the half-derivative variance
   from them accept topographies with missing data points
+- BUG: Pipeline steps on domain-decomposed (MPI-parallel) topographies reported themselves as
+  not decomposed, and squeezing them returned a serial topography per process
+- API: Pipeline steps that do not support domain-decomposed topographies (e.g. transposition,
+  translation, Fourier filters, downsampling, imputation) raise an error instead of wrong results
 
 v1.27.0 (28Oct26)
 -----------------
