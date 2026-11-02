@@ -354,6 +354,18 @@ class Topography(AbstractTopography, UniformTopographyInterface):
                     "please specify `nb_subdomain_grid_pts` since it cannot "
                     "be inferred."
                 )
+            if any(
+                s < 0 or n < 0 or s + n > N
+                for s, n, N in zip(subdomain_locations, nb_subdomain_grid_pts, heights.shape)
+            ):
+                # Slicing would silently return a smaller subdomain
+                raise ValueError(
+                    "The subdomain at `subdomain_locations` (= {}) with "
+                    "`nb_subdomain_grid_pts` (= {}) does not lie within the "
+                    "`heights` (= {}) array.".format(
+                        subdomain_locations, nb_subdomain_grid_pts, heights.shape
+                    )
+                )
             self._nb_grid_pts = heights.shape
             self._subdomain_locations = subdomain_locations
             self._heights = np.asanyarray(
