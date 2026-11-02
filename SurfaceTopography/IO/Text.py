@@ -709,9 +709,12 @@ def write_matrix(self, fname):
         File name or stream to write to.
     """
     unit = "" if self.unit is None else f" {self.unit}"
-    header = [f"Width: {self.physical_sizes[0]!r}{unit}"]
+    # Python floats: the repr of NumPy scalars (e.g. `np.float64(2.5)`)
+    # cannot be parsed by the reader
+    sizes = [float(s) for s in self.physical_sizes]
+    header = [f"Width: {sizes[0]!r}{unit}"]
     if self.dim == 2:
-        header += [f"Height: {self.physical_sizes[1]!r}{unit}"]
+        header += [f"Height: {sizes[1]!r}{unit}"]
     if self.unit is not None:
         header += [f"Value units: {self.unit}"]
     heights = np.ma.filled(np.ma.asarray(self.heights(), dtype=float), np.nan)
