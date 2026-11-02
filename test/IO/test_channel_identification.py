@@ -492,6 +492,10 @@ def test_data_kind_from_unit():
     assert data_kind_from_unit("V", "Friction") == DataKind.FRICTION
     assert data_kind_from_unit("V", "NapPotentialTrace") == DataKind.VOLTAGE
     assert data_kind_from_unit("pA", "Tunneling") == DataKind.CURRENT
+    # 'A' is the ångström unless the format uses it for the ampere
+    assert data_kind_from_unit("A", "CurrentTrace") == DataKind.HEIGHT
+    assert data_kind_from_unit("A", "CurrentTrace", ascii_angstrom=False) == DataKind.CURRENT
+    assert data_kind_from_unit("A", "Signal", ascii_angstrom=False) == DataKind.CURRENT
     assert data_kind_from_unit("N", "Force") == DataKind.OTHER
     # Without explicit data kind, ChannelInfo infers it
     assert ChannelInfo(None, 0, name="Deflection", data_unit="V").data_kind == DataKind.DEFLECTION

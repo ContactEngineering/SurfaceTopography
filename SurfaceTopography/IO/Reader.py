@@ -78,6 +78,7 @@ _DATA_KIND_UNITS = {
     "V": DataKind.VOLTAGE,
     "mV": DataKind.VOLTAGE,
     "µV": DataKind.VOLTAGE,
+    "A": DataKind.CURRENT,
     "nA": DataKind.CURRENT,
     "pA": DataKind.CURRENT,
     "deg": DataKind.PHASE,
@@ -86,7 +87,7 @@ _DATA_KIND_UNITS = {
 }
 
 
-def data_kind_from_unit(data_unit, name=None):
+def data_kind_from_unit(data_unit, name=None, ascii_angstrom=True):
     """
     Kind of the data of a channel, inferred from the unit of its values and
     its name.
@@ -103,13 +104,17 @@ def data_kind_from_unit(data_unit, name=None):
         Unit of the data values.
     name : str, optional
         Name of the channel. (Default: None)
+    ascii_angstrom : bool, optional
+        If True, 'A' is the ASCII form of the ångström (a length, i.e.
+        height data). Set to False for file formats that use 'A' for the
+        ampere. (Default: True)
 
     Returns
     -------
     data_kind : DataKind
         Kind of the data.
     """
-    if data_unit is None or is_length_unit(data_unit):
+    if data_unit is None or is_length_unit(data_unit, ascii_angstrom=ascii_angstrom):
         return DataKind.HEIGHT
     lower_name = "" if name is None else name.lower()
     for keyword, data_kind in _DATA_KIND_KEYWORDS:
