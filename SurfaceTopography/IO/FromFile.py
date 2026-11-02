@@ -32,6 +32,7 @@ SurfaceTopography profile from file input
 import numpy as np
 
 from ..UniformLineScanAndTopography import Topography
+from ..Exceptions import CorruptFile
 from .common import CHANNEL_NAME_INFO_KEY
 from .Reader import ChannelInfo, ReaderBase
 
@@ -207,11 +208,14 @@ def read_hgt(
     fsize = fobj.tell()
     fobj.seek(0)
 
+    # The file has no header; a square tile of 16-bit values determines
+    # its size, so any other size means that the file is damaged (e.g.
+    # truncated)
     dim = int(np.sqrt(fsize / 2))
     if dim * dim * 2 != fsize:
-        raise RuntimeError(
-            "File physical_sizes of {0} bytes does not match file "
-            "physical_sizes for a map of dimension {1}x{1}.".format(fsize, dim)
+        raise CorruptFile(
+            "The file size of {0} bytes does not match the size of a square tile of 16-bit values; "
+            "the file is probably truncated.".format(fsize)
         )
     dtype = np.dtype(">i2")
     # The tile is stored row by row, starting at the northern edge; each row

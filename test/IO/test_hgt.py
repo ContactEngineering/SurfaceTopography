@@ -28,6 +28,7 @@ import numpy as np
 import pytest
 from NuMPI.Testing.Fixtures import serial_only
 
+from SurfaceTopography.Exceptions import CorruptFile
 from SurfaceTopography.IO.FromFile import HGTReader, read_hgt
 
 pytestmark = serial_only
@@ -65,5 +66,5 @@ def test_orientation_and_voids(tmp_path):
 def test_wrong_size(tmp_path):
     fn = tmp_path / 'broken.hgt'
     fn.write_bytes(b'\x00' * 10)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(CorruptFile):
         read_hgt(str(fn))
