@@ -22,10 +22,12 @@
 # SOFTWARE.
 #
 
+import io
 import os
 
 import h5py
 import numpy as np
+import pytest
 import scipy.io
 from NuMPI.Testing.Fixtures import serial_only
 
@@ -107,3 +109,14 @@ def test_read_mat73(tmp_path):
         reader = open_topography(f)
         assert reader.format() == 'mat'
         np.testing.assert_allclose(reader.topography(physical_sizes=(1., 1.)).heights(), heights)
+
+
+@pytest.mark.parametrize("fraction", [0.5, 0.9])
+def test_truncated_mat73(tmp_path, fraction):
+    # Version 7.3 files are HDF5 files after a 512 byte user block
+    from SurfaceTopography.Exceptions import CorruptFile
+    fn = str(tmp_path / 'v73.mat')
+    _write_mat73(fn, np.arange(12.).reshape(3, 4))
+    data = open(fn, 'rb').read()
+    with pytest.raises(CorruptFile):
+        MatReader(io.BytesIO(data[:int(len(data) * fraction)]))

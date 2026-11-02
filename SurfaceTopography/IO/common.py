@@ -56,6 +56,49 @@ def check_stream_size(fobj, expected_size):
         )
 
 
+_HDF5_SIGNATURE = b"\x89HDF\r\n\x1a\n"
+
+
+def check_hdf5_size(fobj):
+    """
+    Raise `CorruptFile` if an HDF5 file is shorter than the end-of-file
+    address stored in its superblock, i.e. if it is truncated. The
+    superblock is searched at offset 0 and at 512, 1024, 2048, ... bytes
+    (after a user block, e.g. of MAT-files). Streams without HDF5 signature
+    are ignored.
+    """
+    size = stream_size(fobj)
+    location = 0
+    while location + 8 <= size:
+        fobj.seek(location)
+        if fobj.read(8) == _HDF5_SIGNATURE:
+            break
+        location = 512 if location == 0 else 2 * location
+    else:
+        fobj.seek(0)
+        return
+    superblock = fobj.read(56)
+    fobj.seek(0)
+    version = superblock[0]
+    if version in (0, 1):
+        size_of_offsets = superblock[5]
+        # Base address, free-space info, end-of-file address, driver info
+        first_address = 16 if version == 0 else 20
+    else:
+        size_of_offsets = superblock[1]
+        # Base address, superblock extension, end-of-file address
+        first_address = 4
+    if len(superblock) < first_address + 3 * size_of_offsets:
+        from ..Exceptions import CorruptFile
+        raise CorruptFile("The file ended within the HDF5 superblock; it is probably truncated.")
+    addresses = [int.from_bytes(superblock[first_address + i * size_of_offsets:
+                                           first_address + (i + 1) * size_of_offsets], "little")
+                 for i in range(3)]
+    # The end-of-file address is absolute, i.e. it includes a user block
+    _, _, end_of_file_address = addresses
+    check_stream_size(fobj, end_of_file_address)
+
+
 def is_binary_stream(fobj):
     """Check whether fobj is a binary stream"""
     return isinstance(fobj, io.BytesIO) or \

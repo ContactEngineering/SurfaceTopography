@@ -32,7 +32,7 @@ from scipy.io import loadmat, whosmat
 
 from ..Exceptions import CorruptFile, FileFormatMismatch
 from ..UniformLineScanAndTopography import Topography
-from .common import OpenFromAny, check_stream_size, stream_size
+from .common import OpenFromAny, check_hdf5_size, check_stream_size, stream_size
 from .Reader import ReaderBase, ChannelInfo
 
 # MATLAB classes that hold numerical data that can be interpreted as heights.
@@ -159,6 +159,7 @@ sizes. These need to be manually provided by the user.
         shape of the HDF5 dataset is the transpose of the MATLAB shape.
         """
         header = []
+        check_hdf5_size(f)
         try:
             h5 = h5py.File(f, 'r')
         except OSError:
