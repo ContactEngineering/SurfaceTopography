@@ -142,3 +142,12 @@ def test_serial_only_analyses_raise(comm):
                  "scale_dependent_slope_from_area"]:
         with pytest.raises(NotImplementedError, match=name):
             getattr(decomposed, name)()
+
+
+@pytest.mark.parametrize("periodic", [True, False])
+@pytest.mark.parametrize("nb_grid_pts", [(64, 48), (63, 49)])
+@pytest.mark.parametrize("kwargs", [dict(), dict(nb_points_per_decade=20), dict(collocation="linear", nb_points=30)])
+def test_power_spectrum_from_area(comm, periodic, nb_grid_pts, kwargs):
+    serial, decomposed = _serial_and_decomposed(comm, periodic=periodic, nb_grid_pts=nb_grid_pts)
+    _assert_same_result(serial.power_spectrum_from_area(reliable=False, **kwargs),
+                        decomposed.power_spectrum_from_area(reliable=False, **kwargs))

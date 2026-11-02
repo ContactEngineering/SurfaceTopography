@@ -33,7 +33,7 @@ import numpy as np
 from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
 from ..Support import doi, fold_fft_half
-from ..Support.Regression import resample, resample_radial
+from ..Support.Regression import bin_average, make_grid, resample, resample_radial
 from .common import mean_over_profiles
 
 
@@ -245,6 +245,10 @@ def power_spectrum_from_area(self, window=None, reliable=True, collocation='log'
 
     h = self.window(window=window, direction='radial').heights()
 
+    if self.is_domain_decomposed:
+        return _power_spectrum_from_area_decomposed(self, h, qmax, collocation, nb_points, nb_points_per_decade,
+                                                    return_map, resampling_method)
+
     # Compute FFT and normalize
     surface_qk = self.area_per_pt * np.fft.fft2(h)
     C_qk = abs(surface_qk) ** 2 / (sx * sy)  # pylint: disable=invalid-name
@@ -259,6 +263,55 @@ def power_spectrum_from_area(self, window=None, reliable=True, collocation='log'
         return q_val, C_val, C_qk
     else:
         return q_val, C_val
+
+
+def _power_spectrum_from_area_decomposed(self, h, qmax, collocation, nb_points, nb_points_per_decade, return_map,
+                                         resampling_method):
+    """
+    Radially averaged PSD of a domain-decomposed topography from the
+    distributed FFT. The Fourier coefficients are distributed over the
+    processes and only one half of them along x is stored (real-to-complex
+    transform); coefficients that also stand for their complex conjugate
+    count twice in the radial average, which therefore equals the average
+    over the full Fourier grid.
+    """
+    if return_map:
+        raise NotImplementedError("The PSD map of domain-decomposed topographies is not available.")
+    if resampling_method != 'bin-average':
+        raise ValueError(f"Unknown resampling method '{resampling_method}'.")
+    nx, ny = self.nb_grid_pts
+    sx, sy = self.physical_sizes
+
+    fft = self.make_fft()
+    real_field = fft.real_space_field("power_spectrum_real")
+    fourier_field = fft.fourier_space_field("power_spectrum_fourier")
+    real_field.p[...] = h
+    fft.fft(real_field, fourier_field)
+    C_qk = np.abs(self.area_per_pt * fourier_field.p) ** 2 / (sx * sy)
+
+    # Wavevectors of the local Fourier coefficients; fftfreq is in units of
+    # inverse grid points. (The wavevectors are computed from integer indices
+    # exactly as in `resample_radial`, such that values on bin edges end up
+    # in the same bins as in the serial computation.)
+    fx, fy = np.asarray(fft.fftfreq)
+    kx = np.abs(np.round(fx * nx))
+    ky = np.abs(np.round(fy * ny))
+    qx = 2 * np.pi * nx / sx / nx * kx
+    qy = 2 * np.pi * ny / sy / ny * ky
+    q = np.sqrt(qx ** 2 + qy ** 2)
+    # Coefficients at q_x = 0 and at the Nyquist wavevector along x are their
+    # own complex conjugates
+    weights = np.where((kx == 0) | (2 * kx == nx), 1.0, 2.0)
+
+    # Same grid as `resample_radial` for the serial computation
+    min_value = min(2 * np.pi / sx, 2 * np.pi / sy)
+    if min_value >= qmax:
+        raise NoReliableDataError('Dataset contains no reliable data.')
+    collocation_points, bin_edges = make_grid(collocation, min_value, qmax, nb_points=nb_points,
+                                              nb_points_per_decade=nb_points_per_decade)
+    q_val, C_val, _ = bin_average(collocation_points, bin_edges, q.ravel(), C_qk.ravel(),
+                                  weights=weights.ravel(), communicator=self.communicator)
+    return q_val, C_val
 
 
 def fftfreq(t, meshgrid=True):
@@ -332,4 +385,5 @@ UniformTopographyInterface.register_function("wavevectors_norm2", wavevectors_no
 # Register analysis functions from this module
 UniformTopographyInterface.register_function('power_spectrum_from_profile', power_spectrum_from_profile,
                                              domain_decomposition=True)
-UniformTopographyInterface.register_function('power_spectrum_from_area', power_spectrum_from_area)
+UniformTopographyInterface.register_function('power_spectrum_from_area', power_spectrum_from_area,
+                                             domain_decomposition=True)

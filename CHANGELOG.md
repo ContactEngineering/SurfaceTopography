@@ -66,6 +66,8 @@ v1.28.0 (not yet released)
   were wrong for domain-decomposed (MPI-parallel) topographies; profile rms height works in parallel
 - API: Analyses that do not support domain-decomposed (MPI-parallel) topographies raise an error
   instead of returning the result of the local subdomain or failing with index errors
+- ENH: Areal power spectral density of domain-decomposed (MPI-parallel) topographies, computed
+  with the distributed FFT
 
 v1.27.0 (28Oct26)
 -----------------
