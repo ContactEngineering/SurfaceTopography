@@ -33,6 +33,29 @@ CHANNEL_NAME_INFO_KEY = 'channel_name'
 
 ###
 
+def stream_size(fobj):
+    """Total size of a seekable stream in bytes; the position is kept."""
+    position = fobj.tell()
+    fobj.seek(0, io.SEEK_END)
+    size = fobj.tell()
+    fobj.seek(position)
+    return size
+
+
+def check_stream_size(fobj, expected_size):
+    """
+    Raise `CorruptFile` if the stream is shorter than `expected_size` bytes,
+    i.e. if the file is truncated.
+    """
+    size = stream_size(fobj)
+    if size < expected_size:
+        from ..Exceptions import CorruptFile
+        raise CorruptFile(
+            f"The file has {size} bytes, but its header describes {expected_size} bytes; it is "
+            f"probably truncated."
+        )
+
+
 def is_binary_stream(fobj):
     """Check whether fobj is a binary stream"""
     return isinstance(fobj, io.BytesIO) or \

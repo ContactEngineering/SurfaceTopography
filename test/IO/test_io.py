@@ -969,17 +969,23 @@ def test_open_non_parallel_format_with_parallel_communicator(file_format_example
         open_topography(fn, format="di", communicator=FakeCommunicator())
 
 
+# Readers that check explicitly for truncated files, in addition to the
+# declarative readers and the plain text reader
+_TRUNCATION_CHECKED_FORMATS = []
+
+
 def _truncation_examples():
-    # Example files of the declarative readers and the plain text reader
+    # Example files of the readers that detect truncated files
     from SurfaceTopography.IO.Reader import DeclarativeReaderBase
     from SurfaceTopography.IO.Text import AscReader
     examples = []
     for fn in text_example_file_list + binary_example_file_list:
         try:
-            reader_class = SurfaceTopography.IO.lookup_reader_by_format[detect_format(fn)]
+            fmt = detect_format(fn)
         except Exception:
             continue
-        if issubclass(reader_class, (DeclarativeReaderBase, AscReader)):
+        reader_class = SurfaceTopography.IO.lookup_reader_by_format[fmt]
+        if issubclass(reader_class, (DeclarativeReaderBase, AscReader)) or fmt in _TRUNCATION_CHECKED_FORMATS:
             examples += [fn]
     return examples
 
@@ -996,7 +1002,8 @@ def test_truncated_file_raises_corrupt_file(fn, fraction):
     stream = io.BytesIO(data[: int(len(data) * fraction)])
     try:
         reader = open_topography(stream, format=fmt)
-        ch = reader.default_channel
-        reader.topography(physical_sizes=None if ch.physical_sizes is not None else (1.0,) * ch.dim)
+        for ch in reader.channels:
+            reader.topography(channel_index=ch.index,
+                              physical_sizes=None if ch.physical_sizes is not None else (1.0,) * ch.dim)
     except (ReadFileError, CannotPerformAnalysisError):
         pass
