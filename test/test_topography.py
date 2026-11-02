@@ -838,3 +838,9 @@ def test_fourier_interpolate_keeps_unit_and_info():
 def test_periodic_none_is_false():
     assert Topography(np.zeros((2, 3)), (1., 1.), periodic=None).is_periodic is False
     assert UniformLineScan(np.zeros(3), 1., periodic=None).is_periodic is False
+
+
+def test_topography_from_list():
+    t = Topography([[1., 2., 3.], [4., 5., 6.]], (2., 3.))
+    assert t.nb_grid_pts == (2, 3)
+    np.testing.assert_allclose(t.heights(), [[1., 2., 3.], [4., 5., 6.]])

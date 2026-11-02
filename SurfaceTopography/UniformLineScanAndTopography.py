@@ -271,6 +271,8 @@ class Topography(AbstractTopography, UniformTopographyInterface):
                        nb_subdomain_grid_pts=nb_subdomain_grid_pts,
                        communicator=comm)
         """
+        if not hasattr(heights, "ndim"):
+            heights = np.array(heights)
         if heights.ndim != 2:
             raise ValueError("Heights array must be two-dimensional.")
 

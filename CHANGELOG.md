@@ -67,6 +67,7 @@ v1.28.0 (not yet released)
   corrupt-file error instead of numpy or struct errors
 - BUG: Format descriptions with unknown expression nodes, operators or functions raise an
   unsupported-schema error instead of a generic value error
+- BUG: Topographies can be created from nested lists, like line scans
 
 v1.27.0 (28Oct26)
 -----------------
