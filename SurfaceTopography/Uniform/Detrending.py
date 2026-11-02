@@ -35,6 +35,7 @@ coefficients therefore all carry the unit of the heights.
 """
 
 import numpy as np
+from NuMPI import MPI
 
 from SurfaceTopography.UniformLineScanAndTopography import (
     DecoratedUniformTopography, UniformTopographyInterface)
@@ -78,6 +79,30 @@ def polyfit_line_scan(self, deg):
     return np.array(coeffs)[::-1]
 
 
+def _normalized_coordinates(self):
+    """
+    Normalized coordinates :math:`x/L_x, y/L_y` of the grid points of the
+    local subdomain, on the grid of the heights.
+    """
+    grids = [(s + np.arange(n)) / N
+             for s, n, N in zip(self.subdomain_locations, self.nb_subdomain_grid_pts, self.nb_grid_pts)]
+    return np.meshgrid(*grids, indexing='ij')
+
+
+def _least_squares(self, location_matrix, offsets):
+    """
+    Least-squares coefficients for the design matrix and right-hand side of
+    the defined data points. For domain-decomposed topographies, the normal
+    equations are summed over all processes.
+    """
+    if self.is_domain_decomposed:
+        comm = self.communicator
+        normal_matrix = comm.allreduce(location_matrix.T @ location_matrix, op=MPI.SUM)
+        rhs = comm.allreduce(location_matrix.T @ offsets, op=MPI.SUM)
+        return np.linalg.solve(normal_matrix, rhs)
+    return np.array(np.linalg.lstsq(location_matrix, offsets, rcond=None)[0])
+
+
 def polyfit1_topography(self, full_output=False):
     r"""
     Compute the tilt plane that, if subtracted, minimizes the rms height of
@@ -109,10 +134,7 @@ def polyfit1_topography(self, full_output=False):
         Design matrix, only returned if `full_output` is True.
     """
     arr = self.heights()
-    nb_dim = self.dim
-    x_grids = (np.arange(n) / n for n in self.nb_grid_pts)
-    if nb_dim > 1:
-        x_grids = np.meshgrid(*x_grids, indexing='ij')
+    x_grids = _normalized_coordinates(self)
     if np.ma.getmask(arr) is np.ma.nomask:
         columns = [x.reshape((-1, 1)) for x in x_grids]
     else:
@@ -121,9 +143,7 @@ def polyfit1_topography(self, full_output=False):
     # linear regression model
     location_matrix = np.hstack([np.ones_like(columns[-1])] + columns)
     offsets = np.ma.compressed(arr)
-    # res = scipy.optimize.nnls(location_matrix, offsets)
-    res = np.linalg.lstsq(location_matrix, offsets, rcond=None)
-    coeffs = np.array(res[0])
+    coeffs = _least_squares(self, location_matrix, offsets)
     if full_output:
         return coeffs, location_matrix
     else:
@@ -161,11 +181,9 @@ def polyfit2_topography(self, full_output=False):
         Design matrix, only returned if `full_output` is True.
     """
     arr = self.heights()
-    nb_dim = self.dim
-    assert nb_dim == 2
-    x_grids = (np.arange(n) / n for n in self.nb_grid_pts)
+    assert self.dim == 2
     # Linear terms
-    x_grids = np.meshgrid(*x_grids, indexing='ij')
+    x_grids = _normalized_coordinates(self)
     # Quadratic terms
     x, y = x_grids
     x_grids += (x * x, y * y, x * y)
@@ -177,9 +195,7 @@ def polyfit2_topography(self, full_output=False):
     # linear regression model
     location_matrix = np.hstack([np.ones_like(columns[-1])] + columns)
     offsets = np.ma.compressed(arr)
-    # res = scipy.optimize.nnls(location_matrix, offsets)
-    res = np.linalg.lstsq(location_matrix, offsets, rcond=None)
-    coeffs = np.array(res[0])
+    coeffs = _least_squares(self, location_matrix, offsets)
     if full_output:
         return coeffs, location_matrix
     else:
@@ -399,8 +415,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             else:
                 raise RuntimeError('Unknown size of coefficients tuple for line scans.')
         else:  # self.dim == 2
-            x, y = np.meshgrid(*(np.arange(n) / n for n in self.nb_grid_pts),
-                               indexing='ij')
+            x, y = _normalized_coordinates(self)
             if len(self._coeffs) == 3:
                 a0, a1x, a1y = self._coeffs
                 return self.parent_topography.heights() - a0 - a1x * x - a1y * y

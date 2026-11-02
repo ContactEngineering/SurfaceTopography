@@ -86,3 +86,14 @@ def test_robust_statistics(comm, periodic, masked):
     np.testing.assert_allclose(decomposed.bearing_area(heights), serial.bearing_area(heights), rtol=1e-12)
     np.testing.assert_allclose(decomposed.median(), serial.median(), rtol=1e-10)
     np.testing.assert_allclose(decomposed.mad_height(), serial.mad_height(), rtol=1e-10)
+
+
+@pytest.mark.parametrize("periodic", [True, False])
+@pytest.mark.parametrize("mode,rtol", [("center", 1e-12), ("median", 1e-10), ("height", 1e-10),
+                                       ("curvature", 1e-10), ("mad-tilt", 1e-5)])
+def test_detrend(comm, periodic, mode, rtol):
+    serial, decomposed = _serial_and_decomposed(comm, periodic=periodic)
+    s, d = serial.detrend(mode), decomposed.detrend(mode)
+    np.testing.assert_allclose(d.coeffs, s.coeffs, rtol=rtol, atol=rtol * np.ptp(s.heights()))
+    np.testing.assert_allclose(d.heights(), _local(s.heights(), d), rtol=rtol, atol=rtol * np.ptp(s.heights()))
+    assert d.is_periodic == s.is_periodic

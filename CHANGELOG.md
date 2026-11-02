@@ -60,6 +60,8 @@ v1.28.0 (not yet released)
   translation, Fourier filters, downsampling, imputation) raise an error instead of wrong results
 - BUG: Bearing area, median and median absolute deviation of domain-decomposed (MPI-parallel)
   topographies were computed per process
+- BUG: Detrending domain-decomposed (MPI-parallel) topographies with a tilt or curvature failed;
+  the fit is now computed over the whole topography
 
 v1.27.0 (28Oct26)
 -----------------
