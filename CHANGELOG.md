@@ -65,6 +65,8 @@ v1.28.0 (not yet released)
   whose reader does not support parallel I/O in parallel names the format instead of failing detection
 - BUG: Truncated files of the declaratively described formats and text files raise a
   corrupt-file error instead of numpy or struct errors
+- BUG: Format descriptions with unknown expression nodes, operators or functions raise an
+  unsupported-schema error instead of a generic value error
 
 v1.27.0 (28Oct26)
 -----------------
