@@ -31,18 +31,19 @@
 
 import datetime
 import re
+import struct
 
 import numpy as np
 from igor2.binarywave import load as loadibw
 
-from ..Exceptions import MetadataAlreadyFixedByFile, UnsupportedFormatFeature
+from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile, UnsupportedFormatFeature
 from ..Support.UnitConversion import (
     get_unit_conversion_factor,
     is_length_unit,
     mangle_length_unit_utf8,
 )
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
-from .common import OpenFromAny
+from .common import OpenFromAny, check_stream_size
 from .Reader import ChannelInfo, ReaderBase, data_kind_from_unit
 
 # Asylum Research writes the same `dataUnits` into the wave header for all
@@ -138,6 +139,27 @@ def _acquisition_time(note):
     return None
 
 
+def _check_ibw_size(f):
+    """
+    Raise `CorruptFile` if the file is shorter than the blocks declared in
+    the binary header of a version 5 IBW file (igor2 does not check this).
+    """
+    header = f.read(64)
+    f.seek(0)
+    if len(header) < 64:
+        raise CorruptFile("The file is too short for an IBW header.")
+    for byte_order in '<>':
+        if struct.unpack(byte_order + 'h', header[:2])[0] == 5:
+            break
+    else:
+        return  # Not version 5; reported below
+    (_, _, wfm_size, formula_size, note_size, data_units_size, *rest) = \
+        struct.unpack(byte_order + 'hhiiii4i4iiii', header)
+    dim_units_sizes, dim_labels_sizes, string_indices_size = rest[:4], rest[4:8], rest[8]
+    check_stream_size(f, 64 + wfm_size + formula_size + note_size + data_units_size + sum(dim_units_sizes)
+                      + sum(dim_labels_sizes) + string_indices_size)
+
+
 class IBWReader(ReaderBase):
     _format = 'ibw'
     _mime_types = ['application/x-igor-binary-wave']
@@ -161,6 +183,7 @@ on the physical size of the topography map as well as its units.
         # handles and must not pin the full data in memory.
         self._file_path = file_path
         with OpenFromAny(file_path, 'rb') as f:
+            _check_ibw_size(f)
             file = loadibw(f)
 
         if file['version'] != 5:
