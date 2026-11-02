@@ -24,13 +24,15 @@
 # SOFTWARE.
 #
 
+import struct
+
 import h5py
 import numpy as np
 from scipy.io import loadmat, whosmat
 
-from ..Exceptions import FileFormatMismatch
+from ..Exceptions import CorruptFile, FileFormatMismatch
 from ..UniformLineScanAndTopography import Topography
-from .common import OpenFromAny
+from .common import OpenFromAny, check_stream_size, stream_size
 from .Reader import ReaderBase, ChannelInfo
 
 # MATLAB classes that hold numerical data that can be interpreted as heights.
@@ -60,6 +62,41 @@ def _is_2d_array(shape):
     except (TypeError, ValueError):
         return False
     return nx > 0 and ny > 0
+
+
+# Data type of compressed data elements of version 5 MAT-files
+_MI_COMPRESSED = 15
+
+
+def _check_mat5_size(f):
+    """
+    Raise `CorruptFile` if a top-level data element of a version 5 MAT-file
+    extends beyond the end of the file (scipy raises OSError then). The file
+    consists of a 128-byte header and data elements with an 8-byte tag
+    (data type, number of bytes); elements are padded to 8 bytes, except
+    compressed ones.
+    """
+    header = f.read(128)
+    f.seek(0)
+    if len(header) < 128 or not header.startswith(b"MATLAB") or header[126:128] not in (b"IM", b"MI"):
+        return  # Not a version 5 MAT-file; scipy reports this
+    byte_order = "<" if header[126:128] == b"IM" else ">"
+    size = stream_size(f)
+    offset = 128
+    while offset < size:
+        f.seek(offset)
+        tag = f.read(8)
+        if len(tag) < 8:
+            raise CorruptFile("The file ended within the tag of a data element; it is probably truncated.")
+        data_type, nb_bytes = struct.unpack(byte_order + "II", tag)
+        if data_type >> 16:
+            # Small data element: the data is stored within the tag
+            offset += 8
+            continue
+        end = offset + 8 + nb_bytes
+        check_stream_size(f, end)
+        offset = end if data_type == _MI_COMPRESSED else end + (-end % 8)
+    f.seek(0)
 
 
 class MatReader(ReaderBase):
@@ -98,6 +135,7 @@ sizes. These need to be manually provided by the user.
             if self._hdf5:
                 header = self._whosmat_hdf5(f)
             else:
+                _check_mat5_size(f)
                 header = whosmat(f)  # Only read header
         for name, shape, data_class in header:
             if data_class not in _NUMERIC_MATLAB_CLASSES or not _is_2d_array(shape):
