@@ -35,8 +35,8 @@ from NuMPI.FFT import make_fft_engine
 from SurfaceTopography.Generation import fourier_synthesis
 
 
-def _serial_and_decomposed(comm, periodic=True, nb_grid_pts=(64, 48)):
-    serial = fourier_synthesis(nb_grid_pts, (1., 0.75), 0.8, rms_height=1., rng=0, periodic=periodic, unit="µm")
+def _serial_and_decomposed(comm, periodic=True, nb_grid_pts=(64, 48), physical_sizes=(1., 0.75)):
+    serial = fourier_synthesis(nb_grid_pts, physical_sizes, 0.8, rms_height=1., rng=0, periodic=periodic, unit="µm")
     serial = serial.squeeze()
     fft = make_fft_engine(nb_grid_pts, communicator=comm)
     decomposed = serial.domain_decompose(fft.subdomain_locations, fft.nb_subdomain_grid_pts, communicator=comm)
@@ -145,10 +145,15 @@ def test_serial_only_analyses_raise(comm):
 
 
 @pytest.mark.parametrize("periodic", [True, False])
-@pytest.mark.parametrize("nb_grid_pts", [(64, 48), (63, 49)])
-@pytest.mark.parametrize("kwargs", [dict(), dict(nb_points_per_decade=20), dict(collocation="linear", nb_points=30)])
-def test_power_spectrum_from_area(comm, periodic, nb_grid_pts, kwargs):
-    serial, decomposed = _serial_and_decomposed(comm, periodic=periodic, nb_grid_pts=nb_grid_pts)
+@pytest.mark.parametrize("nb_grid_pts,physical_sizes", [((64, 48), (1., 0.75)), ((63, 49), (1., 0.75)),
+                                                        ((100, 100), (3., 3.))])
+@pytest.mark.parametrize("kwargs", [dict(), dict(nb_points_per_decade=20), dict(collocation="linear", nb_points=30),
+                                    dict(collocation="quadratic", nb_points=30)])
+def test_power_spectrum_from_area(comm, periodic, nb_grid_pts, physical_sizes, kwargs):
+    # (100, 100) with sizes (3, 3) has a lower bin edge that is sensitive to
+    # the floating-point arithmetic of the wavevector spacing
+    serial, decomposed = _serial_and_decomposed(comm, periodic=periodic, nb_grid_pts=nb_grid_pts,
+                                                physical_sizes=physical_sizes)
     _assert_same_result(serial.power_spectrum_from_area(reliable=False, **kwargs),
                         decomposed.power_spectrum_from_area(reliable=False, **kwargs))
 

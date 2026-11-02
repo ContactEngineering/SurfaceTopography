@@ -303,8 +303,9 @@ def _power_spectrum_from_area_decomposed(self, h, qmax, collocation, nb_points, 
     # own complex conjugates
     weights = np.where((kx == 0) | (2 * kx == nx), 1.0, 2.0)
 
-    # Same grid as `resample_radial` for the serial computation
-    min_value = min(2 * np.pi / sx, 2 * np.pi / sy)
+    # Same grid as `resample_radial` for the serial computation, including
+    # the floating-point arithmetic of the lower bin edge
+    min_value = min(2 * np.pi * nx / sx / nx, 2 * np.pi * ny / sy / ny)
     if min_value >= qmax:
         raise NoReliableDataError('Dataset contains no reliable data.')
     collocation_points, bin_edges = make_grid(collocation, min_value, qmax, nb_points=nb_points,
