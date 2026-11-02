@@ -25,6 +25,7 @@
 #
 
 import json
+import struct
 
 import dateutil.parser
 import numpy as np
@@ -33,12 +34,13 @@ import numpy as np
 # 1) lightweight, 2) can handle streams
 from scipy.io import netcdf_file
 
-from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile
+from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
 from ..NonuniformLineScan import NonuniformLineScan
 from ..Support.JSON import ExtendedJSONEncoder
 from ..Support.UnitConversion import mangle_length_unit_ascii, mangle_length_unit_utf8
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
+from .common import check_stream_size
 from .Reader import ChannelInfo, MagicMatch, ReaderBase
 
 format_to_scipy_version = {"NETCDF3_CLASSIC": 1, "NETCDF3_64BIT_OFFSET": 2}
@@ -56,6 +58,70 @@ class _SpecialNetCDFFile(netcdf_file):
         # in case of file streams
 
     __del__ = close
+
+
+# Sizes of the NetCDF 3 data types byte, char, short, int, float, double
+_NETCDF3_TYPE_SIZES = {1: 1, 2: 1, 3: 2, 4: 4, 5: 4, 6: 8}
+
+
+def _netcdf3_data_end(f):
+    """
+    Offset of the end of the data of a classic NetCDF (version 3) file,
+    computed from the offsets (`begin`) and sizes (`vsize`) of all variables
+    in its header. Raises `CorruptFile` if the header itself is truncated.
+    """
+    def read(nb_bytes):
+        data = f.read(nb_bytes)
+        if len(data) < nb_bytes:
+            raise CorruptFile("The file ended within the NetCDF header; it is probably truncated.")
+        return data
+
+    def read_uint():
+        return struct.unpack(">I", read(4))[0]
+
+    def skip_name():
+        length = read_uint()
+        read(length + (-length % 4))
+
+    def skip_attributes():
+        read_uint()  # NC_ATTRIBUTE or ABSENT
+        for _ in range(read_uint()):
+            skip_name()
+            nc_type, nb_elements = read_uint(), read_uint()
+            nb_bytes = nb_elements * _NETCDF3_TYPE_SIZES[nc_type]
+            read(nb_bytes + (-nb_bytes % 4))
+
+    magic = read(4)
+    offset_format = ">Q" if magic[3] == 2 else ">I"  # 64-bit offsets for version 2
+    nb_records = read_uint()
+    read_uint()  # NC_DIMENSION or ABSENT
+    dimension_lengths = []
+    for _ in range(read_uint()):
+        skip_name()
+        dimension_lengths += [read_uint()]
+    skip_attributes()
+    read_uint()  # NC_VARIABLE or ABSENT
+    end = 0
+    record_variables = []
+    for _ in range(read_uint()):
+        skip_name()
+        dimension_ids = [read_uint() for _ in range(read_uint())]
+        skip_attributes()
+        read_uint()  # nc_type
+        size = read_uint()
+        begin, = struct.unpack(offset_format, read(struct.calcsize(offset_format)))
+        if dimension_ids and dimension_lengths[dimension_ids[0]] == 0:
+            # Variable along the unlimited (record) dimension
+            record_variables += [(begin, size)]
+        else:
+            end = max(end, begin + size)
+    if record_variables and nb_records not in (0, 0xFFFFFFFF):
+        # Records are stored one after another; a single record variable is
+        # not padded
+        record_size = sum(size for _, size in record_variables)
+        end = max(end, *(begin + (nb_records - 1) * record_size + size for begin, size in record_variables))
+    f.seek(0)
+    return end
 
 
 class NCReader(ReaderBase):
@@ -150,6 +216,13 @@ variables:
                     raise TypeError("File or stream is not a valid NetCDF 3 file")
                 # we must rewind the file
                 fobj.seek(0)
+                # scipy fails with numpy errors on truncated files
+                check_stream_size(fobj, _netcdf3_data_end(fobj))
+            else:
+                with open(fobj, "rb") as f:
+                    if f.read(3) == b"CDF":
+                        f.seek(0)
+                        check_stream_size(f, _netcdf3_data_end(f))
 
             self._nc = _SpecialNetCDFFile(fobj, "r", maskandscale=True)
 

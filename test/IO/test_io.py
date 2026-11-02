@@ -971,7 +971,7 @@ def test_open_non_parallel_format_with_parallel_communicator(file_format_example
 
 # Readers that check explicitly for truncated files, in addition to the
 # declarative readers and the plain text reader
-_TRUNCATION_CHECKED_FORMATS = ["ibw", "gwy", "mat", "h5"]
+_TRUNCATION_CHECKED_FORMATS = ["ibw", "gwy", "mat", "h5", "nc"]
 
 
 def _truncation_examples():
