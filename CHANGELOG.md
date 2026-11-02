@@ -58,6 +58,8 @@ v1.28.0 (not yet released)
   not decomposed, and squeezing them returned a serial topography per process
 - API: Pipeline steps that do not support domain-decomposed topographies (e.g. transposition,
   translation, Fourier filters, downsampling, imputation) raise an error instead of wrong results
+- BUG: Bearing area, median and median absolute deviation of domain-decomposed (MPI-parallel)
+  topographies were computed per process
 
 v1.27.0 (28Oct26)
 -----------------

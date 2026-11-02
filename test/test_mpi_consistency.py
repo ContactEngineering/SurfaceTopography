@@ -69,3 +69,20 @@ def test_unsupported_pipeline_steps_raise(comm):
                      lambda t: t.interpolate_undefined_data()]:
         with pytest.raises(NotImplementedError):
             pipeline(decomposed)
+
+
+@pytest.mark.parametrize("periodic", [True, False])
+@pytest.mark.parametrize("masked", [False, True])
+def test_robust_statistics(comm, periodic, masked):
+    serial, decomposed = _serial_and_decomposed(comm, periodic=periodic)
+    if masked:
+        mask = np.zeros(serial.nb_grid_pts, dtype=bool)
+        mask[10:20, 5:30] = True
+        serial = serial.__class__(np.ma.masked_array(serial.heights(), mask=mask), serial.physical_sizes,
+                                  periodic=periodic, unit=serial.unit)
+        decomposed = serial.domain_decompose(decomposed.subdomain_locations, decomposed.nb_subdomain_grid_pts,
+                                             communicator=comm)
+    heights = np.linspace(-2, 2, 7)
+    np.testing.assert_allclose(decomposed.bearing_area(heights), serial.bearing_area(heights), rtol=1e-12)
+    np.testing.assert_allclose(decomposed.median(), serial.median(), rtol=1e-10)
+    np.testing.assert_allclose(decomposed.mad_height(), serial.mad_height(), rtol=1e-10)
