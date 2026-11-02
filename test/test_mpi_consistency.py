@@ -167,3 +167,15 @@ def test_superpose_requires_same_decomposition(comm):
     with pytest.raises(ValueError, match="not decomposed"):
         decomposed.superpose(serial)
     np.testing.assert_allclose(decomposed.superpose(decomposed.scale(2.)).heights(), 3 * decomposed.heights())
+
+
+def test_rank_deficient_polyfit(comm):
+    # With heights defined only at y=0, the plane fit has no information on
+    # the slope along y; serial and parallel return the minimum-norm fit
+    serial, _ = _serial_and_decomposed(comm)
+    mask = np.ones(serial.nb_grid_pts, dtype=bool)
+    mask[:, 0] = False
+    serial = serial.__class__(np.ma.masked_array(serial.heights(), mask=mask), serial.physical_sizes, unit=serial.unit)
+    fft = make_fft_engine(serial.nb_grid_pts, communicator=comm)
+    decomposed = serial.domain_decompose(fft.subdomain_locations, fft.nb_subdomain_grid_pts, communicator=comm)
+    np.testing.assert_allclose(decomposed.polyfit(1), serial.polyfit(1), rtol=1e-8, atol=1e-10)

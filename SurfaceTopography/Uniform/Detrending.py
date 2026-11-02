@@ -104,7 +104,9 @@ def _least_squares(self, location_matrix, offsets):
         comm = self.communicator
         normal_matrix = comm.allreduce(location_matrix.T @ location_matrix, op=MPI.SUM)
         rhs = comm.allreduce(location_matrix.T @ offsets, op=MPI.SUM)
-        return np.linalg.solve(normal_matrix, rhs)
+        # Like lstsq on the design matrix, this returns the minimum-norm
+        # solution if the fit is rank-deficient, since pinv(A^T A) A^T = pinv(A)
+        return np.linalg.lstsq(normal_matrix, rhs, rcond=None)[0]
     return np.array(np.linalg.lstsq(location_matrix, offsets, rcond=None)[0])
 
 
