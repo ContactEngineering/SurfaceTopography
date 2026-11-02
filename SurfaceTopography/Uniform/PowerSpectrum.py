@@ -34,6 +34,7 @@ from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
 from ..Support import doi, fold_fft_half
 from ..Support.Regression import resample, resample_radial
+from .common import mean_over_profiles
 
 
 @doi('10.1088/2051-672X/aa51f8')
@@ -135,19 +136,16 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
                 raise NoReliableDataError('Dataset contains no reliable data.')
             q = q[mask]
             C_all = C_all[mask]
-        if self.dim == 1:
-            return q, C_all
-        else:
-            return q, C_all.mean(axis=1)
+        return q, mean_over_profiles(self, C_all)
     else:
         short_cutoff = 2 * np.pi / self.short_reliability_cutoff(2 * sx / nx) if reliable else np.pi * nx / sx
         if isinstance(collocation, str) and collocation == 'log':
             # Exclude zero distance because that does not work on a log-scale
             q = q[1:]
             C_all = C_all[1:]
-        if self.dim == 2:
-            q = np.resize(q, (C_all.shape[1], q.shape[0])).T.ravel()
-            C_all = np.ravel(C_all)
+        # All profiles share the same wavevectors, so the bin average over
+        # all profiles equals the bin average of their mean
+        C_all = mean_over_profiles(self, C_all)
         # The smallest positive wavevector limits the resampling range; note
         # that q = 0 has either been stripped above (log collocation) or
         # carries the (uninteresting) mean of the topography. Using q[1]

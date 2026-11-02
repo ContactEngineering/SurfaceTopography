@@ -27,6 +27,7 @@ import numpy as np
 
 from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
+from .common import mean_over_profiles
 
 
 def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
@@ -152,12 +153,10 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
     # This is the raw power spectral density
     C_raw = (np.abs(fourier_topography) ** 2) / sx
 
-    # Short reliability cutoff on the 1D PSDs
+    # Wavevectors along x, for all profiles
+    qx = 2 * np.pi * np.fft.fftfreq(nx, sx / nx)
     if self.dim == 2:
-        qx, qy = self.fftfreq()
-        # note that qy is meaningless here since we didn't fourier transform along the y direction.
-    else:
-        qx = self.fftfreq()
+        qx = qx.reshape(-1, 1)
 
     # Only keep reliable data
     short_cutoff = self.short_reliability_cutoff() if reliable else None
@@ -167,10 +166,7 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
             raise NoReliableDataError('Dataset contains no reliable data.')
         C_raw = C_raw * mask
 
-    if self.dim == 2:
-        return np.sum(C_raw * factor(qx)) / sx / self.nb_grid_pts[1]
-    else:
-        return np.sum(C_raw * factor(qx)) / sx
+    return np.sum(mean_over_profiles(self, C_raw * factor(qx))) / sx
 
 
 def moment_power_spectrum(self, order=0, window=None, reliable=True, ):

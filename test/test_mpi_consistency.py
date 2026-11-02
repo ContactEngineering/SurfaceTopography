@@ -97,3 +97,36 @@ def test_detrend(comm, periodic, mode, rtol):
     np.testing.assert_allclose(d.coeffs, s.coeffs, rtol=rtol, atol=rtol * np.ptp(s.heights()))
     np.testing.assert_allclose(d.heights(), _local(s.heights(), d), rtol=rtol, atol=rtol * np.ptp(s.heights()))
     assert d.is_periodic == s.is_periodic
+
+
+def _assert_same_result(serial_result, decomposed_result, rtol=1e-10):
+    for s, d in zip(serial_result, decomposed_result):
+        np.testing.assert_array_equal(np.ma.getmaskarray(d), np.ma.getmaskarray(s))
+        np.testing.assert_allclose(np.ma.compressed(np.ma.asarray(d)), np.ma.compressed(np.ma.asarray(s)), rtol=rtol,
+                                   atol=rtol * np.max(np.abs(np.ma.compressed(np.ma.asarray(s)))))
+
+
+@pytest.mark.parametrize("periodic", [True, False])
+@pytest.mark.parametrize("masked", [False, True])
+def test_profile_analyses(comm, periodic, masked):
+    serial, decomposed = _serial_and_decomposed(comm, periodic=periodic)
+    if masked:
+        mask = np.zeros(serial.nb_grid_pts, dtype=bool)
+        mask[10:20, 5:30] = True
+        serial = serial.__class__(np.ma.masked_array(serial.heights(), mask=mask), serial.physical_sizes,
+                                  periodic=periodic, unit=serial.unit)
+        decomposed = serial.domain_decompose(decomposed.subdomain_locations, decomposed.nb_subdomain_grid_pts,
+                                             communicator=comm)
+    analyses = [lambda t: t.autocorrelation_from_profile(resampling_method=None, reliable=False),
+                lambda t: t.autocorrelation_from_profile(reliable=False),
+                lambda t: t.scale_dependent_slope_from_profile(reliable=False),
+                lambda t: t.scale_dependent_curvature_from_profile(resampling_method=None, reliable=False)]
+    if not masked:
+        analyses += [lambda t: t.power_spectrum_from_profile(resampling_method=None, reliable=False),
+                     lambda t: t.power_spectrum_from_profile(reliable=False),
+                     lambda t: (t.integrate_psd_from_profile(lambda q: q ** 2, reliable=False),)]
+    for analysis in analyses:
+        _assert_same_result(analysis(serial), analysis(decomposed))
+    np.testing.assert_allclose(decomposed.variance_half_derivative_via_autocorrelation_from_profile(reliable=False),
+                               serial.variance_half_derivative_via_autocorrelation_from_profile(reliable=False),
+                               rtol=1e-10)

@@ -35,6 +35,7 @@ import scipy
 from NuMPI.Tools import Reduction
 
 from ..HeightContainer import UniformTopographyInterface
+from .common import sum_over_profiles
 
 _mad_to_rms = 1 / scipy.stats.norm.ppf(3 / 4)
 
@@ -69,17 +70,17 @@ def Rq(topography):
     Raises
     ------
     NotImplementedError
-        For domain-decomposed (MPI-parallel) topographies.
+        For domain-decomposed (MPI-parallel) topographies that are not
+        decomposed along y only.
     """
-    if topography.is_domain_decomposed:
-        raise NotImplementedError("`Rq` does not support MPI-decomposed topographies.")
-
     # Note: all means and sums must be normalized by the number of *defined*
-    # (unmasked) data points; masked points do not contribute to the sums
+    # (unmasked) data points; masked points do not contribute to the sums.
+    # Profiles run along x, which is local to every process.
     profile = topography.heights()
-    return np.sqrt(
-        np.ma.sum((profile - np.ma.mean(profile, axis=0)) ** 2) / np.ma.count(profile)
-    )
+    squared_deviations = np.ma.filled((profile - np.ma.mean(profile, axis=0)) ** 2, 0)
+    counts = np.ma.count(profile, axis=0)
+    return np.sqrt(np.sum(sum_over_profiles(topography, squared_deviations.sum(axis=0, keepdims=True)))
+                   / np.sum(sum_over_profiles(topography, np.atleast_1d(counts).reshape(1, -1))))
 
 
 def Sq(topography):

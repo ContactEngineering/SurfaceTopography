@@ -36,6 +36,35 @@ from ..Support.UnitConversion import suggest_length_unit
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 
+def sum_over_profiles(topography, values):
+    """
+    Sum of `values` (with the profiles along x in the last axis) over all
+    profiles of the topography, including those of other processes for
+    domain-decomposed topographies, which must be decomposed along y only.
+    Arrays of line scans are returned unchanged.
+    """
+    if topography.dim == 1:
+        return values
+    if topography.is_domain_decomposed:
+        if topography.subdomain_locations[0] != 0 or \
+                topography.nb_subdomain_grid_pts[0] != topography.nb_grid_pts[0]:
+            raise NotImplementedError("Profile analyses of domain-decomposed topographies require a "
+                                      "decomposition along y.")
+        from NuMPI import MPI
+        return topography.communicator.allreduce(np.sum(values, axis=-1), op=MPI.SUM)
+    return np.sum(values, axis=-1)
+
+
+def mean_over_profiles(topography, values):
+    """
+    Mean of `values` (with the profiles along x in the last axis) over all
+    profiles; see `sum_over_profiles`.
+    """
+    if topography.dim == 1:
+        return values
+    return sum_over_profiles(topography, values) / topography.nb_grid_pts[1]
+
+
 def bandwidth(self):
     """
     Computes lower and upper bound of bandwidth, i.e. of the wavelengths or

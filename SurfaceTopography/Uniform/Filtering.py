@@ -144,6 +144,8 @@ class WindowedUniformTopography(DecoratedUniformTopography):
     that its mean square over the grid is unity, :math:`\langle w^2\rangle = 1`.
     """
 
+    _supports_domain_decomposition = True
+
     name = 'windowed_topography'
 
     def __init__(self, topography, window=None, direction=None, info={}):
@@ -246,10 +248,15 @@ class WindowedUniformTopography(DecoratedUniformTopography):
             direction = self._direction
             if direction is None:
                 direction = 'x' if self.parent_topography.dim == 1 else 'radial'
+            # The window is constructed for the global grid; domain-decomposed
+            # topographies use the part of their subdomain
+            slices = self.subdomain_slices if self.is_domain_decomposed else (slice(None), slice(None))
             if direction == 'x':
-                return (self.window_data * self.parent_topography.heights().T).T
-            elif direction == 'y' or direction == 'radial':
-                return self.window_data * self.parent_topography.heights()
+                return (self.window_data[slices[0]] * self.parent_topography.heights().T).T
+            elif direction == 'y':
+                return self.window_data[slices[1]] * self.parent_topography.heights()
+            elif direction == 'radial':
+                return self.window_data[slices] * self.parent_topography.heights()
             else:
                 raise ValueError(f"Unknown direction '{self._direction}'.")
 

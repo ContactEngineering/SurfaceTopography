@@ -33,6 +33,7 @@ from ..Exceptions import NoReliableDataError
 from ..HeightContainer import UniformTopographyInterface
 from ..Support import doi, fold_fft_half
 from ..Support.Regression import resample, resample_radial
+from .common import mean_over_profiles, sum_over_profiles
 
 
 def _masked_height_difference_correlation(heights, periodic, axes):
@@ -91,10 +92,12 @@ def _masked_height_difference_correlation(heights, periodic, axes):
     return squared_differences, nb_pairs
 
 
-def _masked_profile_autocorrelation(heights, periodic):
+def _masked_profile_autocorrelation(heights, periodic, sum_over_profiles=lambda values: values.sum(axis=-1)):
     """
     Height-difference autocorrelation along the first axis of heights with
-    undefined points, summed over all profiles. Returns the (masked) ACF for
+    undefined points, averaged over the pairs of all profiles; the sums over
+    the profiles are carried out by `sum_over_profiles`. Returns the
+    (masked) ACF for
     distances 0 to N/2 - 1 (periodic) or 0 to N - 1 (nonperiodic) grid
     points; distances without pairs of defined points are masked.
     """
@@ -108,8 +111,8 @@ def _masked_profile_autocorrelation(heights, periodic):
         nb_pairs = nb_pairs[:n]
     if squared_differences.ndim == 2:
         # Average over the pairs of all profiles
-        squared_differences = squared_differences.sum(axis=1)
-        nb_pairs = nb_pairs.sum(axis=1)
+        squared_differences = sum_over_profiles(squared_differences)
+        nb_pairs = sum_over_profiles(nb_pairs)
     undefined = nb_pairs < 0.5
     return np.ma.masked_array(squared_differences / np.where(undefined, 1, nb_pairs), mask=undefined)
 
@@ -205,7 +208,8 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
 
     if self.has_undefined_data:
         # Profiles are combined into a single ACF (averaged over pairs)
-        A = _masked_profile_autocorrelation(p, self.is_periodic)
+        A = _masked_profile_autocorrelation(p, self.is_periodic,
+                                            lambda values: sum_over_profiles(self, values))
         if self.is_periodic:
             r = sx * np.arange(nx // 2) / nx
             max_distance = sx / 2
@@ -254,6 +258,12 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
         r = sx * np.arange(nx) / nx
         max_distance = sx
 
+    # All profiles share the same distances (and, without undefined data,
+    # the same number of pairs), so the bin average over all profiles
+    # equals the bin average of their mean
+    if A.ndim == 2:
+        A = mean_over_profiles(self, A)
+
     # The factor of two comes from the fact that the short cutoff is estimated
     # from the curvature but the ACF is the slope, see 10.1016/j.apsadv.2021.100190
     if resampling_method is None:
@@ -264,19 +274,13 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
                 raise NoReliableDataError('Dataset contains no reliable data.')
             r = r[mask]
             A = A[mask]
-        if A.ndim == 2:
-            return r, A.mean(axis=1)
-        else:
-            return r, A
+        return r, A
     else:
         short_cutoff = self.short_reliability_cutoff(2 * sx / nx) if reliable else 2 * sx / nx
         if isinstance(collocation, str) and collocation == 'log':
             # Exclude zero distance because that does not work on a log-scale
             r = r[1:]
             A = A[1:]
-        if A.ndim == 2:
-            r = np.resize(r, (A.shape[1], r.shape[0])).T.ravel()
-            A = np.ravel(A)
         if np.ma.isMaskedArray(A):
             # Distances without pairs of defined points
             defined = ~np.ma.getmaskarray(A)

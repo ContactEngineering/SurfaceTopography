@@ -62,6 +62,8 @@ v1.28.0 (not yet released)
   topographies were computed per process
 - BUG: Detrending domain-decomposed (MPI-parallel) topographies with a tilt or curvature failed;
   the fit is now computed over the whole topography
+- BUG: Profile power spectra, autocorrelation functions and the quantities derived from them
+  were wrong for domain-decomposed (MPI-parallel) topographies; profile rms height works in parallel
 
 v1.27.0 (28Oct26)
 -----------------
