@@ -151,3 +151,19 @@ def test_power_spectrum_from_area(comm, periodic, nb_grid_pts, kwargs):
     serial, decomposed = _serial_and_decomposed(comm, periodic=periodic, nb_grid_pts=nb_grid_pts)
     _assert_same_result(serial.power_spectrum_from_area(reliable=False, **kwargs),
                         decomposed.power_spectrum_from_area(reliable=False, **kwargs))
+
+
+def test_superpose_requires_same_decomposition(comm):
+    if comm.size == 1:
+        pytest.skip("Only relevant for domain-decomposed topographies")
+    serial, decomposed = _serial_and_decomposed(comm)
+    # Same local shapes, but every process holds the slab of its neighbor
+    nx, ny = serial.nb_grid_pts
+    lny = decomposed.nb_subdomain_grid_pts[1]
+    shifted = serial.domain_decompose((0, (decomposed.subdomain_locations[1] + lny) % ny),
+                                      decomposed.nb_subdomain_grid_pts, communicator=comm)
+    with pytest.raises(ValueError, match="different decompositions"):
+        decomposed.superpose(shifted)
+    with pytest.raises(ValueError, match="not decomposed"):
+        decomposed.superpose(serial)
+    np.testing.assert_allclose(decomposed.superpose(decomposed.scale(2.)).heights(), 3 * decomposed.heights())

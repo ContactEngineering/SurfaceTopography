@@ -840,6 +840,28 @@ class TranslatedTopography(DecoratedUniformTopography):
         )
 
 
+def _check_same_decomposition(topography_a, topography_b):
+    """
+    Raise `ValueError` unless both topographies hold the same subdomain on
+    every process, i.e. their local heights refer to the same grid points.
+    """
+    decomposed_a = getattr(topography_a, "is_domain_decomposed", False)
+    decomposed_b = getattr(topography_b, "is_domain_decomposed", False)
+    if not decomposed_a and not decomposed_b:
+        return
+    if decomposed_a != decomposed_b:
+        raise ValueError("Cannot combine a domain-decomposed topography with one that is not decomposed.")
+    if topography_a.communicator.Compare(topography_b.communicator) not in (MPI.IDENT, MPI.CONGRUENT):
+        raise ValueError("Cannot combine domain-decomposed topographies on different communicators.")
+    same_subdomain = (
+        tuple(topography_a.subdomain_locations) == tuple(topography_b.subdomain_locations)
+        and tuple(topography_a.nb_subdomain_grid_pts) == tuple(topography_b.nb_subdomain_grid_pts)
+    )
+    # All processes must raise, also if only some subdomains differ
+    if not topography_a.communicator.allreduce(same_subdomain, op=MPI.LAND):
+        raise ValueError("Cannot combine domain-decomposed topographies with different decompositions.")
+
+
 class CompoundTopography(DecoratedUniformTopography):
     """
     Sum of the heights of two topographies with identical grids.
@@ -898,6 +920,7 @@ class CompoundTopography(DecoratedUniformTopography):
                     topography_a.physical_sizes, topography_b.physical_sizes
                 )
             )
+        _check_same_decomposition(topography_a, topography_b)
         self.parent_topography_a = topography_a
         self.parent_topography_b = topography_b
 
