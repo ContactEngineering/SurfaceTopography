@@ -40,7 +40,7 @@ from ..Exceptions import (
 )
 from ..Support.UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
-from .common import OpenFromAny
+from .common import OpenFromAny, check_stream_size
 from .Reader import ChannelInfo, ReaderBase
 
 MAGIC = b"VCA DATA\x01\x00\x00\x55"
@@ -408,6 +408,7 @@ def _read_item(stream, manifest, prefix="", offset=0):
     ):
         length = _read_varlen(stream)
         start = stream.tell()
+        check_stream_size(stream, start + length)
         while _read_item(stream, manifest, prefix=path):
             pass
         # There are two bytes at the end of every container with unknown purpose...
@@ -439,6 +440,7 @@ def _read_item(stream, manifest, prefix="", offset=0):
             unit = _read_unit_data(stream)
             count = _read_scalar(stream, "<u8")
             # Skip over data
+            check_stream_size(stream, start + length)
             stream.seek(start + length)
             data = (unit, count)
         else:
@@ -625,6 +627,7 @@ def _read_double_array(stream):
     length = _read_varlen(stream)
     data = (stream.tell(), length)
     # Skip over data
+    check_stream_size(stream, stream.tell() + length)
     stream.seek(length, 1)
     return data  # This is start position and length of the buffer
 
@@ -647,6 +650,7 @@ def _read_matrix(stream):
     length -= 8  # Remove xres and yres
     data = (some_int, another_name, stream.tell(), length, xres, yres)
     # Skip over data
+    check_stream_size(stream, stream.tell() + length)
     stream.seek(length, 1)
     return data
 
@@ -661,6 +665,7 @@ def _read_anon_matrix(stream):
     length -= 8  # Remove xres and yres
     data = (None, None, stream.tell(), length, xres, yres)
     # Skip over data
+    check_stream_size(stream, stream.tell() + length)
     stream.seek(length, 1)
     return data
 
