@@ -35,7 +35,7 @@ from struct import calcsize, pack, unpack
 
 import numpy as np
 
-from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile
+from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..HeightContainer import UniformTopographyInterface
 from ..Support.UnitConversion import (
     get_unit_conversion_factor,
@@ -43,12 +43,19 @@ from ..Support.UnitConversion import (
     mangle_length_unit_utf8,
 )
 from ..UniformLineScanAndTopography import Topography
-from .common import OpenFromAny
+from .common import OpenFromAny, check_stream_size
 from .Reader import ChannelInfo, MagicMatch, ReaderBase
 
 
 def _read_null_terminated_string(f):
-    return b"".join(iter(lambda: f.read(1), b"\x00")).decode("utf-8")
+    characters = []
+    while (character := f.read(1)) != b"\x00":
+        if character == b"":
+            # Without this check, reading at the end of a truncated file
+            # would loop forever
+            raise CorruptFile("The file ended within a string; it is probably truncated.")
+        characters += [character]
+    return b"".join(characters).decode("utf-8")
 
 
 def _gwy_read_atomic(f, atomic_type):
@@ -73,6 +80,7 @@ def _gwy_read_array(f, atomic_type, skip_arrays=False):
     offset = f.tell()
     (nb_items,) = unpack("<L", f.read(4))
     type = np.dtype(atomic_type)
+    check_stream_size(f, f.tell() + nb_items * type.itemsize)
     if skip_arrays:
         # Skip reading this data
         f.seek(type.itemsize * nb_items, os.SEEK_CUR)
@@ -140,6 +148,7 @@ def _gwy_read_object(f, skip_arrays=False):
     name = _read_null_terminated_string(f)
     (size,) = unpack("<L", f.read(4))
     start = f.tell()
+    check_stream_size(f, start + size)
     data = {}
     while f.tell() < start + size:
         data.update(_gwy_read_component(f, skip_arrays=skip_arrays))
