@@ -969,24 +969,15 @@ def test_open_non_parallel_format_with_parallel_communicator(file_format_example
         open_topography(fn, format="di", communicator=FakeCommunicator())
 
 
-# Readers that check explicitly for truncated files, in addition to the
-# declarative readers and the plain text reader
-_TRUNCATION_CHECKED_FORMATS = ["ibw", "gwy", "mat", "h5", "nc", "ezd", "hgt", "opdx"]
-
-
 def _truncation_examples():
-    # Example files of the readers that detect truncated files
-    from SurfaceTopography.IO.Reader import DeclarativeReaderBase
-    from SurfaceTopography.IO.Text import AscReader
+    # All example files whose format is detected
     examples = []
     for fn in text_example_file_list + binary_example_file_list:
         try:
-            fmt = detect_format(fn)
+            detect_format(fn)
         except Exception:
             continue
-        reader_class = SurfaceTopography.IO.lookup_reader_by_format[fmt]
-        if issubclass(reader_class, (DeclarativeReaderBase, AscReader)) or fmt in _TRUNCATION_CHECKED_FORMATS:
-            examples += [fn]
+        examples += [fn]
     return examples
 
 

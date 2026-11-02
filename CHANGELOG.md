@@ -70,7 +70,8 @@ v1.28.0 (not yet released)
 - BUG: Topographies can be created from nested lists, like line scans
 - BUG: Domain-decomposed topographies created from the global heights reject subdomains
   outside the heights instead of silently truncating them
-- BUG: Truncated TIFF-based (e.g. JPK) and IBW, GWY, MAT, HDF5, NetCDF, EZD/NID, HGT and OPDx files raise a corrupt-file error
+- BUG: Truncated files of all formats raise a corrupt-file error; for IBW, GWY, MAT, HDF5,
+  NetCDF, EZD/NID, HGT, OPDx, XYZ/CSV and TIFF-based (e.g. JPK) files they raised various other errors
 
 v1.27.0 (28Oct26)
 -----------------
