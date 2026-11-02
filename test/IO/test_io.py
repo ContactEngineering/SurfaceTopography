@@ -956,3 +956,36 @@ def test_open_non_parallel_format_with_parallel_communicator(file_format_example
         open_topography(fn, communicator=FakeCommunicator())
     with pytest.raises(ValueError, match="does not support parallel I/O"):
         open_topography(fn, format="di", communicator=FakeCommunicator())
+
+
+def _truncation_examples():
+    # Example files of the declarative readers and the plain text reader
+    from SurfaceTopography.IO.Reader import DeclarativeReaderBase
+    from SurfaceTopography.IO.Text import AscReader
+    examples = []
+    for fn in text_example_file_list + binary_example_file_list:
+        try:
+            reader_class = SurfaceTopography.IO.lookup_reader_by_format[detect_format(fn)]
+        except Exception:
+            continue
+        if issubclass(reader_class, (DeclarativeReaderBase, AscReader)):
+            examples += [fn]
+    return examples
+
+
+@pytest.mark.parametrize("fn", _truncation_examples())
+@pytest.mark.parametrize("fraction", [0.5, 0.9])
+def test_truncated_file_raises_corrupt_file(fn, fraction):
+    # A truncated file either still yields a topography or raises a
+    # CorruptFile (or another error of the library), never a raw error of
+    # numpy or struct
+    from SurfaceTopography.Exceptions import CannotPerformAnalysisError, ReadFileError
+    data = open(fn, "rb").read()
+    fmt = detect_format(fn)
+    stream = io.BytesIO(data[: int(len(data) * fraction)])
+    try:
+        reader = open_topography(stream, format=fmt)
+        ch = reader.default_channel
+        reader.topography(physical_sizes=None if ch.physical_sizes is not None else (1.0,) * ch.dim)
+    except (ReadFileError, CannotPerformAnalysisError):
+        pass

@@ -28,6 +28,8 @@
 
 import inspect
 import os
+import struct
+import zipfile
 
 # Registers DZI writers with Topography class
 import SurfaceTopography.IO.DZI  # noqa: F401
@@ -240,11 +242,18 @@ def _reader_accepts_communicator(reader_class):
 
 
 def _instantiate_reader(reader_class, fobj, communicator):
-    """Open `fobj` with `reader_class`, passing the communicator if supported."""
+    """
+    Open `fobj` with `reader_class`, passing the communicator if supported.
+    Low-level errors that indicate a damaged file (e.g. a truncated ZIP
+    archive or binary header) are raised as `CorruptFile`.
+    """
     kwargs = {}
     if communicator is not None and _reader_accepts_communicator(reader_class):
         kwargs["communicator"] = communicator
-    return reader_class(fobj, **kwargs)
+    try:
+        return reader_class(fobj, **kwargs)
+    except (zipfile.BadZipFile, struct.error, EOFError) as err:
+        raise CorruptFile(f"{reader_class.__name__} cannot read the file, it is probably damaged: {err}") from err
 
 
 def _open_by_detection(fobj, communicator=None, parallel=True):

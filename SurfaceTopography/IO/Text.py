@@ -431,6 +431,11 @@ When writing your own ASCII files, we recommend to prepend the header with a
         Interpret the raw data and metadata of a single channel. Returns None
         if the channel does not contain topography (height) information.
         """
+        if len(set(len(row) for row in data)) > 1:
+            raise CorruptFile(
+                "The rows of the height matrix have different numbers of "
+                "values; the file is probably truncated."
+            )
         data = np.array(data).T
         dim = 2
         if data.shape[0] == 1:

@@ -1151,7 +1151,8 @@ class Check:
     Parameters
     ----------
     condition : bool, callable or expression
-        Evaluated against the context; a false result raises.
+        Evaluated against the context; a false result, or a condition that
+        refers to metadata missing from the context, raises.
     exception : Exception, optional
         Exception class to raise. (Default: CorruptFile)
     comment : str, optional
@@ -1169,7 +1170,12 @@ class Check:
 
     def from_stream(self, stream_obj, context):
         if callable(self._condition):
-            passed = self._condition(context)
+            try:
+                passed = self._condition(context)
+            except (KeyError, IndexError):
+                # Metadata required by the check is missing, e.g. because
+                # the file is truncated
+                passed = False
         else:
             passed = self._condition
         if not passed:

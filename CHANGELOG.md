@@ -63,6 +63,8 @@ v1.28.0 (not yet released)
   sizes or unit; they now carry a header with physical sizes and unit
 - BUG: Format detection failed for every file when given an MPI communicator; opening a file
   whose reader does not support parallel I/O in parallel names the format instead of failing detection
+- BUG: Truncated files of the declaratively described formats and text files raise a
+  corrupt-file error instead of numpy or struct errors
 
 v1.27.0 (28Oct26)
 -----------------
