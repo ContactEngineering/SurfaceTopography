@@ -179,3 +179,13 @@ def test_rank_deficient_polyfit(comm):
     fft = make_fft_engine(serial.nb_grid_pts, communicator=comm)
     decomposed = serial.domain_decompose(fft.subdomain_locations, fft.nb_subdomain_grid_pts, communicator=comm)
     np.testing.assert_allclose(decomposed.polyfit(1), serial.polyfit(1), rtol=1e-8, atol=1e-10)
+
+
+def test_window_is_local(comm):
+    # The radial window of a decomposed topography has the size of the
+    # subdomain and equals the corresponding part of the serial window
+    serial, decomposed = _serial_and_decomposed(comm, periodic=False)
+    s, d = serial.window(), decomposed.window()
+    assert d.window_data.shape == decomposed.nb_subdomain_grid_pts
+    np.testing.assert_allclose(d.window_data, s.window_data[decomposed.subdomain_slices], rtol=1e-12)
+    np.testing.assert_allclose(d.heights(), _local(s.heights(), d), rtol=1e-12, atol=1e-14)

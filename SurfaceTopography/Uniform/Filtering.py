@@ -24,6 +24,7 @@
 #
 
 import numpy as np
+from NuMPI.Tools import Reduction
 from scipy.signal import get_window
 
 from ..FFTTricks import get_window_2D
@@ -208,10 +209,14 @@ class WindowedUniformTopography(DecoratedUniformTopography):
             elif direction == 'radial':
                 if self.parent_topography.dim == 1:
                     raise ValueError("Direction 'radial' does not make sense for line scans.")
-                win = get_window_2D(window_name, nx, ny,
-                                    self.parent_topography.physical_sizes)
+                # Domain-decomposed topographies construct the window of
+                # their subdomain only
+                decomposed = self.is_domain_decomposed
+                win = get_window_2D(window_name, nx, ny, self.parent_topography.physical_sizes,
+                                    subdomain_locations=self.subdomain_locations if decomposed else None,
+                                    nb_subdomain_grid_pts=self.nb_subdomain_grid_pts if decomposed else None)
                 # Normalize window
-                win *= np.sqrt(nx * ny / (win ** 2).sum())
+                win *= np.sqrt(nx * ny / Reduction(self.communicator).sum((win ** 2).sum()))
             else:
                 raise ValueError(f"Unknown direction '{self._direction}'.")
 
@@ -256,7 +261,8 @@ class WindowedUniformTopography(DecoratedUniformTopography):
             elif direction == 'y':
                 return self.window_data[slices[1]] * self.parent_topography.heights()
             elif direction == 'radial':
-                return self.window_data[slices] * self.parent_topography.heights()
+                # The radial window is constructed for the subdomain
+                return self.window_data * self.parent_topography.heights()
             else:
                 raise ValueError(f"Unknown direction '{self._direction}'.")
 
