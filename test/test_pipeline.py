@@ -354,3 +354,12 @@ def test_pipeline_decorators():
 
 
 UniformTopographyInterface.register_function("scale_by_x", scale_by_x)
+
+
+@pytest.mark.parametrize("mode", ["height", "curvature"])
+def test_detrend_after_downsampling(mode):
+    # Detrending uses the grid of the downsampled topography
+    t = fourier_synthesis((64, 48), (1.0, 0.75), 0.8, rms_height=1, rng=1)
+    downsampled = t.downsample(2)
+    np.testing.assert_allclose(downsampled.detrend(mode).heights(),
+                               downsampled.squeeze().detrend(mode).heights(), rtol=1e-10, atol=1e-12)

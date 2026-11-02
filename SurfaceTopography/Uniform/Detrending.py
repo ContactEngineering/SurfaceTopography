@@ -84,8 +84,13 @@ def _normalized_coordinates(self):
     Normalized coordinates :math:`x/L_x, y/L_y` of the grid points of the
     local subdomain, on the grid of the heights.
     """
-    grids = [(s + np.arange(n)) / N
-             for s, n, N in zip(self.subdomain_locations, self.nb_subdomain_grid_pts, self.nb_grid_pts)]
+    if self.is_domain_decomposed:
+        grids = [(s + np.arange(n)) / N
+                 for s, n, N in zip(self.subdomain_locations, self.nb_subdomain_grid_pts, self.nb_grid_pts)]
+    else:
+        # Pipeline steps that change the grid (e.g. downsampling) report the
+        # subdomain of their parent; serial data spans the full grid
+        grids = [np.arange(N) / N for N in self.nb_grid_pts]
     return np.meshgrid(*grids, indexing='ij')
 
 
