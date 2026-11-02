@@ -194,3 +194,17 @@ def test_window_is_local(comm):
     assert d.window_data.shape == decomposed.nb_subdomain_grid_pts
     np.testing.assert_allclose(d.window_data, s.window_data[decomposed.subdomain_slices], rtol=1e-12)
     np.testing.assert_allclose(d.heights(), _local(s.heights(), d), rtol=1e-12, atol=1e-14)
+
+
+def test_profile_analyses_require_decomposition_along_y(comm):
+    # Profile analyses need complete profiles along x on every process
+    if comm.size == 1:
+        pytest.skip("Only relevant for domain-decomposed topographies")
+    serial, _ = _serial_and_decomposed(comm)
+    nx, ny = serial.nb_grid_pts
+    lnx = nx // comm.size
+    x_slabs = serial.domain_decompose((comm.rank * lnx, 0), (lnx, ny), communicator=comm)
+    for analysis in [lambda t: t.power_spectrum_from_profile(), lambda t: t.autocorrelation_from_profile(),
+                     lambda t: t.integrate_psd_from_profile(lambda q: q ** 2), lambda t: t.Rq()]:
+        with pytest.raises(NotImplementedError, match="decomposition along y"):
+            analysis(x_slabs)

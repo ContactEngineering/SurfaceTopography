@@ -33,7 +33,7 @@ from ..Exceptions import NoReliableDataError
 from ..HeightContainer import UniformTopographyInterface
 from ..Support import doi, fold_fft_half
 from ..Support.Regression import resample, resample_radial
-from .common import mean_over_profiles, sum_over_profiles
+from .common import check_profile_decomposition, mean_over_profiles, sum_over_profiles
 
 
 def _masked_height_difference_correlation(heights, periodic, axes):
@@ -197,6 +197,7 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
     A. Wang, M. H. Müser, Tribol. Int. 123, 224 (2018),
     https://doi.org/10.1016/j.triboint.2018.02.002
     """  # noqa: E501
+    check_profile_decomposition(self)
     try:
         nx, ny = self.nb_grid_pts
         sx, sy = self.physical_sizes

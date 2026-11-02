@@ -36,6 +36,18 @@ from ..Support.UnitConversion import suggest_length_unit
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 
+def check_profile_decomposition(topography):
+    """
+    Raise `NotImplementedError` unless every process holds complete profiles
+    along x, i.e. a domain-decomposed topography is decomposed along y only.
+    """
+    if topography.dim == 2 and topography.is_domain_decomposed and (
+            topography.subdomain_locations[0] != 0
+            or topography.nb_subdomain_grid_pts[0] != topography.nb_grid_pts[0]):
+        raise NotImplementedError("Profile analyses of domain-decomposed topographies require a "
+                                  "decomposition along y.")
+
+
 def sum_over_profiles(topography, values):
     """
     Sum of `values` (with the profiles along x in the last axis) over all
@@ -45,11 +57,8 @@ def sum_over_profiles(topography, values):
     """
     if topography.dim == 1:
         return values
+    check_profile_decomposition(topography)
     if topography.is_domain_decomposed:
-        if topography.subdomain_locations[0] != 0 or \
-                topography.nb_subdomain_grid_pts[0] != topography.nb_grid_pts[0]:
-            raise NotImplementedError("Profile analyses of domain-decomposed topographies require a "
-                                      "decomposition along y.")
         from NuMPI import MPI
         return topography.communicator.allreduce(np.sum(values, axis=-1), op=MPI.SUM)
     return np.sum(values, axis=-1)

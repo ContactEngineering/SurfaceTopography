@@ -35,7 +35,7 @@ import scipy
 from NuMPI.Tools import Reduction
 
 from ..HeightContainer import UniformTopographyInterface
-from .common import sum_over_profiles
+from .common import check_profile_decomposition, sum_over_profiles
 
 _mad_to_rms = 1 / scipy.stats.norm.ppf(3 / 4)
 
@@ -73,6 +73,7 @@ def Rq(topography):
         For domain-decomposed (MPI-parallel) topographies that are not
         decomposed along y only.
     """
+    check_profile_decomposition(topography)
     # Note: all means and sums must be normalized by the number of *defined*
     # (unmasked) data points; masked points do not contribute to the sums.
     # Profiles run along x, which is local to every process.

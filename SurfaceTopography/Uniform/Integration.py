@@ -27,7 +27,7 @@ import numpy as np
 
 from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
-from .common import mean_over_profiles
+from .common import check_profile_decomposition, mean_over_profiles
 
 
 def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
@@ -139,6 +139,7 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
     weighted_integral : float
         Value of the integral :math:`I`.
     """
+    check_profile_decomposition(self)
     if self.has_undefined_data:
         raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
                                  'computed for topographies with missing data points.')

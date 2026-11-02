@@ -34,7 +34,7 @@ from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
 from ..Support import doi, fold_fft_half
 from ..Support.Regression import bin_average, make_grid, resample, resample_radial
-from .common import mean_over_profiles
+from .common import check_profile_decomposition, mean_over_profiles
 
 
 @doi('10.1088/2051-672X/aa51f8')
@@ -102,6 +102,7 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
     T. D. B. Jacobs, T. Junge, L. Pastewka, Surf. Topogr. Metrol. Prop. 5,
     013001 (2017), https://doi.org/10.1088/2051-672X/aa51f8
     """
+    check_profile_decomposition(self)
     if self.has_undefined_data:
         raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
                                  'computed for topographies with missing data points.')
