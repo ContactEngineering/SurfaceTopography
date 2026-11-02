@@ -498,5 +498,5 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 raise RuntimeError('Unknown size of coefficients tuple.')
 
 
-UniformTopographyInterface.register_function('polyfit', polyfit)
+UniformTopographyInterface.register_function('polyfit', polyfit, domain_decomposition=True)
 UniformTopographyInterface.register_function('detrend', DetrendedUniformTopography)

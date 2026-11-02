@@ -451,13 +451,13 @@ def rms_curvature_from_area(
 
 # Register analysis functions from this module
 UniformTopographyInterface.register_function(
-    "rms_height_from_profile", Rq, deprecated=True
+    "rms_height_from_profile", Rq, deprecated=True, domain_decomposition=True
 )
-UniformTopographyInterface.register_function("Rq", Rq)
+UniformTopographyInterface.register_function("Rq", Rq, domain_decomposition=True)
 UniformTopographyInterface.register_function(
-    "rms_height_from_area", Sq, deprecated=True
+    "rms_height_from_area", Sq, deprecated=True, domain_decomposition=True
 )
-UniformTopographyInterface.register_function("Sq", Sq)
+UniformTopographyInterface.register_function("Sq", Sq, domain_decomposition=True)
 UniformTopographyInterface.register_function("rms_gradient", rms_gradient)
 UniformTopographyInterface.register_function(
     "rms_slope_from_profile", Rdq, deprecated=True

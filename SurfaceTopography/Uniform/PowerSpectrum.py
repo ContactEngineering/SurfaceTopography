@@ -330,5 +330,6 @@ UniformTopographyInterface.register_function("wavevectors_norm2", wavevectors_no
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('power_spectrum_from_profile', power_spectrum_from_profile)
+UniformTopographyInterface.register_function('power_spectrum_from_profile', power_spectrum_from_profile,
+                                             domain_decomposition=True)
 UniformTopographyInterface.register_function('power_spectrum_from_area', power_spectrum_from_area)

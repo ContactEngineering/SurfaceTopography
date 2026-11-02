@@ -238,8 +238,8 @@ class FilledTopography(DecoratedUniformTopography):
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function("make_fft", make_fft)
-UniformTopographyInterface.register_function("bandwidth", bandwidth)
-UniformTopographyInterface.register_function("domain_decompose", domain_decompose)
+UniformTopographyInterface.register_function("make_fft", make_fft, domain_decomposition=True)
+UniformTopographyInterface.register_function("bandwidth", bandwidth, domain_decomposition=True)
+UniformTopographyInterface.register_function("domain_decompose", domain_decompose, domain_decomposition=True)
 UniformTopographyInterface.register_function("plot", plot)
 UniformTopographyInterface.register_function("fill_undefined_data", FilledTopography)

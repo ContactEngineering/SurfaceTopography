@@ -202,9 +202,9 @@ def mad_polyfit(self, nb_coeffs):
     return [self.detrend(coeffs=[0, *coeffs]).median(), *coeffs]
 
 
-UniformTopographyInterface.register_function('median', median)
-UniformTopographyInterface.register_function('mad_height', mad_height)
-UniformTopographyInterface.register_function('mad_polyfit', mad_polyfit)
+UniformTopographyInterface.register_function('median', median, domain_decomposition=True)
+UniformTopographyInterface.register_function('mad_height', mad_height, domain_decomposition=True)
+UniformTopographyInterface.register_function('mad_polyfit', mad_polyfit, domain_decomposition=True)
 NonuniformLineScanInterface.register_function('median', median)
 NonuniformLineScanInterface.register_function('mad_height', mad_height)
 NonuniformLineScanInterface.register_function('mad_polyfit', mad_polyfit)

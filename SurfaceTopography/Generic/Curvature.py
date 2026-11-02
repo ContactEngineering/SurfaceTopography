@@ -139,7 +139,7 @@ def scale_dependent_curvature_from_area(topography, **kwargs):
 
 # Register analysis functions from this module
 UniformTopographyInterface.register_function('scale_dependent_curvature_from_profile',
-                                             scale_dependent_curvature_from_profile)
+                                             scale_dependent_curvature_from_profile, domain_decomposition=True)
 NonuniformLineScanInterface.register_function('scale_dependent_curvature_from_profile',
                                               scale_dependent_curvature_from_profile)
 UniformTopographyInterface.register_function('scale_dependent_curvature_from_area',

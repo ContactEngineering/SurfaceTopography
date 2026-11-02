@@ -130,3 +130,15 @@ def test_profile_analyses(comm, periodic, masked):
     np.testing.assert_allclose(decomposed.variance_half_derivative_via_autocorrelation_from_profile(reliable=False),
                                serial.variance_half_derivative_via_autocorrelation_from_profile(reliable=False),
                                rtol=1e-10)
+
+
+def test_serial_only_analyses_raise(comm):
+    # Analyses that do not support domain decomposition raise instead of
+    # returning the result of the local subdomain
+    if comm.size == 1:
+        pytest.skip("Only relevant for domain-decomposed topographies")
+    _, decomposed = _serial_and_decomposed(comm)
+    for name in ["rms_gradient", "autocorrelation_from_area", "variance_half_derivative",
+                 "scale_dependent_slope_from_area"]:
+        with pytest.raises(NotImplementedError, match=name):
+            getattr(decomposed, name)()

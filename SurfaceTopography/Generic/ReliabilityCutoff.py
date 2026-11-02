@@ -93,5 +93,6 @@ def short_reliability_cutoff(self, other_cutoff=None):
         return other_cutoff
 
 
-UniformTopographyInterface.register_function('short_reliability_cutoff', short_reliability_cutoff)
+UniformTopographyInterface.register_function('short_reliability_cutoff', short_reliability_cutoff,
+                                             domain_decomposition=True)
 NonuniformLineScanInterface.register_function('short_reliability_cutoff', short_reliability_cutoff)

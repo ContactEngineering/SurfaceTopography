@@ -289,6 +289,7 @@ def elastic_energy(self, contact_modulus, window=None, reliable=True):
 
 UniformTopographyInterface.register_function('moment_power_spectrum', moment_power_spectrum)
 UniformTopographyInterface.register_function('integrate_psd', integrate_psd)
-UniformTopographyInterface.register_function('integrate_psd_from_profile', integrate_psd_from_profile)
+UniformTopographyInterface.register_function('integrate_psd_from_profile', integrate_psd_from_profile,
+                                             domain_decomposition=True)
 UniformTopographyInterface.register_function('variance_half_derivative', variance_half_derivative)
 UniformTopographyInterface.register_function('elastic_energy', elastic_energy)

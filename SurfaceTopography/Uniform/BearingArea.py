@@ -295,4 +295,4 @@ def bearing_area(self, heights=None):
         return b(heights)
 
 
-UniformTopographyInterface.register_function('bearing_area', bearing_area)
+UniformTopographyInterface.register_function('bearing_area', bearing_area, domain_decomposition=True)

@@ -564,5 +564,5 @@ def write_nc_nonuniform(line_scan, fobj, format="NETCDF3_64BIT_OFFSET"):
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function("to_netcdf", write_nc_uniform)
+UniformTopographyInterface.register_function("to_netcdf", write_nc_uniform, domain_decomposition=True)
 NonuniformLineScanInterface.register_function("to_netcdf", write_nc_nonuniform)

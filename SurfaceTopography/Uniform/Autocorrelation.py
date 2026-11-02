@@ -427,5 +427,6 @@ def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('autocorrelation_from_profile', autocorrelation_from_profile)
+UniformTopographyInterface.register_function('autocorrelation_from_profile', autocorrelation_from_profile,
+                                             domain_decomposition=True)
 UniformTopographyInterface.register_function('autocorrelation_from_area', autocorrelation_from_area)

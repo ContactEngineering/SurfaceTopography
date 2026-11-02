@@ -908,13 +908,13 @@ class CompoundTopography(DecoratedUniformTopography):
 
 # Register analysis functions from this module
 UniformTopographyInterface.register_function(
-    "mean", lambda this: Reduction(this._communicator).mean(this.heights())
+    "mean", lambda this: Reduction(this._communicator).mean(this.heights()), domain_decomposition=True
 )
 UniformTopographyInterface.register_function(
-    "min", lambda this: Reduction(this._communicator).min(this.heights())
+    "min", lambda this: Reduction(this._communicator).min(this.heights()), domain_decomposition=True
 )
 UniformTopographyInterface.register_function(
-    "max", lambda this: Reduction(this._communicator).max(this.heights())
+    "max", lambda this: Reduction(this._communicator).max(this.heights()), domain_decomposition=True
 )
 
 # Register pipeline functions from this module

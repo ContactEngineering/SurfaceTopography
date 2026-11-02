@@ -64,6 +64,8 @@ v1.28.0 (not yet released)
   the fit is now computed over the whole topography
 - BUG: Profile power spectra, autocorrelation functions and the quantities derived from them
   were wrong for domain-decomposed (MPI-parallel) topographies; profile rms height works in parallel
+- API: Analyses that do not support domain-decomposed (MPI-parallel) topographies raise an error
+  instead of returning the result of the local subdomain or failing with index errors
 
 v1.27.0 (28Oct26)
 -----------------
