@@ -67,8 +67,15 @@ _NETCDF3_TYPE_SIZES = {1: 1, 2: 1, 3: 2, 4: 4, 5: 4, 6: 8}
 def _netcdf3_data_end(f):
     """
     Offset of the end of the data of a classic NetCDF (version 3) file,
-    computed from the offsets (`begin`) and sizes (`vsize`) of all variables
-    in its header. Raises `CorruptFile` if the header itself is truncated.
+    computed from the offsets (`begin`), dimensions and types of all
+    variables in its header. Raises `CorruptFile` if the header itself is
+    truncated.
+
+    The sizes are computed from dimensions and types rather than taken from
+    `vsize`, which is rounded up to four bytes (also for a single record
+    variable, whose records are stored without padding) and is meaningless
+    for variables larger than 4 GiB. Padding after the last values is not
+    required to be present.
     """
     def read(nb_bytes):
         data = f.read(nb_bytes)
@@ -107,18 +114,25 @@ def _netcdf3_data_end(f):
         skip_name()
         dimension_ids = [read_uint() for _ in range(read_uint())]
         skip_attributes()
-        read_uint()  # nc_type
-        size = read_uint()
+        nc_type = read_uint()
+        read_uint()  # vsize
         begin, = struct.unpack(offset_format, read(struct.calcsize(offset_format)))
-        if dimension_ids and dimension_lengths[dimension_ids[0]] == 0:
-            # Variable along the unlimited (record) dimension
+        lengths = [dimension_lengths[i] for i in dimension_ids]
+        is_record_variable = len(lengths) > 0 and lengths[0] == 0  # Unlimited dimension
+        if is_record_variable:
+            lengths = lengths[1:]  # Size of a single record
+        size = int(np.prod(lengths, dtype=np.int64)) * _NETCDF3_TYPE_SIZES[nc_type]
+        if is_record_variable:
             record_variables += [(begin, size)]
         else:
             end = max(end, begin + size)
     if record_variables and nb_records not in (0, 0xFFFFFFFF):
-        # Records are stored one after another; a single record variable is
-        # not padded
-        record_size = sum(size for _, size in record_variables)
+        # Records are stored one after another, each variable padded to four
+        # bytes within a record; a single record variable is not padded
+        if len(record_variables) == 1:
+            record_size = record_variables[0][1]
+        else:
+            record_size = sum(size + (-size % 4) for _, size in record_variables)
         end = max(end, *(begin + (nb_records - 1) * record_size + size for begin, size in record_variables))
     f.seek(0)
     return end
