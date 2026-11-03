@@ -208,3 +208,19 @@ def test_profile_analyses_require_decomposition_along_y(comm):
                      lambda t: t.integrate_psd_from_profile(lambda q: q ** 2), lambda t: t.Rq()]:
         with pytest.raises(NotImplementedError, match="decomposition along y"):
             analysis(x_slabs)
+
+
+def test_ill_conditioned_polyfit(comm):
+    # Heights defined only on a narrow strip along y make the quadratic fit
+    # ill-conditioned (condition number ~1e6); parallel and serial fits agree
+    # (the normal equations would square the condition number)
+    serial, _ = _serial_and_decomposed(comm, nb_grid_pts=(64, 1024), physical_sizes=(1., 16.))
+    mask = np.ones(serial.nb_grid_pts, dtype=bool)
+    mask[:, 510:513] = False
+    serial = serial.__class__(np.ma.masked_array(serial.heights(), mask=mask), serial.physical_sizes, unit=serial.unit)
+    fft = make_fft_engine(serial.nb_grid_pts, communicator=comm)
+    decomposed = serial.domain_decompose(fft.subdomain_locations, fft.nb_subdomain_grid_pts, communicator=comm)
+    serial_coeffs = serial.polyfit(2)
+    np.testing.assert_allclose(decomposed.polyfit(2), serial_coeffs, rtol=1e-8,
+                               atol=1e-8 * np.max(np.abs(serial_coeffs)))
+

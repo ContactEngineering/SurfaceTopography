@@ -35,7 +35,6 @@ coefficients therefore all carry the unit of the heights.
 """
 
 import numpy as np
-from NuMPI import MPI
 
 from SurfaceTopography.UniformLineScanAndTopography import (
     DecoratedUniformTopography, UniformTopographyInterface)
@@ -97,16 +96,18 @@ def _normalized_coordinates(self):
 def _least_squares(self, location_matrix, offsets):
     """
     Least-squares coefficients for the design matrix and right-hand side of
-    the defined data points. For domain-decomposed topographies, the normal
-    equations are summed over all processes.
+    the defined data points. Domain-decomposed topographies use a
+    tall-skinny QR decomposition (TSQR): every process computes the
+    triangular factor of its local rows of the augmented matrix [A, b]. The
+    stacked factors of all processes are an isometric transformation of the
+    global [A, b], so the least-squares problem of the stacked factors has
+    the same (minimum-norm) solution and the same conditioning as the
+    global problem; the normal equations would square the condition number.
     """
     if self.is_domain_decomposed:
-        comm = self.communicator
-        normal_matrix = comm.allreduce(location_matrix.T @ location_matrix, op=MPI.SUM)
-        rhs = comm.allreduce(location_matrix.T @ offsets, op=MPI.SUM)
-        # Like lstsq on the design matrix, this returns the minimum-norm
-        # solution if the fit is rank-deficient, since pinv(A^T A) A^T = pinv(A)
-        return np.linalg.lstsq(normal_matrix, rhs, rcond=None)[0]
+        local_factor = np.linalg.qr(np.column_stack([location_matrix, offsets]), mode='r')
+        stacked = np.concatenate(self.communicator.allgather(local_factor))
+        return np.linalg.lstsq(stacked[:, :-1], stacked[:, -1], rcond=None)[0]
     return np.array(np.linalg.lstsq(location_matrix, offsets, rcond=None)[0])
 
 
