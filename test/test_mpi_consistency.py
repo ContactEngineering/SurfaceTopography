@@ -245,3 +245,13 @@ def test_unsupported_partition_raises_on_all_processes(comm):
         with pytest.raises(NotImplementedError, match="decomposition along y"):
             analysis(mixed)
 
+
+def test_window_of_replicated_topography(comm):
+    # Every process holds the full grid: the window is normalized like the
+    # serial one (and not by the sum over processes)
+    serial, _ = _serial_and_decomposed(comm, periodic=False)
+    replicated = serial.domain_decompose((0, 0), serial.nb_grid_pts, communicator=comm)
+    assert not replicated.is_domain_decomposed
+    np.testing.assert_allclose(replicated.window().window_data, serial.window().window_data, rtol=1e-12)
+    _assert_same_result(serial.power_spectrum_from_area(reliable=False),
+                        replicated.power_spectrum_from_area(reliable=False))

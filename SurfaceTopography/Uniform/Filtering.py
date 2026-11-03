@@ -24,6 +24,7 @@
 #
 
 import numpy as np
+from NuMPI import MPI
 from NuMPI.Tools import Reduction
 from scipy.signal import get_window
 
@@ -215,8 +216,14 @@ class WindowedUniformTopography(DecoratedUniformTopography):
                 win = get_window_2D(window_name, nx, ny, self.parent_topography.physical_sizes,
                                     subdomain_locations=self.subdomain_locations if decomposed else None,
                                     nb_subdomain_grid_pts=self.nb_subdomain_grid_pts if decomposed else None)
-                # Normalize window
-                win *= np.sqrt(nx * ny / Reduction(self.communicator).sum((win ** 2).sum()))
+                # Normalize window; the norm is summed over processes only if
+                # the grid is distributed (and not if every process holds the
+                # full grid). The decision must be the same on all processes.
+                norm = (win ** 2).sum()
+                communicator = self.communicator
+                if communicator.size > 1 and communicator.allreduce(decomposed, op=MPI.LOR):
+                    norm = Reduction(communicator).sum(norm)
+                win *= np.sqrt(nx * ny / norm)
             else:
                 raise ValueError(f"Unknown direction '{self._direction}'.")
 
