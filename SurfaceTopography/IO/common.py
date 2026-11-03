@@ -79,6 +79,10 @@ def check_hdf5_size(fobj):
         return
     superblock = fobj.read(56)
     fobj.seek(0)
+    from ..Exceptions import CorruptFile
+    # Version and size of offsets (byte 1 for versions 2/3, byte 5 for 0/1)
+    if len(superblock) < 6:
+        raise CorruptFile("The file ended within the HDF5 superblock; it is probably truncated.")
     version = superblock[0]
     if version in (0, 1):
         size_of_offsets = superblock[5]
@@ -89,7 +93,6 @@ def check_hdf5_size(fobj):
         # Base address, superblock extension, end-of-file address
         first_address = 4
     if len(superblock) < first_address + 3 * size_of_offsets:
-        from ..Exceptions import CorruptFile
         raise CorruptFile("The file ended within the HDF5 superblock; it is probably truncated.")
     addresses = [int.from_bytes(superblock[first_address + i * size_of_offsets:
                                            first_address + (i + 1) * size_of_offsets], "little")

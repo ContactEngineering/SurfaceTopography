@@ -981,6 +981,16 @@ def _truncation_examples():
     return examples
 
 
+@pytest.mark.parametrize("nb_bytes", range(8, 64))
+def test_hdf5_truncated_in_superblock(file_format_examples, nb_bytes):
+    # Files that end right after the signature or within the superblock
+    from SurfaceTopography.Exceptions import CorruptFile
+    from SurfaceTopography.IO.common import check_hdf5_size
+    data = open(os.path.join(file_format_examples, "multiple_data_sets.h5"), "rb").read()
+    with pytest.raises(CorruptFile):
+        check_hdf5_size(io.BytesIO(data[:nb_bytes]))
+
+
 @pytest.mark.parametrize("fn", _truncation_examples())
 @pytest.mark.parametrize("fraction", [0.5, 0.9])
 def test_truncated_file_raises_corrupt_file(fn, fraction):
