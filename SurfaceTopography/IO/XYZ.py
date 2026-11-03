@@ -335,7 +335,10 @@ def read_csv(fobj, sep=None, usecols=None, skiprows=0):
                 raise ValueError(
                     f"Too few columns in line {nb_lines}: expected {min_cols} but found {nb_cols}."
                 )
-            if incomplete_line and nb_lines > 0 and (len(line) != nb_cols or not _all_numbers(line)):
+            # Only the fields that are read must be numbers; e.g. Dektak CSV
+            # files have trailing empty fields
+            read_fields = line if usecols is None else line[:len(usecols)]
+            if incomplete_line and nb_lines > 0 and (len(line) != nb_cols or not _all_numbers(read_fields)):
                 raise CorruptFile(
                     f"The last line {nb_lines} is incomplete: expected {nb_cols} numbers but found "
                     f"{line}. The file is probably truncated."

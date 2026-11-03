@@ -991,6 +991,20 @@ def test_hdf5_truncated_in_superblock(file_format_examples, nb_bytes):
         check_hdf5_size(io.BytesIO(data[:nb_bytes]))
 
 
+@pytest.mark.parametrize("fn", [fn for fn in text_example_file_list if detect_format(fn) == "xyz"])
+def test_text_file_without_final_line_break(fn):
+    # Complete text files whose last line has no line break (and e.g.
+    # trailing empty fields, as in Dektak CSV files) are not truncated
+    data = open(fn, "rb").read()
+    complete = open_topography(fn).topography()
+    if data.startswith((b"\xff\xfe", b"\xfe\xff")):  # UTF-16 with byte order mark
+        data = data.decode("utf-16").rstrip("\r\n").encode("utf-16")
+    else:
+        data = data.rstrip(b"\r\n")
+    reader = open_topography(io.BytesIO(data), format="xyz")
+    np.testing.assert_allclose(reader.topography().heights(), complete.heights())
+
+
 @pytest.mark.parametrize("fn", _truncation_examples())
 @pytest.mark.parametrize("fraction", [0.5, 0.9])
 def test_truncated_file_raises_corrupt_file(fn, fraction):
