@@ -36,15 +36,25 @@ from ..Support.UnitConversion import suggest_length_unit
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 
-def check_profile_decomposition(topography):
+def check_profile_decomposition(topography, analysis="Profile analyses"):
     """
     Raise `NotImplementedError` unless every process holds complete profiles
     along x, i.e. a domain-decomposed topography is decomposed along y only.
+    The check is collective: if any process holds incomplete profiles, all
+    processes raise (rather than some of them waiting in a subsequent
+    collective operation).
     """
-    if topography.dim == 2 and topography.is_domain_decomposed and (
-            topography.subdomain_locations[0] != 0
-            or topography.nb_subdomain_grid_pts[0] != topography.nb_grid_pts[0]):
-        raise NotImplementedError("Profile analyses of domain-decomposed topographies require a "
+    if topography.dim != 2:
+        return
+    complete_profiles = not topography.is_domain_decomposed or (
+        topography.subdomain_locations[0] == 0
+        and topography.nb_subdomain_grid_pts[0] == topography.nb_grid_pts[0])
+    communicator = topography.communicator
+    if communicator.size > 1:
+        from NuMPI import MPI
+        complete_profiles = communicator.allreduce(complete_profiles, op=MPI.LAND)
+    if not complete_profiles:
+        raise NotImplementedError(f"{analysis} of domain-decomposed topographies require a "
                                   "decomposition along y.")
 
 

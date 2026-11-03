@@ -37,6 +37,7 @@ from NuMPI import MPI
 from NuMPI.Tools import Reduction
 
 from ..HeightContainer import UniformTopographyInterface
+from .common import check_profile_decomposition
 
 
 class UniformBearingArea:
@@ -208,10 +209,8 @@ class DecomposedUniform2DBearingArea:
         self._communicator = topography.communicator
         self._reduction = Reduction(topography.communicator)
         nx, ny = topography.nb_grid_pts
-        (x0, y0), (lnx, lny) = topography.subdomain_locations, topography.nb_subdomain_grid_pts
-        if x0 != 0 or lnx != nx:
-            raise NotImplementedError("The bearing area of domain-decomposed topographies requires a "
-                                      "decomposition along y.")
+        check_profile_decomposition(topography, "Bearing area calculations")
+        y0, lny = topography.subdomain_locations[1], topography.nb_subdomain_grid_pts[1]
         h = np.ma.filled(np.ma.asarray(topography.heights(), dtype=float), np.nan)
         # First column of the subdomain that follows along y
         next_y0 = y0 + lny

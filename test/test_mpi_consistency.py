@@ -224,3 +224,24 @@ def test_ill_conditioned_polyfit(comm):
     np.testing.assert_allclose(decomposed.polyfit(2), serial_coeffs, rtol=1e-8,
                                atol=1e-8 * np.max(np.abs(serial_coeffs)))
 
+
+def test_unsupported_partition_raises_on_all_processes(comm):
+    # Full-x slabs on some processes and x-split rectangles on others: all
+    # processes raise (instead of some of them waiting in a collective)
+    if comm.size < 3:
+        pytest.skip("Requires a partition with full-x slabs and x-split rectangles")
+    serial, _ = _serial_and_decomposed(comm)
+    nx, ny = serial.nb_grid_pts
+    if comm.rank == 0:
+        location, size = (0, 0), (nx, ny // 2)
+    else:
+        # The upper half is split along x among the other processes
+        bounds = np.linspace(0, nx, comm.size).astype(int)
+        location = (bounds[comm.rank - 1], ny // 2)
+        size = (bounds[comm.rank] - bounds[comm.rank - 1], ny - ny // 2)
+    mixed = serial.domain_decompose(location, size, communicator=comm)
+    for analysis in [lambda t: t.bearing_area(0.), lambda t: t.power_spectrum_from_profile(),
+                     lambda t: t.autocorrelation_from_profile(), lambda t: t.Rq()]:
+        with pytest.raises(NotImplementedError, match="decomposition along y"):
+            analysis(mixed)
+
