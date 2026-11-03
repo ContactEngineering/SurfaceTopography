@@ -84,7 +84,9 @@ class NumpyTxtSurfaceTest(unittest.TestCase):
         with tmp_dir() as dir:
             fname = os.path.join(dir, "surface")
             S1.to_matrix(fname)
-            S2 = read_matrix(fname)
+            # The 2x2 map is too small for the format detection of the text
+            # reader; read_matrix reads rows along x, i.e. the transpose
+            S2 = Topography(read_matrix(fname).heights().T, h.shape)
             self.assertTrue(np.allclose(S2.heights(), S1.heights()))
 
         S3 = make_sphere(R, (res, res), (length, length), (x_c, y_c))
@@ -831,3 +833,14 @@ def test_fourier_interpolate_keeps_unit_and_info():
     np.testing.assert_allclose(interpolated.heights()[::2, ::2], t.heights(), atol=1e-12)
     # Unit conversion of the result works
     np.testing.assert_allclose(interpolated.to_unit('mm').physical_sizes, (2e-3, 1.5e-3))
+
+
+def test_periodic_none_is_false():
+    assert Topography(np.zeros((2, 3)), (1., 1.), periodic=None).is_periodic is False
+    assert UniformLineScan(np.zeros(3), 1., periodic=None).is_periodic is False
+
+
+def test_topography_from_list():
+    t = Topography([[1., 2., 3.], [4., 5., 6.]], (2., 3.))
+    assert t.nb_grid_pts == (2, 3)
+    np.testing.assert_allclose(t.heights(), [[1., 2., 3.], [4., 5., 6.]])

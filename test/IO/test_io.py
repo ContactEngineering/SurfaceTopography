@@ -51,7 +51,6 @@ from SurfaceTopography.Exceptions import (
 from SurfaceTopography.IO import detect_format, readers
 from SurfaceTopography.IO.common import is_binary_stream
 from SurfaceTopography.IO.Reader import ChannelInfo
-from SurfaceTopography.IO.Text import read_matrix
 from SurfaceTopography.IO.XYZ import XYZReader
 from SurfaceTopography.Support.JSON import ExtendedJSONEncoder
 from SurfaceTopography.UniformLineScanAndTopography import Topography
@@ -832,8 +831,38 @@ def test_to_matrix():
     with tempfile.TemporaryDirectory() as d:
         t.to_matrix(f"{d}/topo.txt")
         t.detrend("center").to_matrix(f"{d}/topo.txt")
-        t2 = read_matrix(f"{d}/topo.txt")
+        t2 = read_topography(f"{d}/topo.txt")
         np.testing.assert_allclose(t.detrend("center").heights(), t2.heights())
+
+
+@pytest.mark.parametrize("unit", [None, "µm"])
+def test_to_matrix_round_trip(unit):
+    # The text reader reproduces heights, sizes, unit and undefined points
+    from SurfaceTopography import UniformLineScan
+    heights = np.ma.masked_array(np.arange(20.).reshape(5, 4) ** 1.5, mask=np.arange(20).reshape(5, 4) == 7)
+    # A fully undefined x-profile is written as a column of NaNs
+    profile_masked = np.ma.masked_array(np.arange(12.).reshape(4, 3), mask=np.arange(12).reshape(4, 3) // 3 == 1)
+    for t in [Topography(heights, (2.5, 3.), unit=unit), UniformLineScan(np.arange(7.) ** 2, 3.5, unit=unit),
+              # Physical sizes that are NumPy scalars
+              Topography(heights, (np.float64(2.5), np.float32(3.)), unit=unit),
+              # Small maps whose files have two or three columns, which are
+              # also valid coordinate (XYZ) data
+              Topography(np.arange(8.).reshape(2, 4) ** 2, (2.5, 3.), unit=unit),
+              Topography(np.arange(8.).reshape(4, 2) ** 2, (2.5, 3.), unit=unit),
+              Topography(np.arange(6.).reshape(3, 2) ** 2, (2.5, 3.), unit=unit),
+              Topography(np.arange(6.).reshape(2, 3) ** 2, (2.5, 3.), unit=unit),
+              Topography(profile_masked, (2.5, 3.), unit=unit)]:
+        with tempfile.TemporaryDirectory() as d:
+            t.to_matrix(f"{d}/topo.txt")
+            reader = open_topography(f"{d}/topo.txt")
+            assert reader.format() == "asc"
+            t2 = reader.topography()
+            assert t2.nb_grid_pts == t.nb_grid_pts
+            np.testing.assert_allclose(t2.physical_sizes, t.physical_sizes)
+            assert t2.unit == unit
+            np.testing.assert_array_equal(np.ma.getmaskarray(t2.heights()), np.ma.getmaskarray(t.heights()))
+            np.testing.assert_allclose(np.ma.asarray(t2.heights()).compressed(),
+                                       np.ma.asarray(t.heights()).compressed())
 
 
 @pytest.mark.parametrize(
@@ -866,3 +895,108 @@ def test_json_encode_info(fn):
 
     # This should simply pass without an exception
     json.dumps(t.info, cls=ExtendedJSONEncoder)
+
+
+@pytest.mark.parametrize("fn", text_example_file_list + binary_example_file_list)
+def test_channel_ids_and_height_indices(fn):
+    # Every channel has a unique, stable identifier by which it can be
+    # selected; height channels are numbered consecutively
+    reader = open_topography(fn)
+    channels = reader.channels
+    ids = [ch.channel_id for ch in channels]
+    assert None not in ids, fn
+    assert len(set(ids)) == len(ids), fn
+    for ch in channels:
+        assert reader._get_channel_by_id(ch.channel_id).index == ch.index, fn
+    height_indices = [ch.height_index for ch in channels if ch.is_height_channel]
+    assert height_indices == list(range(len(height_indices))), fn
+    assert all(ch.height_index is None for ch in channels if not ch.is_height_channel), fn
+
+
+@pytest.mark.parametrize("fn", text_example_file_list + binary_example_file_list)
+def test_channel_topography_has_periodicity_of_reader(fn):
+    # Without `periodic`, the channel and the reader return the periodicity
+    # stored in the file (or False); it is always a bool
+    reader = open_topography(fn)
+    ch = reader.default_channel
+    physical_sizes = (1.0,) * ch.dim if ch.physical_sizes is None else None
+    t_reader = reader.topography(physical_sizes=physical_sizes)
+    t_channel = ch.topography(physical_sizes=physical_sizes)
+    assert isinstance(t_reader.is_periodic, bool), fn
+    assert t_channel.is_periodic == t_reader.is_periodic, fn
+
+
+def test_periodicity_from_netcdf_file():
+    from SurfaceTopography import Topography
+    with tempfile.TemporaryDirectory() as d:
+        fn = os.path.join(d, "periodic.nc")
+        Topography(np.arange(48.).reshape(8, 6), (1., 1.), periodic=True, unit="m").to_netcdf(fn)
+        reader = open_topography(fn)
+        assert reader.channels[0].is_periodic
+        assert reader.topography().is_periodic
+        assert reader.channels[0].topography().is_periodic
+        assert not reader.channels[0].topography(periodic=False).is_periodic
+
+
+@pytest.mark.parametrize("fn", text_example_file_list + binary_example_file_list)
+def test_data_kind_matches_data_unit(fn):
+    # Channels whose values are not lengths are not height channels, and
+    # their lateral unit is a length unit
+    from SurfaceTopography.Support.UnitConversion import is_length_unit
+    for ch in open_topography(fn).channels:
+        if isinstance(ch.data_unit, str) and not is_length_unit(ch.data_unit):
+            assert not ch.is_height_channel, f"{fn}: {ch.name}"
+            assert ch.unit is None or is_length_unit(ch.unit), f"{fn}: {ch.name}"
+
+
+@pytest.mark.parametrize("fn", text_example_file_list + binary_example_file_list)
+def test_detect_format_with_communicator(fn):
+    # Detection with a communicator gives the same result as without
+    from NuMPI import MPI
+    assert detect_format(fn, comm=MPI.COMM_WORLD) == detect_format(fn)
+    assert open_topography(fn, communicator=MPI.COMM_WORLD).format() == detect_format(fn)
+
+
+def test_open_non_parallel_format_with_parallel_communicator(file_format_examples):
+    # A file whose reader does not support parallel I/O raises an error that
+    # names the format, during detection as well as with explicit format
+    class FakeCommunicator:
+        size = 2
+    fn = os.path.join(file_format_examples, "di-1.di")
+    with pytest.raises(ValueError, match="'di'.*does not support parallel I/O"):
+        open_topography(fn, communicator=FakeCommunicator())
+    with pytest.raises(ValueError, match="does not support parallel I/O"):
+        open_topography(fn, format="di", communicator=FakeCommunicator())
+
+
+def _truncation_examples():
+    # Example files of the declarative readers and the plain text reader
+    from SurfaceTopography.IO.Reader import DeclarativeReaderBase
+    from SurfaceTopography.IO.Text import AscReader
+    examples = []
+    for fn in text_example_file_list + binary_example_file_list:
+        try:
+            reader_class = SurfaceTopography.IO.lookup_reader_by_format[detect_format(fn)]
+        except Exception:
+            continue
+        if issubclass(reader_class, (DeclarativeReaderBase, AscReader)):
+            examples += [fn]
+    return examples
+
+
+@pytest.mark.parametrize("fn", _truncation_examples())
+@pytest.mark.parametrize("fraction", [0.5, 0.9])
+def test_truncated_file_raises_corrupt_file(fn, fraction):
+    # A truncated file either still yields a topography or raises a
+    # CorruptFile (or another error of the library), never a raw error of
+    # numpy or struct
+    from SurfaceTopography.Exceptions import CannotPerformAnalysisError, ReadFileError
+    data = open(fn, "rb").read()
+    fmt = detect_format(fn)
+    stream = io.BytesIO(data[: int(len(data) * fraction)])
+    try:
+        reader = open_topography(stream, format=fmt)
+        ch = reader.default_channel
+        reader.topography(physical_sizes=None if ch.physical_sizes is not None else (1.0,) * ch.dim)
+    except (ReadFileError, CannotPerformAnalysisError):
+        pass

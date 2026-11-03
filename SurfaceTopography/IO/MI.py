@@ -46,7 +46,7 @@ _unit = F.mangle_length_unit(C.item.bufferUnit)
 # `xLength` and `yLength` are always given in meters; they are converted
 # to the data unit of the channel if that is a length unit. For channels
 # whose data is not a height (e.g. deflection in V), the lateral sizes
-# are reported in meters since there is no meaningful conversion.
+# and unit are meters and the data unit is that of the buffer.
 _is_height_channel = F.is_length_unit(_unit)
 
 
@@ -145,7 +145,8 @@ topography map as well as its units.
             # scale with the range of the buffer
             "height_scale_factor": F.float(C.item.bufferRange) / _type_range,
             "uniform": True,
-            "unit": _unit,
+            "unit": Cond(_is_height_channel, _unit, "m"),
+            "data_unit": _unit,
             "info": {
                 "acquisition_time": Cond(
                     F.get(C.header, "dateAcquired", None) != None,  # noqa: E711

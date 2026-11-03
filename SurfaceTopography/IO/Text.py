@@ -44,10 +44,13 @@ from .Reader import ChannelInfo
 def read_matrix(
     fobj, physical_sizes=None, unit=None, height_scale_factor=None, periodic=False
 ):
-    """
+    r"""
     Reads a surface profile from a text file and presents it in a
     SurfaceTopography-conformant manner. No additional parsing of
-    meta-information is carried out.
+    meta-information is carried out. Row :math:`i` of the file contains
+    :math:`h_{i0}, h_{i1}, \dots`, i.e. rows run along the first axis
+    :math:`x`. This is the transpose of the layout of the plain text
+    reader (`asc`) and of files written by `to_matrix`.
 
     Parameters
     ----------
@@ -428,6 +431,11 @@ When writing your own ASCII files, we recommend to prepend the header with a
         Interpret the raw data and metadata of a single channel. Returns None
         if the channel does not contain topography (height) information.
         """
+        if len(set(len(row) for row in data)) > 1:
+            raise CorruptFile(
+                "The rows of the height matrix have different numbers of "
+                "values; the file is probably truncated."
+            )
         data = np.array(data).T
         dim = 2
         if data.shape[0] == 1:
@@ -448,7 +456,13 @@ When writing your own ASCII files, we recommend to prepend the header with a
             (nx,) = data.shape
             ny = None
         else:
-            if nx == 2 or ny == 2:
+            # Two rows or columns are accepted only if the header identifies
+            # the file as a map
+            explicit_map = (
+                nb_grid_pts_y is not None
+                or metadata.get("physical_size_y") is not None
+            )
+            if (nx == 2 or ny == 2) and not explicit_map:
                 raise CorruptFile(
                     "This file has just two rows or two columns and is more "
                     "likely a line scan than a map."
@@ -686,9 +700,12 @@ When writing your own ASCII files, we recommend to prepend the header with a
 
 def write_matrix(self, fname):
     """
-    Save the heights of the topography as a text matrix using `np.savetxt`.
-    The file contains only the heights; physical sizes, unit and other
-    metadata are not written.
+    Save the heights of the topography as a text matrix using `np.savetxt`,
+    in the layout read by the text reader: each row contains the heights
+    along x at one y-position (line scans: one height per row). A header
+    with the physical sizes and the unit (`# Width`, `# Height`,
+    `# Value units`) is written; undefined data is written as NaN. Other
+    metadata is not written.
 
     Parameters
     ----------
@@ -697,7 +714,17 @@ def write_matrix(self, fname):
     fname : str or file-like object
         File name or stream to write to.
     """
-    np.savetxt(fname, self.heights())
+    unit = "" if self.unit is None else f" {self.unit}"
+    # Python floats: the repr of NumPy scalars (e.g. `np.float64(2.5)`)
+    # cannot be parsed by the reader
+    sizes = [float(s) for s in self.physical_sizes]
+    header = [f"Width: {sizes[0]!r}{unit}"]
+    if self.dim == 2:
+        header += [f"Height: {sizes[1]!r}{unit}"]
+    if self.unit is not None:
+        header += [f"Value units: {self.unit}"]
+    heights = np.ma.filled(np.ma.asarray(self.heights(), dtype=float), np.nan)
+    np.savetxt(fname, heights.T if self.dim == 2 else heights, header="\n".join(header))
 
 
 # Register analysis functions from this module

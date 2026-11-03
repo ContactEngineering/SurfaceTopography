@@ -55,6 +55,21 @@ def _identity(x):
     return x
 
 
+def _read_exactly(stream_obj, size):
+    """
+    Read `size` bytes from the stream; raise `CorruptFile` if the stream
+    ends before (i.e. the file is truncated).
+    """
+    size = int(size)
+    data = stream_obj.read(size)
+    if len(data) < size:
+        raise CorruptFile(
+            f"The file ended after {len(data)} of {size} bytes of a data block; it is "
+            f"probably truncated."
+        )
+    return data
+
+
 class AttrDict(dict):
     def __init__(self, *args, **kwargs):
         super(AttrDict, self).__init__(*args, **kwargs)
@@ -159,17 +174,17 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False, cont
 
         # Special formats
         if format == 't':
-            strlen, = unpack(byte_order + 'H', stream_obj.read(2))
-            data = stream_obj.read(strlen).decode('ascii').strip('\x00')
+            strlen, = unpack(byte_order + 'H', _read_exactly(stream_obj, 2))
+            data = _read_exactly(stream_obj, strlen).decode('ascii').strip('\x00')
             size = strlen + 2
         elif format == 'T':
-            strlen, = unpack(byte_order + 'I', stream_obj.read(4))
-            data = stream_obj.read(strlen).decode('ascii').strip('\x00')
+            strlen, = unpack(byte_order + 'I', _read_exactly(stream_obj, 4))
+            data = _read_exactly(stream_obj, strlen).decode('ascii').strip('\x00')
             size = strlen + 4
         else:
             native_format = mogrify_format(format)
             size = calcsize(native_format)
-            data = decode_data(unpack(native_format, stream_obj.read(size)), format)
+            data = decode_data(unpack(native_format, _read_exactly(stream_obj, size)), format)
 
         # Track size of data structure
         total_size += size
@@ -440,7 +455,7 @@ class BinaryArray:
         else:
             dtype = self._dtype
 
-        buffer = stream_obj.read(np.prod(shape) * dtype.itemsize)
+        buffer = _read_exactly(stream_obj, np.prod(shape) * dtype.itemsize)
         arr = np.frombuffer(buffer, dtype=dtype).reshape(shape)
         if self._mask_fun is not None:
             arr = np.ma.masked_array(arr, mask=self._mask_fun(arr, context))
@@ -533,7 +548,7 @@ class RawBuffer:
             return {name: ReaderProxy(self, context, file_pos)}
         else:
             # Immediate loading - read data now
-            data = stream_obj.read(size)
+            data = _read_exactly(stream_obj, size)
             return {name: {'_raw': data, '_size': size}}
 
     def read(self, stream_obj, context):
@@ -553,7 +568,7 @@ class RawBuffer:
             Buffer containing the raw data.
         """
         size = self._get_size(context)
-        return stream_obj.read(size)
+        return _read_exactly(stream_obj, size)
 
 
 class TextBuffer(LayoutWithNameBase):
@@ -950,11 +965,11 @@ class TLVContainer(LayoutWithNameBase):
 
         if layout is None:
             # Unknown tag - store raw bytes
-            return {'_raw': stream_obj.read(size), '_size': size}, None
+            return {'_raw': _read_exactly(stream_obj, size), '_size': size}, None
 
         if layout == 'text':
             # Text block shorthand
-            data = stream_obj.read(size)
+            data = _read_exactly(stream_obj, size)
             text = data.decode('ascii', errors='replace').strip('\x00')
             return text, None
 

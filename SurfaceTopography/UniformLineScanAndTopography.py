@@ -66,7 +66,8 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
         physical_sizes : float or tuple of one float
             Physical length :math:`L` of the line scan.
         periodic : bool, optional
-            The line scan is periodic. (Default: False)
+            The line scan is periodic. None is interpreted as False.
+            (Default: False)
         unit : str, optional
             The length unit. (Default: None)
         info : dict, optional
@@ -89,7 +90,7 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
             heights = np.ma.masked_invalid(heights)
         self._heights = np.asanyarray(heights, dtype=float)
         self._size = np.asarray(physical_sizes).item()
-        self._periodic = periodic
+        self._periodic = bool(periodic)
 
     def __getstate__(self):
         state = super().__getstate__(), self._heights, self._size, self._periodic
@@ -217,7 +218,8 @@ class Topography(AbstractTopography, UniformTopographyInterface):
         physical_sizes : tuple of floats
             Physical size :math:`(L_x, L_y)` of the topography map.
         periodic : bool, optional
-            The topography is periodic. (Default: False)
+            The topography is periodic. None is interpreted as False.
+            (Default: False)
         nb_grid_pts : tuple of ints, optional
             Number of grid points for the full topography. This is only
             required if decomposition is set to 'subdomain'.
@@ -269,6 +271,8 @@ class Topography(AbstractTopography, UniformTopographyInterface):
                        nb_subdomain_grid_pts=nb_subdomain_grid_pts,
                        communicator=comm)
         """
+        if not hasattr(heights, "ndim"):
+            heights = np.array(heights)
         if heights.ndim != 2:
             raise ValueError("Heights array must be two-dimensional.")
 
@@ -350,6 +354,18 @@ class Topography(AbstractTopography, UniformTopographyInterface):
                     "please specify `nb_subdomain_grid_pts` since it cannot "
                     "be inferred."
                 )
+            if any(
+                s < 0 or n < 0 or s + n > N
+                for s, n, N in zip(subdomain_locations, nb_subdomain_grid_pts, heights.shape)
+            ):
+                # Slicing would silently return a smaller subdomain
+                raise ValueError(
+                    "The subdomain at `subdomain_locations` (= {}) with "
+                    "`nb_subdomain_grid_pts` (= {}) does not lie within the "
+                    "`heights` (= {}) array.".format(
+                        subdomain_locations, nb_subdomain_grid_pts, heights.shape
+                    )
+                )
             self._nb_grid_pts = heights.shape
             self._subdomain_locations = subdomain_locations
             self._heights = np.asanyarray(
@@ -367,7 +383,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
             raise ValueError("`decomposition` can be either 'domain' or 'subdomain'.")
 
         self._size = physical_sizes
-        self._periodic = periodic
+        self._periodic = bool(periodic)
 
     def __getstate__(self):
         state = (

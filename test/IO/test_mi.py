@@ -63,6 +63,10 @@ def test_read_header():
     np.testing.assert_allclose(loader.channels[0].physical_sizes, (20.0, 20.0))
     # Non-length channels (V) keep the lateral sizes in meters
     np.testing.assert_allclose(loader.channels[1].physical_sizes, (2e-05, 2e-05))
+    assert loader.channels[1].unit == "m"
+    assert [ch.data_kind.value for ch in loader.channels] == ["height", "deflection", "friction", "friction"]
+    assert [ch.data_unit for ch in loader.channels] == ["µm", "V", "V", "V"]
+    assert [ch.height_index for ch in loader.channels] == [0, None, None, None]
     assert (
         loader.channels[0].info["raw_metadata"]["DisplayOffset"]
         == "8.8577270507812517e-004"

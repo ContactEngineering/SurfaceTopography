@@ -43,7 +43,7 @@ from ..Support.UnitConversion import (
 )
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
 from .common import OpenFromAny
-from .Reader import ChannelInfo, ReaderBase
+from .Reader import ChannelInfo, ReaderBase, data_kind_from_unit
 
 # Asylum Research writes the same `dataUnits` into the wave header for all
 # channels of an image, even for channels that are not lengths (e.g. phase
@@ -291,6 +291,8 @@ on the physical size of the topography map as well as its units.
                     physical_sizes=self._physical_sizes,
                     unit=unit,
                     data_unit=channel_data_unit,
+                    # IBW files use 'A' for ampere
+                    data_kind=data_kind_from_unit(channel_data_unit, channel_name, ascii_angstrom=False),
                     height_scale_factor=height_scale_factor,
                     uniform=True,
                     info=info,

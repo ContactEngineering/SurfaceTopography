@@ -28,6 +28,8 @@
 
 import inspect
 import os
+import struct
+import zipfile
 
 # Registers DZI writers with Topography class
 import SurfaceTopography.IO.DZI  # noqa: F401
@@ -225,23 +227,59 @@ def detect_format(fobj, comm=None):
     CannotDetectFileFormat
         If no registered reader can open the file.
     """
+    reader = _open_by_detection(fobj, communicator=comm, parallel=False)
+    reader.close()
+    return reader.format()
+
+
+def _reader_accepts_communicator(reader_class):
+    """Check if a reader's __init__ accepts a 'communicator' argument."""
+    try:
+        sig = inspect.signature(reader_class.__init__)
+        return 'communicator' in sig.parameters
+    except (ValueError, TypeError):
+        return False
+
+
+def _instantiate_reader(reader_class, fobj, communicator):
+    """
+    Open `fobj` with `reader_class`, passing the communicator if supported.
+    Low-level errors that indicate a damaged file (e.g. a truncated ZIP
+    archive or binary header) are raised as `CorruptFile`.
+    """
+    kwargs = {}
+    if communicator is not None and _reader_accepts_communicator(reader_class):
+        kwargs["communicator"] = communicator
+    try:
+        return reader_class(fobj, **kwargs)
+    except (zipfile.BadZipFile, struct.error, EOFError) as err:
+        raise CorruptFile(f"{reader_class.__name__} cannot read the file, it is probably damaged: {err}") from err
+
+
+def _open_by_detection(fobj, communicator=None, parallel=True):
+    """
+    Open `fobj` with the first reader in `readers` that can read it.
+
+    If `parallel` is true and the communicator has more than one process,
+    readers without parallel I/O support are not tried; if none of the
+    others can read the file but one of them can, a `ValueError` naming the
+    format is raised.
+    """
     # Read magic buffer once for fast pre-filtering
     magic_buffer = _read_magic_buffer(fobj)
+    require_parallel = parallel and communicator is not None and communicator.size > 1
 
     msg = ""
+    skipped = []
     for reader in readers:
         # Fast magic-based rejection
-        magic_result = reader.can_read(magic_buffer)
-        if magic_result == MagicMatch.NO:
-            continue  # Skip this reader
-
-        # Try full instantiation
+        if reader.can_read(magic_buffer) == MagicMatch.NO:
+            continue
+        if require_parallel and not _reader_accepts_communicator(reader):
+            skipped += [reader]
+            continue
         try:
-            if comm is not None:
-                reader(fobj, comm)
-            else:
-                reader(fobj)
-            return reader.format()
+            return _instantiate_reader(reader, fobj, communicator)
         except Exception as err:
             msg += "tried {}: \n {}\n\n".format(reader.__name__, err)
         finally:
@@ -249,6 +287,19 @@ def detect_format(fobj, comm=None):
                 # if the reader crashes the cursor in the file-like object
                 # has to be set back to the top of the file
                 fobj.seek(0)
+    # Report a matching reader that was skipped for lack of parallel I/O
+    for reader in skipped:
+        try:
+            reader(fobj)
+        except Exception:
+            continue
+        finally:
+            if hasattr(fobj, 'seek'):
+                fobj.seek(0)
+        raise ValueError(
+            f"The file has format '{reader.format()}', but {reader.__name__} does not support parallel I/O "
+            f"and the communicator has size {communicator.size}."
+        )
     raise CannotDetectFileFormat(msg)
 
 
@@ -274,7 +325,9 @@ def open_topography(fobj, format=None, communicator=None):
         to readers that support parallel I/O. If the communicator has more
         than one process, readers without parallel I/O support are rejected:
         with an explicit `format`, a `ValueError` is raised; during format
-        detection, the reader is skipped. (Default: None)
+        detection, they are not tried, and a `ValueError` is raised if the
+        file has a format whose reader does not support parallel I/O.
+        (Default: None)
 
     Returns
     -------
@@ -316,63 +369,22 @@ def open_topography(fobj, format=None, communicator=None):
     Specifying metadata that is stored in the file raises
     `MetadataAlreadyFixedByFile`.
     """  # noqa: E501
-    def reader_accepts_communicator(reader_class):
-        """Check if a reader's __init__ accepts a 'communicator' argument."""
-        try:
-            sig = inspect.signature(reader_class.__init__)
-            return 'communicator' in sig.parameters
-        except (ValueError, TypeError):
-            return False
-
-    def check_parallel_support(reader_class):
-        """Raise an error if parallel I/O is requested but not supported."""
-        if communicator is not None and communicator.size > 1:
-            if not reader_accepts_communicator(reader_class):
-                raise ValueError(
-                    f"{reader_class.__name__} does not support parallel I/O, "
-                    f"but communicator has size {communicator.size}."
-                )
-
     if not hasattr(fobj, 'read') and not callable(fobj):  # fobj is a path
         if not os.path.isfile(fobj):
             raise FileNotFoundError("file {} not found".format(fobj))
 
     if format is None:
-        # Read magic buffer once for fast pre-filtering
-        magic_buffer = _read_magic_buffer(fobj)
-
-        msg = ""
-        for reader in readers:
-            # Fast magic-based rejection
-            magic_result = reader.can_read(magic_buffer)
-            if magic_result == MagicMatch.NO:
-                continue  # Skip this reader
-
-            kwargs = {}
-            if communicator is not None and reader_accepts_communicator(reader):
-                kwargs["communicator"] = communicator
-            try:
-                r = reader(fobj, **kwargs)
-                check_parallel_support(reader)
-                return r
-            except Exception as err:
-                msg += "tried {}: \n {}\n\n".format(reader.__name__, err)
-            finally:
-                if hasattr(fobj, 'seek'):
-                    # if the reader crashes the cursor in the file-like object
-                    # has to be set back to the top of the file
-                    fobj.seek(0)
-        raise CannotDetectFileFormat(msg)
+        return _open_by_detection(fobj, communicator=communicator)
     else:
         if format not in lookup_reader_by_format.keys():
             raise UnknownFileFormat(
                 f"{format} not in registered file formats {lookup_reader_by_format.keys()}.")
         reader = lookup_reader_by_format[format]
-        check_parallel_support(reader)
-        kwargs = {}
-        if communicator is not None and reader_accepts_communicator(reader):
-            kwargs["communicator"] = communicator
-        return reader(fobj, **kwargs)
+        if communicator is not None and communicator.size > 1 and not _reader_accepts_communicator(reader):
+            raise ValueError(
+                f"{reader.__name__} does not support parallel I/O, but communicator has size {communicator.size}."
+            )
+        return _instantiate_reader(reader, fobj, communicator)
 
 
 def read_topography(fn, format=None, communicator=None, **kwargs):

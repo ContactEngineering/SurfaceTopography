@@ -81,6 +81,8 @@ import operator
 import dateutil.parser
 import numpy as np
 
+from ..Exceptions import UnsupportedSchema
+
 _BINARY_OPS = {
     "+": operator.add,
     "-": operator.sub,
@@ -530,6 +532,8 @@ class BinaryOp(Expr):
 
     @classmethod
     def _from_dict(cls, d):
+        if d["op"] not in _BINARY_OPS:
+            raise UnsupportedSchema(f"Unknown binary operator `{d['op']}`.")
         left, right = d["args"]
         return cls(d["op"], from_dict(left), from_dict(right))
 
@@ -552,6 +556,8 @@ class UnaryOp(Expr):
 
     @classmethod
     def _from_dict(cls, d):
+        if d["op"] not in _UNARY_OPS:
+            raise UnsupportedSchema(f"Unknown unary operator `{d['op']}`.")
         return cls(d["op"], from_dict(d["arg"]))
 
     def __repr__(self):
@@ -584,6 +590,8 @@ class Call(Expr):
 
     @classmethod
     def _from_dict(cls, d):
+        if d["name"] not in _FUNCTIONS:
+            raise UnsupportedSchema(f"Unknown function `{d['name']}`.")
         return cls(d["name"], [from_dict(arg) for arg in d["args"]])
 
     def __repr__(self):
@@ -737,11 +745,14 @@ _NODE_KINDS = {
 
 
 def from_dict(d):
-    """Rehydrate an expression from its JSON-compatible AST."""
+    """
+    Rehydrate an expression from its JSON-compatible AST. Unknown node
+    kinds, operators and functions raise `UnsupportedSchema`.
+    """
     try:
         node_class = _NODE_KINDS[d["kind"]]
     except (TypeError, KeyError):
-        raise ValueError(f"Cannot decode expression node: {d!r}")
+        raise UnsupportedSchema(f"Cannot decode expression node: {d!r}")
     return node_class._from_dict(d)
 
 
