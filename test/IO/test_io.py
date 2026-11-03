@@ -840,9 +840,18 @@ def test_to_matrix_round_trip(unit):
     # The text reader reproduces heights, sizes, unit and undefined points
     from SurfaceTopography import UniformLineScan
     heights = np.ma.masked_array(np.arange(20.).reshape(5, 4) ** 1.5, mask=np.arange(20).reshape(5, 4) == 7)
+    # A fully undefined x-profile is written as a column of NaNs
+    profile_masked = np.ma.masked_array(np.arange(12.).reshape(4, 3), mask=np.arange(12).reshape(4, 3) // 3 == 1)
     for t in [Topography(heights, (2.5, 3.), unit=unit), UniformLineScan(np.arange(7.) ** 2, 3.5, unit=unit),
               # Physical sizes that are NumPy scalars
-              Topography(heights, (np.float64(2.5), np.float32(3.)), unit=unit)]:
+              Topography(heights, (np.float64(2.5), np.float32(3.)), unit=unit),
+              # Small maps whose files have two or three columns, which are
+              # also valid coordinate (XYZ) data
+              Topography(np.arange(8.).reshape(2, 4) ** 2, (2.5, 3.), unit=unit),
+              Topography(np.arange(8.).reshape(4, 2) ** 2, (2.5, 3.), unit=unit),
+              Topography(np.arange(6.).reshape(3, 2) ** 2, (2.5, 3.), unit=unit),
+              Topography(np.arange(6.).reshape(2, 3) ** 2, (2.5, 3.), unit=unit),
+              Topography(profile_masked, (2.5, 3.), unit=unit)]:
         with tempfile.TemporaryDirectory() as d:
             t.to_matrix(f"{d}/topo.txt")
             reader = open_topography(f"{d}/topo.txt")

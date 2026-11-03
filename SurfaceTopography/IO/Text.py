@@ -456,7 +456,13 @@ When writing your own ASCII files, we recommend to prepend the header with a
             (nx,) = data.shape
             ny = None
         else:
-            if nx == 2 or ny == 2:
+            # Two rows or columns are accepted only if the header identifies
+            # the file as a map
+            explicit_map = (
+                nb_grid_pts_y is not None
+                or metadata.get("physical_size_y") is not None
+            )
+            if (nx == 2 or ny == 2) and not explicit_map:
                 raise CorruptFile(
                     "This file has just two rows or two columns and is more "
                     "likely a line scan than a map."
