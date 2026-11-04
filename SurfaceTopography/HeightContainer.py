@@ -30,7 +30,7 @@ analysis and pipeline functions.
 """
 
 import abc
-from functools import update_wrapper
+from functools import update_wrapper, wraps
 
 import numpy as np
 from NuMPI import MPI
@@ -39,6 +39,23 @@ from NuMPI.Tools import Reduction
 from .Metadata import InfoModel
 from .Support import doi
 from .Support.Deprecation import deprecated as deprecation_warning
+
+
+def _serial_only(name, function):
+    """
+    Wrap an analysis function such that it raises `NotImplementedError` for
+    domain-decomposed (MPI-parallel) topographies.
+    """
+
+    @wraps(function)
+    def serial_only_function(topography, *args, **kwargs):
+        if getattr(topography, "is_domain_decomposed", False):
+            raise NotImplementedError(
+                f"`{name}` does not support domain-decomposed (MPI-parallel) topographies."
+            )
+        return function(topography, *args, **kwargs)
+
+    return serial_only_function
 
 
 class AbstractTopography(object):
@@ -187,7 +204,14 @@ class DecoratedTopography(AbstractTopography):
     transformations on that data. This is a simple realization of a
     processing pipeline. Note that child topographies don't store their
     own physical_sizes etc. but pass this information through to the parent.
+
+    Pipeline steps whose result on each subdomain depends only on the
+    parent's data on that subdomain (e.g. scaling) set
+    `_supports_domain_decomposition` to True. All others raise
+    `NotImplementedError` for domain-decomposed (MPI-parallel) parents.
     """
+
+    _supports_domain_decomposition = False
 
     def __init__(self, topography, unit=None, info={}):
         """
@@ -198,6 +222,10 @@ class DecoratedTopography(AbstractTopography):
         """
         super().__init__(unit=unit, info=info)
         assert isinstance(topography, AbstractTopography)
+        if getattr(topography, "is_domain_decomposed", False) and not self._supports_domain_decomposition:
+            raise NotImplementedError(
+                f"{type(self).__name__} does not support domain-decomposed (MPI-parallel) topographies."
+            )
         self.parent_topography = topography
         self._communicator = self.parent_topography.communicator
 
@@ -246,7 +274,7 @@ class TopographyInterface(object):
     """
 
     @classmethod
-    def register_function(cls, name, function, deprecated=False):  # noqa: N805
+    def register_function(cls, name, function, deprecated=False, domain_decomposition=False):  # noqa: N805
         """
         Register `function` under `name` for this class and its subclasses.
         The function is afterwards callable as a method
@@ -264,7 +292,15 @@ class TopographyInterface(object):
         deprecated : bool, optional
             Emit a `DeprecationWarning` whenever the function is called.
             (Default: False)
+        domain_decomposition : bool, optional
+            The function supports domain-decomposed (MPI-parallel)
+            topographies. Otherwise, calling it on such a topography raises
+            `NotImplementedError`. Ignored for pipeline classes, which
+            declare support with `_supports_domain_decomposition`.
+            (Default: False)
         """
+        # Pipeline classes check support for domain decomposition themselves
+        is_pipeline_class = isinstance(function, type)
         if deprecated:
             function = deprecation_warning()(function)
         if not getattr(function, '__has_doi__', False):
@@ -274,6 +310,8 @@ class TopographyInterface(object):
             # checking the function name would be defeated by
             # functools.wraps.)
             function = doi()(function)
+        if not domain_decomposition and not is_pipeline_class:
+            function = _serial_only(name, function)
         if '_functions' not in cls.__dict__:
             # Copy on write: registering a function on a subclass (e.g. a
             # 2D-only analysis on `Topography`) must not leak into the

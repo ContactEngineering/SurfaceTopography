@@ -33,8 +33,11 @@ from functools import cached_property
 
 import _SurfaceTopography
 import numpy as np
+from NuMPI import MPI
+from NuMPI.Tools import Reduction
 
 from ..HeightContainer import UniformTopographyInterface
+from .common import check_profile_decomposition
 
 
 class UniformBearingArea:
@@ -192,6 +195,65 @@ class Uniform2DBearingArea(UniformBearingArea):
                                                              heights.astype(float))
 
 
+class DecomposedUniform2DBearingArea:
+    """
+    Bearing area of a domain-decomposed (MPI-parallel) topography. Every
+    process evaluates the triangles of its subdomain, including the cells
+    that connect it to the next subdomain along y (whose first column is
+    exchanged), and the results are summed over all processes. Only
+    decompositions along y (slabs that contain all points along x) are
+    supported.
+    """
+
+    def __init__(self, topography):
+        self._communicator = topography.communicator
+        self._reduction = Reduction(topography.communicator)
+        nx, ny = topography.nb_grid_pts
+        check_profile_decomposition(topography, "Bearing area calculations")
+        y0, lny = topography.subdomain_locations[1], topography.nb_subdomain_grid_pts[1]
+        h = np.ma.filled(np.ma.asarray(topography.heights(), dtype=float), np.nan)
+        # First column of the subdomain that follows along y
+        next_y0 = y0 + lny
+        if topography.is_periodic:
+            next_y0 %= ny
+        columns = topography.communicator.allgather((y0, h[:, 0].copy()))
+        for column_y0, column in columns:
+            if column_y0 == next_y0:  # Never true for the last nonperiodic subdomain
+                h = np.concatenate([h, column.reshape(-1, 1)], axis=1)
+                break
+        if topography.is_periodic:
+            # Cells that connect the last and first row
+            h = np.concatenate([h, h[:1]], axis=0)
+        self._local = Uniform2DBearingArea(np.ma.masked_invalid(h), is_periodic=False)
+        self._nb_els = self._reduction.sum(self._local._nb_els)
+
+    def bounds(self, heights):
+        """See :meth:`UniformBearingArea.bounds`."""
+        el_min = self._sum(np.searchsorted(self._local._el_min_heights, heights))
+        el_max = self._sum(np.searchsorted(self._local._el_max_heights, heights))
+        return (self._nb_els - el_min) / self._nb_els, (self._nb_els - el_max) / self._nb_els
+
+    def __call__(self, heights):
+        """See :meth:`Uniform2DBearingArea.__call__`."""
+        if self._local._nb_els > 0:
+            local_area = self._local(heights) * self._local._nb_els
+        else:
+            local_area = np.zeros_like(heights, dtype=float)
+        return self._sum(local_area) / self._nb_els
+
+    def _sum(self, values):
+        """Element-wise sum over all processes"""
+        return self._communicator.allreduce(values, op=MPI.SUM)
+
+    @cached_property
+    def min(self):
+        return self._reduction.min(np.nanmin(self._local._h))
+
+    @cached_property
+    def max(self):
+        return self._reduction.max(np.nanmax(self._local._h))
+
+
 def bearing_area(self, heights=None):
     """
     Compute the bearing area for a specific height.
@@ -219,6 +281,8 @@ def bearing_area(self, heights=None):
     """
     if self.dim == 1:
         b = Uniform1DBearingArea(self.heights(), self.is_periodic)
+    elif self.is_domain_decomposed:
+        b = DecomposedUniform2DBearingArea(self)
     elif self.dim == 2:
         b = Uniform2DBearingArea(self.heights(), self.is_periodic)
     else:
@@ -230,4 +294,4 @@ def bearing_area(self, heights=None):
         return b(heights)
 
 
-UniformTopographyInterface.register_function('bearing_area', bearing_area)
+UniformTopographyInterface.register_function('bearing_area', bearing_area, domain_decomposition=True)

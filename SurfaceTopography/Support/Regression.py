@@ -107,7 +107,7 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
     return collocation_points, bin_edges
 
 
-def bin_average(collocation_points, bin_edges, x, values):
+def bin_average(collocation_points, bin_edges, x, values, weights=None, communicator=None):
     """
     Average values over bins. Returns masked arrays with bins without data
     masked. Data points outside the outermost bin edges are discarded.
@@ -122,6 +122,13 @@ def bin_average(collocation_points, bin_edges, x, values):
         Collocation points for `values` array.
     values : array_like
         Function values/variates.
+    weights : array_like, optional
+        Number of times each data point counts, e.g. 2 for a Fourier
+        coefficient that represents itself and its complex conjugate.
+        (Default: None, i.e. every data point counts once)
+    communicator : mpi4py communicator, optional
+        If given, the data points of all processes are averaged together.
+        (Default: None)
 
     Returns
     -------
@@ -137,18 +144,26 @@ def bin_average(collocation_points, bin_edges, x, values):
     # Find bin index
     bin_index = np.searchsorted(bin_edges, x)
 
+    def bin_sum(weights_of_points):
+        sums = np.bincount(bin_index, weights=weights_of_points, minlength=len(bin_edges) + 1)
+        if communicator is not None:
+            from NuMPI import MPI
+            sums = communicator.allreduce(sums, op=MPI.SUM)
+        return sums
+
     # Compute averages within bins
-    number_of_data_points = np.bincount(bin_index, minlength=len(bin_edges) + 1)
+    if weights is None:
+        number_of_data_points = bin_sum(None)
+        weights = 1
+    else:
+        number_of_data_points = bin_sum(weights)
     number_of_data_points1 = np.where(number_of_data_points == 0, np.ones_like(number_of_data_points),
                                       number_of_data_points)
-    resampled_values = np.bincount(bin_index, weights=values, minlength=len(bin_edges) + 1) / number_of_data_points1
-    resampled_variance = \
-        np.bincount(bin_index, weights=values ** 2,
-                    minlength=len(bin_edges) + 1) / number_of_data_points1 - resampled_values ** 2
+    resampled_values = bin_sum(weights * values) / number_of_data_points1
+    resampled_variance = bin_sum(weights * values ** 2) / number_of_data_points1 - resampled_values ** 2
 
     # Resample collocation points as average of the distances in each bin
-    resampled_collocation_points = np.bincount(bin_index, weights=x,
-                                               minlength=len(bin_edges) + 1) / number_of_data_points1
+    resampled_collocation_points = bin_sum(weights * x) / number_of_data_points1
 
     # We discard the final element as it contains data points outside our binned region
     resampled_collocation_points = resampled_collocation_points[1:-1]

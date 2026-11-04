@@ -250,6 +250,8 @@ class PlasticTopography(DecoratedUniformTopography):
     subdomain and is updated by the user, e.g. by a contact mechanics code
     that limits the contact pressure to the hardness.
     """
+
+    _supports_domain_decomposition = True
     name = 'plastic_topography'
 
     def __init__(self, topography, hardness, plastic_displ=None):

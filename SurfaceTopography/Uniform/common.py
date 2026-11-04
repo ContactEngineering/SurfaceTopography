@@ -36,6 +36,54 @@ from ..Support.UnitConversion import suggest_length_unit
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 
+def check_profile_decomposition(topography, analysis="Profile analyses"):
+    """
+    Raise `NotImplementedError` unless every process holds complete profiles
+    along x, i.e. a domain-decomposed topography is decomposed along y only.
+    The check is collective: if any process holds incomplete profiles, all
+    processes raise (rather than some of them waiting in a subsequent
+    collective operation).
+    """
+    if topography.dim != 2:
+        return
+    complete_profiles = not topography.is_domain_decomposed or (
+        topography.subdomain_locations[0] == 0
+        and topography.nb_subdomain_grid_pts[0] == topography.nb_grid_pts[0])
+    communicator = topography.communicator
+    if communicator.size > 1:
+        from NuMPI import MPI
+        complete_profiles = communicator.allreduce(complete_profiles, op=MPI.LAND)
+    if not complete_profiles:
+        raise NotImplementedError(f"{analysis} of domain-decomposed topographies require a "
+                                  "decomposition along y.")
+
+
+def sum_over_profiles(topography, values):
+    """
+    Sum of `values` (with the profiles along x in the last axis) over all
+    profiles of the topography, including those of other processes for
+    domain-decomposed topographies, which must be decomposed along y only.
+    Arrays of line scans are returned unchanged.
+    """
+    if topography.dim == 1:
+        return values
+    check_profile_decomposition(topography)
+    if topography.is_domain_decomposed:
+        from NuMPI import MPI
+        return topography.communicator.allreduce(np.sum(values, axis=-1), op=MPI.SUM)
+    return np.sum(values, axis=-1)
+
+
+def mean_over_profiles(topography, values):
+    """
+    Mean of `values` (with the profiles along x in the last axis) over all
+    profiles; see `sum_over_profiles`.
+    """
+    if topography.dim == 1:
+        return values
+    return sum_over_profiles(topography, values) / topography.nb_grid_pts[1]
+
+
 def bandwidth(self):
     """
     Computes lower and upper bound of bandwidth, i.e. of the wavelengths or
@@ -183,6 +231,8 @@ def plot(topography, subplot_location=111, axes_in_grid_points=False):
 
 
 class FilledTopography(DecoratedUniformTopography):
+    _supports_domain_decomposition = True
+
     def __init__(self, topography, fill_value=-np.inf, info={}):
         """
         masked (undefined) data is replaced with `fill_value`.
@@ -207,8 +257,8 @@ class FilledTopography(DecoratedUniformTopography):
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function("make_fft", make_fft)
-UniformTopographyInterface.register_function("bandwidth", bandwidth)
-UniformTopographyInterface.register_function("domain_decompose", domain_decompose)
+UniformTopographyInterface.register_function("make_fft", make_fft, domain_decomposition=True)
+UniformTopographyInterface.register_function("bandwidth", bandwidth, domain_decomposition=True)
+UniformTopographyInterface.register_function("domain_decompose", domain_decompose, domain_decomposition=True)
 UniformTopographyInterface.register_function("plot", plot)
 UniformTopographyInterface.register_function("fill_undefined_data", FilledTopography)

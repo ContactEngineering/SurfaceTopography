@@ -248,6 +248,7 @@ SurfaceContainer.register_function(
 UniformTopographyInterface.register_function(
     "variance_half_derivative_via_autocorrelation_from_profile",
     variance_half_derivative_via_autocorrelation_from_profile,
+    domain_decomposition=True,
 )
 NonuniformLineScanInterface.register_function(
     "variance_half_derivative_via_autocorrelation_from_profile",

@@ -27,6 +27,7 @@ import numpy as np
 
 from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
+from .common import check_profile_decomposition, mean_over_profiles
 
 
 def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
@@ -138,6 +139,7 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
     weighted_integral : float
         Value of the integral :math:`I`.
     """
+    check_profile_decomposition(self)
     if self.has_undefined_data:
         raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
                                  'computed for topographies with missing data points.')
@@ -152,12 +154,10 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
     # This is the raw power spectral density
     C_raw = (np.abs(fourier_topography) ** 2) / sx
 
-    # Short reliability cutoff on the 1D PSDs
+    # Wavevectors along x, for all profiles
+    qx = 2 * np.pi * np.fft.fftfreq(nx, sx / nx)
     if self.dim == 2:
-        qx, qy = self.fftfreq()
-        # note that qy is meaningless here since we didn't fourier transform along the y direction.
-    else:
-        qx = self.fftfreq()
+        qx = qx.reshape(-1, 1)
 
     # Only keep reliable data
     short_cutoff = self.short_reliability_cutoff() if reliable else None
@@ -167,10 +167,7 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
             raise NoReliableDataError('Dataset contains no reliable data.')
         C_raw = C_raw * mask
 
-    if self.dim == 2:
-        return np.sum(C_raw * factor(qx)) / sx / self.nb_grid_pts[1]
-    else:
-        return np.sum(C_raw * factor(qx)) / sx
+    return np.sum(mean_over_profiles(self, C_raw * factor(qx))) / sx
 
 
 def moment_power_spectrum(self, order=0, window=None, reliable=True, ):
@@ -293,6 +290,7 @@ def elastic_energy(self, contact_modulus, window=None, reliable=True):
 
 UniformTopographyInterface.register_function('moment_power_spectrum', moment_power_spectrum)
 UniformTopographyInterface.register_function('integrate_psd', integrate_psd)
-UniformTopographyInterface.register_function('integrate_psd_from_profile', integrate_psd_from_profile)
+UniformTopographyInterface.register_function('integrate_psd_from_profile', integrate_psd_from_profile,
+                                             domain_decomposition=True)
 UniformTopographyInterface.register_function('variance_half_derivative', variance_half_derivative)
 UniformTopographyInterface.register_function('elastic_energy', elastic_energy)

@@ -437,18 +437,34 @@ be read and written in parallel ([reading](reading.md)).
 
 ### What runs in parallel
 
-Reductions (`mean`, `min`, `max`, `Sq`,
-`has_undefined_data`, `==`) are computed over all processes with NuMPI's
-`Reduction`. FFT-based functions use the engine returned by `make_fft`, which
-checks that the engine's decomposition equals the topography's. Functions
-that need data across subdomain boundaries without a parallel algorithm,
-e.g. `Rq`, `rms_curvature_from_area` and
-`rms_laplacian`, raise `NotImplementedError`.
+Analyses on a domain-decomposed topography return the same result as for
+the serial topography, or raise `NotImplementedError`. Functions are
+registered with `register_function(name, function, domain_decomposition=True)`
+if they support domain decomposition; all others raise. Supported are
 
-Pipeline steps on a decomposed topography operate on the local data and keep
-its communicator, but report `is_domain_decomposed = False`, and `squeeze()`
-returns a serial topography of the local subdomain only.
-<!-- TODO: rationale for decorated topographies reporting is_domain_decomposed = False? -->
+- reductions: `mean`, `min`, `max`, `Sq`, `Rq`, `has_undefined_data`, `==`
+  (with NuMPI's `Reduction`);
+- the bearing area and the statistics computed from it: `bearing_area`,
+  `median`, `mad_height`, `mad_polyfit`, and `polyfit`;
+- analyses of profiles along $x$, which are local to every process because
+  the decomposition is along $y$: `power_spectrum_from_profile`,
+  `autocorrelation_from_profile`, `integrate_psd_from_profile`,
+  `scale_dependent_slope_from_profile`,
+  `scale_dependent_curvature_from_profile` and
+  `variance_half_derivative_via_autocorrelation_from_profile`; their results
+  are averaged over the profiles of all processes;
+- `power_spectrum_from_area`, with the distributed FFT of the engine
+  returned by `make_fft` (which checks that the engine's decomposition
+  equals the topography's);
+- `to_netcdf` ([reading and writing](reading.md)).
+
+Pipeline steps keep the decomposition and the communicator of their parent,
+and `squeeze()` returns a decomposed `Topography`. Steps that act on each
+point separately support decomposed topographies: `scale`, `to_unit`,
+`detrend` (except mode `"slope"`), `window`, `superpose`,
+`fill_undefined_data`. Steps that need data of other subdomains (e.g.
+`transpose`, `translate`, Fourier filters, `downsample`, imputation and
+interpolation) raise `NotImplementedError`.
 
 ## The `show-topography` command
 

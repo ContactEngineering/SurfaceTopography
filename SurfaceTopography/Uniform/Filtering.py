@@ -24,6 +24,8 @@
 #
 
 import numpy as np
+from NuMPI import MPI
+from NuMPI.Tools import Reduction
 from scipy.signal import get_window
 
 from ..FFTTricks import get_window_2D
@@ -144,6 +146,8 @@ class WindowedUniformTopography(DecoratedUniformTopography):
     that its mean square over the grid is unity, :math:`\langle w^2\rangle = 1`.
     """
 
+    _supports_domain_decomposition = True
+
     name = 'windowed_topography'
 
     def __init__(self, topography, window=None, direction=None, info={}):
@@ -206,10 +210,20 @@ class WindowedUniformTopography(DecoratedUniformTopography):
             elif direction == 'radial':
                 if self.parent_topography.dim == 1:
                     raise ValueError("Direction 'radial' does not make sense for line scans.")
-                win = get_window_2D(window_name, nx, ny,
-                                    self.parent_topography.physical_sizes)
-                # Normalize window
-                win *= np.sqrt(nx * ny / (win ** 2).sum())
+                # Domain-decomposed topographies construct the window of
+                # their subdomain only
+                decomposed = self.is_domain_decomposed
+                win = get_window_2D(window_name, nx, ny, self.parent_topography.physical_sizes,
+                                    subdomain_locations=self.subdomain_locations if decomposed else None,
+                                    nb_subdomain_grid_pts=self.nb_subdomain_grid_pts if decomposed else None)
+                # Normalize window; the norm is summed over processes only if
+                # the grid is distributed (and not if every process holds the
+                # full grid). The decision must be the same on all processes.
+                norm = (win ** 2).sum()
+                communicator = self.communicator
+                if communicator.size > 1 and communicator.allreduce(decomposed, op=MPI.LOR):
+                    norm = Reduction(communicator).sum(norm)
+                win *= np.sqrt(nx * ny / norm)
             else:
                 raise ValueError(f"Unknown direction '{self._direction}'.")
 
@@ -246,9 +260,15 @@ class WindowedUniformTopography(DecoratedUniformTopography):
             direction = self._direction
             if direction is None:
                 direction = 'x' if self.parent_topography.dim == 1 else 'radial'
+            # The window is constructed for the global grid; domain-decomposed
+            # topographies use the part of their subdomain
+            slices = self.subdomain_slices if self.is_domain_decomposed else (slice(None), slice(None))
             if direction == 'x':
-                return (self.window_data * self.parent_topography.heights().T).T
-            elif direction == 'y' or direction == 'radial':
+                return (self.window_data[slices[0]] * self.parent_topography.heights().T).T
+            elif direction == 'y':
+                return self.window_data[slices[1]] * self.parent_topography.heights()
+            elif direction == 'radial':
+                # The radial window is constructed for the subdomain
                 return self.window_data * self.parent_topography.heights()
             else:
                 raise ValueError(f"Unknown direction '{self._direction}'.")

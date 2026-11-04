@@ -16,8 +16,8 @@ Style for this changelog (keep to it so entries stay uniform):
 Change log for SurfaceTopography
 ================================
 
-v1.28.0 (not yet released)
---------------------------
+v1.28.0 (04Nov26)
+-----------------
 
 - BUG: Profile PSD of nonperiodic maps windowed the profiles radially instead of
   along x; low-wavevector values were off by up to a factor of six
@@ -54,6 +54,20 @@ v1.28.0 (not yet released)
 - BUG: Fourier interpolation of topographies dropped the unit and the metadata
 - ENH: Autocorrelation functions, scale-dependent slopes and the half-derivative variance
   from them accept topographies with missing data points
+- BUG: Pipeline steps on domain-decomposed (MPI-parallel) topographies reported themselves as
+  not decomposed, and squeezing them returned a serial topography per process
+- API: Pipeline steps that do not support domain-decomposed topographies (e.g. transposition,
+  translation, Fourier filters, downsampling, imputation) raise an error instead of wrong results
+- BUG: Bearing area, median and median absolute deviation of domain-decomposed (MPI-parallel)
+  topographies were computed per process
+- BUG: Detrending domain-decomposed (MPI-parallel) topographies with a tilt or curvature failed;
+  the fit is now computed over the whole topography
+- BUG: Profile power spectra, autocorrelation functions and the quantities derived from them
+  were wrong for domain-decomposed (MPI-parallel) topographies; profile rms height works in parallel
+- API: Analyses that do not support domain-decomposed (MPI-parallel) topographies raise an error
+  instead of returning the result of the local subdomain or failing with index errors
+- ENH: Areal power spectral density of domain-decomposed (MPI-parallel) topographies, computed
+  with the distributed FFT
 - BUG: Channels of most file formats had no channel identifier and could not be selected by it
 - BUG: Topographies obtained from a channel of a periodic NetCDF file were not periodic;
   periodicity None is interpreted as nonperiodic

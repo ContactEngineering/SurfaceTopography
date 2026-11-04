@@ -115,6 +115,7 @@ def scale_dependent_slope_from_area(topography, **kwargs):
 # Register analysis functions from this module. Note: the areal variant is
 # not registered for nonuniform line scans, which have no
 # `autocorrelation_from_area`.
-UniformTopographyInterface.register_function('scale_dependent_slope_from_profile', scale_dependent_slope_from_profile)
+UniformTopographyInterface.register_function('scale_dependent_slope_from_profile', scale_dependent_slope_from_profile,
+                                             domain_decomposition=True)
 NonuniformLineScanInterface.register_function('scale_dependent_slope_from_profile', scale_dependent_slope_from_profile)
 UniformTopographyInterface.register_function('scale_dependent_slope_from_area', scale_dependent_slope_from_area)

@@ -35,6 +35,7 @@ import scipy
 from NuMPI.Tools import Reduction
 
 from ..HeightContainer import UniformTopographyInterface
+from .common import check_profile_decomposition, sum_over_profiles
 
 _mad_to_rms = 1 / scipy.stats.norm.ppf(3 / 4)
 
@@ -69,17 +70,18 @@ def Rq(topography):
     Raises
     ------
     NotImplementedError
-        For domain-decomposed (MPI-parallel) topographies.
+        For domain-decomposed (MPI-parallel) topographies that are not
+        decomposed along y only.
     """
-    if topography.is_domain_decomposed:
-        raise NotImplementedError("`Rq` does not support MPI-decomposed topographies.")
-
+    check_profile_decomposition(topography)
     # Note: all means and sums must be normalized by the number of *defined*
-    # (unmasked) data points; masked points do not contribute to the sums
+    # (unmasked) data points; masked points do not contribute to the sums.
+    # Profiles run along x, which is local to every process.
     profile = topography.heights()
-    return np.sqrt(
-        np.ma.sum((profile - np.ma.mean(profile, axis=0)) ** 2) / np.ma.count(profile)
-    )
+    squared_deviations = np.ma.filled((profile - np.ma.mean(profile, axis=0)) ** 2, 0)
+    counts = np.ma.count(profile, axis=0)
+    return np.sqrt(np.sum(sum_over_profiles(topography, squared_deviations.sum(axis=0, keepdims=True)))
+                   / np.sum(sum_over_profiles(topography, np.atleast_1d(counts).reshape(1, -1))))
 
 
 def Sq(topography):
@@ -450,13 +452,13 @@ def rms_curvature_from_area(
 
 # Register analysis functions from this module
 UniformTopographyInterface.register_function(
-    "rms_height_from_profile", Rq, deprecated=True
+    "rms_height_from_profile", Rq, deprecated=True, domain_decomposition=True
 )
-UniformTopographyInterface.register_function("Rq", Rq)
+UniformTopographyInterface.register_function("Rq", Rq, domain_decomposition=True)
 UniformTopographyInterface.register_function(
-    "rms_height_from_area", Sq, deprecated=True
+    "rms_height_from_area", Sq, deprecated=True, domain_decomposition=True
 )
-UniformTopographyInterface.register_function("Sq", Sq)
+UniformTopographyInterface.register_function("Sq", Sq, domain_decomposition=True)
 UniformTopographyInterface.register_function("rms_gradient", rms_gradient)
 UniformTopographyInterface.register_function(
     "rms_slope_from_profile", Rdq, deprecated=True

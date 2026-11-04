@@ -78,6 +78,39 @@ def polyfit_line_scan(self, deg):
     return np.array(coeffs)[::-1]
 
 
+def _normalized_coordinates(self):
+    """
+    Normalized coordinates :math:`x/L_x, y/L_y` of the grid points of the
+    local subdomain, on the grid of the heights.
+    """
+    if self.is_domain_decomposed:
+        grids = [(s + np.arange(n)) / N
+                 for s, n, N in zip(self.subdomain_locations, self.nb_subdomain_grid_pts, self.nb_grid_pts)]
+    else:
+        # Pipeline steps that change the grid (e.g. downsampling) report the
+        # subdomain of their parent; serial data spans the full grid
+        grids = [np.arange(N) / N for N in self.nb_grid_pts]
+    return np.meshgrid(*grids, indexing='ij')
+
+
+def _least_squares(self, location_matrix, offsets):
+    """
+    Least-squares coefficients for the design matrix and right-hand side of
+    the defined data points. Domain-decomposed topographies use a
+    tall-skinny QR decomposition (TSQR): every process computes the
+    triangular factor of its local rows of the augmented matrix [A, b]. The
+    stacked factors of all processes are an isometric transformation of the
+    global [A, b], so the least-squares problem of the stacked factors has
+    the same (minimum-norm) solution and the same conditioning as the
+    global problem; the normal equations would square the condition number.
+    """
+    if self.is_domain_decomposed:
+        local_factor = np.linalg.qr(np.column_stack([location_matrix, offsets]), mode='r')
+        stacked = np.concatenate(self.communicator.allgather(local_factor))
+        return np.linalg.lstsq(stacked[:, :-1], stacked[:, -1], rcond=None)[0]
+    return np.array(np.linalg.lstsq(location_matrix, offsets, rcond=None)[0])
+
+
 def polyfit1_topography(self, full_output=False):
     r"""
     Compute the tilt plane that, if subtracted, minimizes the rms height of
@@ -109,10 +142,7 @@ def polyfit1_topography(self, full_output=False):
         Design matrix, only returned if `full_output` is True.
     """
     arr = self.heights()
-    nb_dim = self.dim
-    x_grids = (np.arange(n) / n for n in self.nb_grid_pts)
-    if nb_dim > 1:
-        x_grids = np.meshgrid(*x_grids, indexing='ij')
+    x_grids = _normalized_coordinates(self)
     if np.ma.getmask(arr) is np.ma.nomask:
         columns = [x.reshape((-1, 1)) for x in x_grids]
     else:
@@ -121,9 +151,7 @@ def polyfit1_topography(self, full_output=False):
     # linear regression model
     location_matrix = np.hstack([np.ones_like(columns[-1])] + columns)
     offsets = np.ma.compressed(arr)
-    # res = scipy.optimize.nnls(location_matrix, offsets)
-    res = np.linalg.lstsq(location_matrix, offsets, rcond=None)
-    coeffs = np.array(res[0])
+    coeffs = _least_squares(self, location_matrix, offsets)
     if full_output:
         return coeffs, location_matrix
     else:
@@ -161,11 +189,9 @@ def polyfit2_topography(self, full_output=False):
         Design matrix, only returned if `full_output` is True.
     """
     arr = self.heights()
-    nb_dim = self.dim
-    assert nb_dim == 2
-    x_grids = (np.arange(n) / n for n in self.nb_grid_pts)
+    assert self.dim == 2
     # Linear terms
-    x_grids = np.meshgrid(*x_grids, indexing='ij')
+    x_grids = _normalized_coordinates(self)
     # Quadratic terms
     x, y = x_grids
     x_grids += (x * x, y * y, x * y)
@@ -177,9 +203,7 @@ def polyfit2_topography(self, full_output=False):
     # linear regression model
     location_matrix = np.hstack([np.ones_like(columns[-1])] + columns)
     offsets = np.ma.compressed(arr)
-    # res = scipy.optimize.nnls(location_matrix, offsets)
-    res = np.linalg.lstsq(location_matrix, offsets, rcond=None)
-    coeffs = np.array(res[0])
+    coeffs = _least_squares(self, location_matrix, offsets)
     if full_output:
         return coeffs, location_matrix
     else:
@@ -280,6 +304,8 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
     is periodic and only a constant is subtracted ('mean', 'center',
     'median'); otherwise `is_periodic` is False.
     """
+
+    _supports_domain_decomposition = True
 
     _detrend_functions = {
         'mean': lambda self: [self.parent_topography.mean()],
@@ -397,8 +423,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             else:
                 raise RuntimeError('Unknown size of coefficients tuple for line scans.')
         else:  # self.dim == 2
-            x, y = np.meshgrid(*(np.arange(n) / n for n in self.nb_grid_pts),
-                               indexing='ij')
+            x, y = _normalized_coordinates(self)
             if len(self._coeffs) == 3:
                 a0, a1x, a1y = self._coeffs
                 return self.parent_topography.heights() - a0 - a1x * x - a1y * y
@@ -481,5 +506,5 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 raise RuntimeError('Unknown size of coefficients tuple.')
 
 
-UniformTopographyInterface.register_function('polyfit', polyfit)
+UniformTopographyInterface.register_function('polyfit', polyfit, domain_decomposition=True)
 UniformTopographyInterface.register_function('detrend', DetrendedUniformTopography)

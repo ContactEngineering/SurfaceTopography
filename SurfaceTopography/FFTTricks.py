@@ -83,7 +83,7 @@ def make_fft(topography, communicator=None):
     return fft
 
 
-def get_window_2D(window, nx, ny, physical_sizes=None):
+def get_window_2D(window, nx, ny, physical_sizes=None, subdomain_locations=None, nb_subdomain_grid_pts=None):
     r"""
     Construct a rotationally symmetric window for windowing two-dimensional
     signals (fields).
@@ -109,6 +109,11 @@ def get_window_2D(window, nx, ny, physical_sizes=None):
         The physical size of the underlying signal. If None, then the number
         of grid points nx, ny are used as the physical size. This parameter
         is used to adjust the aspect ratio of the signal. (Default: None)
+    subdomain_locations : tuple of ints, optional
+        Origin of the subdomain for which the window is returned (for
+        domain-decomposed signals). (Default: None, i.e. the full grid)
+    nb_subdomain_grid_pts : tuple of ints, optional
+        Number of grid points of this subdomain. (Default: None)
 
     Returns
     -------
@@ -116,11 +121,16 @@ def get_window_2D(window, nx, ny, physical_sizes=None):
         Numerical window, multiply the signal with this window
     """
 
+    if subdomain_locations is None:
+        subdomain_locations = (0, 0)
+        nb_subdomain_grid_pts = (nx, ny)
+    (x0, y0), (lnx, lny) = subdomain_locations, nb_subdomain_grid_pts
+
     if isinstance(window, np.ndarray):
         if window.shape != (nx, ny):
             raise TypeError('Window shape (= {0}x{1}) must match the number of points of the signal (={2}x{3})'
                             .format(*window.shape, nx, ny))
-        return window
+        return window[x0:x0 + lnx, y0:y0 + lny]
 
     if physical_sizes is None:
         sx, sy = nx, ny
@@ -128,8 +138,8 @@ def get_window_2D(window, nx, ny, physical_sizes=None):
         sx, sy = physical_sizes
     if window == 'hann':
         maxr = min(sx, sy) / 2
-        r = np.sqrt((sx * (np.arange(nx).reshape(-1, 1) - nx // 2) / nx) ** 2 +
-                    (sy * (np.arange(ny).reshape(1, -1) - ny // 2) / ny) ** 2)
+        r = np.sqrt((sx * ((x0 + np.arange(lnx)).reshape(-1, 1) - nx // 2) / nx) ** 2 +
+                    (sy * ((y0 + np.arange(lny)).reshape(1, -1) - ny // 2) / ny) ** 2)
         win = 0.5 + 0.5 * np.cos(np.pi * r / maxr)
         win[r > maxr] = 0.0
         return win

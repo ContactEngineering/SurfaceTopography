@@ -524,7 +524,8 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
 
     @property
     def is_domain_decomposed(self):
-        return False
+        # The parent may be a nonuniform line scan (e.g. for `to_uniform`)
+        return getattr(self.parent_topography, "is_domain_decomposed", False)
 
     @property
     def is_periodic(self):
@@ -594,10 +595,22 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
     def squeeze(self):
         """
         Evaluate the pipeline and return a `UniformLineScan` or
-        `Topography` that owns the resulting heights. The returned object
-        is serial: it contains the heights of the local subdomain and does
-        not carry the communicator or the domain decomposition.
+        `Topography` that owns the resulting heights. For domain-decomposed
+        topographies, the result has the same decomposition and
+        communicator.
         """
+        if self.is_domain_decomposed:
+            return Topography(
+                self.heights(),
+                self.physical_sizes,
+                periodic=self.is_periodic,
+                info=self.info,
+                unit=self.unit,
+                decomposition="subdomain",
+                nb_grid_pts=self.nb_grid_pts,
+                subdomain_locations=self.subdomain_locations,
+                communicator=self.communicator,
+            )
         if self.dim == 1:
             return UniformLineScan(
                 self.heights(),
@@ -618,6 +631,8 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
 
 class ScaledUniformTopography(DecoratedUniformTopography):
     """Convert heights and positions to a different length unit."""
+
+    _supports_domain_decomposition = True
 
     def __init__(self, topography, unit=None, info={}):
         """
@@ -841,10 +856,34 @@ class TranslatedTopography(DecoratedUniformTopography):
         )
 
 
+def _check_same_decomposition(topography_a, topography_b):
+    """
+    Raise `ValueError` unless both topographies hold the same subdomain on
+    every process, i.e. their local heights refer to the same grid points.
+    """
+    decomposed_a = getattr(topography_a, "is_domain_decomposed", False)
+    decomposed_b = getattr(topography_b, "is_domain_decomposed", False)
+    if not decomposed_a and not decomposed_b:
+        return
+    if decomposed_a != decomposed_b:
+        raise ValueError("Cannot combine a domain-decomposed topography with one that is not decomposed.")
+    if topography_a.communicator.Compare(topography_b.communicator) not in (MPI.IDENT, MPI.CONGRUENT):
+        raise ValueError("Cannot combine domain-decomposed topographies on different communicators.")
+    same_subdomain = (
+        tuple(topography_a.subdomain_locations) == tuple(topography_b.subdomain_locations)
+        and tuple(topography_a.nb_subdomain_grid_pts) == tuple(topography_b.nb_subdomain_grid_pts)
+    )
+    # All processes must raise, also if only some subdomains differ
+    if not topography_a.communicator.allreduce(same_subdomain, op=MPI.LAND):
+        raise ValueError("Cannot combine domain-decomposed topographies with different decompositions.")
+
+
 class CompoundTopography(DecoratedUniformTopography):
     """
     Sum of the heights of two topographies with identical grids.
     """
+
+    _supports_domain_decomposition = True
 
     name = "compound_topography"
 
@@ -897,6 +936,7 @@ class CompoundTopography(DecoratedUniformTopography):
                     topography_a.physical_sizes, topography_b.physical_sizes
                 )
             )
+        _check_same_decomposition(topography_a, topography_b)
         self.parent_topography_a = topography_a
         self.parent_topography_b = topography_b
 
@@ -907,13 +947,13 @@ class CompoundTopography(DecoratedUniformTopography):
 
 # Register analysis functions from this module
 UniformTopographyInterface.register_function(
-    "mean", lambda this: Reduction(this._communicator).mean(this.heights())
+    "mean", lambda this: Reduction(this._communicator).mean(this.heights()), domain_decomposition=True
 )
 UniformTopographyInterface.register_function(
-    "min", lambda this: Reduction(this._communicator).min(this.heights())
+    "min", lambda this: Reduction(this._communicator).min(this.heights()), domain_decomposition=True
 )
 UniformTopographyInterface.register_function(
-    "max", lambda this: Reduction(this._communicator).max(this.heights())
+    "max", lambda this: Reduction(this._communicator).max(this.heights()), domain_decomposition=True
 )
 
 # Register pipeline functions from this module
