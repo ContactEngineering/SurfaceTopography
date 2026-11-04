@@ -16,8 +16,8 @@ Style for this changelog (keep to it so entries stay uniform):
 Change log for SurfaceTopography
 ================================
 
-v1.28.0 (not yet released)
---------------------------
+v1.28.0 (04Nov26)
+-----------------
 
 - BUG: Profile PSD of nonperiodic maps windowed the profiles radially instead of
   along x; low-wavevector values were off by up to a factor of six
@@ -68,6 +68,22 @@ v1.28.0 (not yet released)
   instead of returning the result of the local subdomain or failing with index errors
 - ENH: Areal power spectral density of domain-decomposed (MPI-parallel) topographies, computed
   with the distributed FFT
+- BUG: Channels of most file formats had no channel identifier and could not be selected by it
+- BUG: Topographies obtained from a channel of a periodic NetCDF file were not periodic;
+  periodicity None is interpreted as nonperiodic
+- BUG: Phase, deflection, friction and voltage channels of IBW and MI files were reported as
+  height channels; the kind of data is inferred from its unit and the channel name
+- BUG: Text matrices written by topographies were transposed when read back and contained no
+  sizes or unit; they now carry a header with physical sizes and unit
+- BUG: Format detection failed for every file when given an MPI communicator; opening a file
+  whose reader does not support parallel I/O in parallel names the format instead of failing detection
+- BUG: Truncated files of the declaratively described formats and text files raise a
+  corrupt-file error instead of numpy or struct errors
+- BUG: Format descriptions with unknown expression nodes, operators or functions raise an
+  unsupported-schema error instead of a generic value error
+- BUG: Topographies can be created from nested lists, like line scans
+- BUG: Domain-decomposed topographies created from the global heights reject subdomains
+  outside the heights instead of silently truncating them
 
 v1.27.0 (28Oct26)
 -----------------

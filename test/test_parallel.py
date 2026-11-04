@@ -80,3 +80,18 @@ def test_fill_undefined_data_parallel(comm):
     assert reduction.all(filled_topography[nmask] == topography[nmask])
     assert reduction.all(filled_topography[mask] == - np.inf)
     assert not filled_topography.has_undefined_data
+
+
+def test_domain_decomposition_outside_of_heights(comm):
+    # A subdomain that does not lie within the global heights is rejected
+    # instead of silently being truncated
+    import pytest
+    if comm.size == 1:
+        pytest.skip("'domain' decomposition is only used in parallel runs")
+    heights = np.zeros((8, 4 * comm.size))
+    Topography(heights, (1., 1.), decomposition="domain", subdomain_locations=(0, 4 * comm.rank),
+               nb_subdomain_grid_pts=(8, 4), communicator=comm)
+    with pytest.raises(ValueError, match="does not lie within"):
+        # Every rank asks for a subdomain that extends beyond the heights
+        Topography(heights, (1., 1.), decomposition="domain", subdomain_locations=(1, 4 * comm.rank),
+                   nb_subdomain_grid_pts=(8, 4), communicator=comm)

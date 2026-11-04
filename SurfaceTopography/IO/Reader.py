@@ -33,6 +33,7 @@ import numpy as np
 
 from ..Exceptions import ERROR_CLASSES, CorruptFile, MetadataAlreadyFixedByFile
 from ..Metadata import InfoModel
+from ..Support.UnitConversion import is_length_unit
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
 from .binary import AttrDict, LayoutWithNameBase, _identity
 from .common import OpenFromAny
@@ -59,6 +60,67 @@ class DataKind(Enum):
     DEFLECTION = "deflection"  # Cantilever deflection
     FRICTION = "friction"  # Friction/lateral force
     OTHER = "other"  # Generic non-height data
+
+
+# Keywords in channel names that identify the kind of non-height data
+_DATA_KIND_KEYWORDS = [
+    ("phase", DataKind.PHASE),
+    ("amplitude", DataKind.AMPLITUDE),
+    ("deflection", DataKind.DEFLECTION),
+    ("friction", DataKind.FRICTION),
+    ("lateral", DataKind.FRICTION),
+    ("current", DataKind.CURRENT),
+    ("error", DataKind.ERROR),
+]
+
+# Units that identify the kind of non-height data
+_DATA_KIND_UNITS = {
+    "V": DataKind.VOLTAGE,
+    "mV": DataKind.VOLTAGE,
+    "µV": DataKind.VOLTAGE,
+    "A": DataKind.CURRENT,
+    "nA": DataKind.CURRENT,
+    "pA": DataKind.CURRENT,
+    "deg": DataKind.PHASE,
+    "°": DataKind.PHASE,
+    "rad": DataKind.PHASE,
+}
+
+
+def data_kind_from_unit(data_unit, name=None, ascii_angstrom=True):
+    """
+    Kind of the data of a channel, inferred from the unit of its values and
+    its name.
+
+    Data with a length unit (or without unit) is height data. Otherwise,
+    the channel name is searched (case-insensitively) for the keywords
+    phase, amplitude, deflection, friction, lateral (friction), current and
+    error; if none matches, the unit decides (voltages, currents, angles);
+    all other data is `DataKind.OTHER`.
+
+    Parameters
+    ----------
+    data_unit : str or None
+        Unit of the data values.
+    name : str, optional
+        Name of the channel. (Default: None)
+    ascii_angstrom : bool, optional
+        If True, 'A' is the ASCII form of the ångström (a length, i.e.
+        height data). Set to False for file formats that use 'A' for the
+        ampere. (Default: True)
+
+    Returns
+    -------
+    data_kind : DataKind
+        Kind of the data.
+    """
+    if data_unit is None or is_length_unit(data_unit, ascii_angstrom=ascii_angstrom):
+        return DataKind.HEIGHT
+    lower_name = "" if name is None else name.lower()
+    for keyword, data_kind in _DATA_KIND_KEYWORDS:
+        if keyword in lower_name:
+            return data_kind
+    return _DATA_KIND_UNITS.get(data_unit, DataKind.OTHER)
 
 
 class ChannelInfo:
@@ -119,7 +181,9 @@ class ChannelInfo:
             Length unit of measurement (lateral dimensions).
         data_kind : DataKind, optional
             Kind of data stored in this channel (HEIGHT, VOLTAGE, etc.).
-            Defaults to HEIGHT if not specified.
+            If not specified, it is inferred from `data_unit` and `name`
+            with :func:`data_kind_from_unit`, i.e. HEIGHT for length units
+            or without `data_unit`.
         data_unit : str, optional
             Unit for data values (z-axis). For height channels, this is
             typically the same as unit. For non-height channels, this could
@@ -146,7 +210,7 @@ class ChannelInfo:
         self._uniform = uniform
         self._undefined_data = undefined_data
         self._unit = unit
-        self._data_kind = data_kind if data_kind is not None else DataKind.HEIGHT
+        self._data_kind = data_kind if data_kind is not None else data_kind_from_unit(data_unit, self._name)
         self._data_unit = data_unit
         # Computed lazily from the reader's channel list (see
         # `_compute_id_and_height_index`)
@@ -185,7 +249,7 @@ class ChannelInfo:
         height_scale_factor=None,
         unit=None,
         info={},
-        periodic=False,
+        periodic=None,
         subdomain_locations=None,
         nb_subdomain_grid_pts=None,
     ):
@@ -214,7 +278,8 @@ class ChannelInfo:
         periodic : bool, optional
             Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
-            calculations (windowing). (Default: False)
+            calculations (windowing). (Default: None, i.e. the periodicity
+            stored in the file, or False if the file does not specify it)
         subdomain_locations : tuple of ints, optional
             Origin (location) of the subdomain handled by the present MPI
             process. (Default: None)
@@ -454,6 +519,8 @@ class ChannelInfo:
 
     def _compute_id_and_height_index(self):
         """Compute channel_id and height_index by looking at reader's channels."""
+        # Channels are identified by their index: readers may construct new
+        # ChannelInfo objects on every access of `channels`
         channels = self._reader.channels
         # Count channels with the same name before this one
         name_counts = {}
@@ -462,13 +529,13 @@ class ChannelInfo:
             ch_name = ch.name
             if ch_name not in name_counts:
                 name_counts[ch_name] = 0
-            if ch is self:
+            if ch.index == self.index:
                 # Found ourselves
                 count = name_counts[ch_name]
                 if count == 0:
                     # Check if there are more channels with this name after us
                     has_duplicate = any(
-                        c.name == ch_name for c in channels if c is not self
+                        c.name == ch_name for c in channels if c.index != self.index
                     )
                     if has_duplicate:
                         self._channel_id = f"{ch_name}#1"
@@ -865,7 +932,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         height_scale_factor=None,
         unit=None,
         info={},
-        periodic=False,
+        periodic=None,
         subdomain_locations=None,
         nb_subdomain_grid_pts=None,
     ):
@@ -917,7 +984,8 @@ class ReaderBase(metaclass=abc.ABCMeta):
         periodic : bool, optional
             Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
-            calculations (windowing). (Default: False)
+            calculations (windowing). (Default: None, i.e. the periodicity
+            stored in the file, or False if the file does not specify it)
         subdomain_locations : tuple of ints, optional
             Origin (location) of the subdomain handled by the present MPI
             process. (Default: None)
@@ -1088,7 +1156,8 @@ class Check:
     Parameters
     ----------
     condition : bool, callable or expression
-        Evaluated against the context; a false result raises.
+        Evaluated against the context; a false result, or a condition that
+        refers to metadata missing from the context, raises.
     exception : Exception, optional
         Exception class to raise. (Default: CorruptFile)
     comment : str, optional
@@ -1106,7 +1175,12 @@ class Check:
 
     def from_stream(self, stream_obj, context):
         if callable(self._condition):
-            passed = self._condition(context)
+            try:
+                passed = self._condition(context)
+            except (KeyError, IndexError):
+                # Metadata required by the check is missing, e.g. because
+                # the file is truncated
+                passed = False
         else:
             passed = self._condition
         if not passed:
@@ -1463,7 +1537,9 @@ class DeclarativeReaderBase(ReaderBase):
       expressions; channels with `dim` 1 are returned as line scans
     - `data_kind`, `data_unit`: optional literals or expressions for
       channels that do not contain heights; `data_kind` is the value of a
-      `DataKind` (e.g. "phase"), `data_unit` the unit of the data values
+      `DataKind` (e.g. "phase"), `data_unit` the unit of the data values.
+      Without `data_kind`, the kind is inferred from `data_unit` and
+      `name` (see `data_kind_from_unit`)
     - `nb_grid_pts`, `physical_sizes`: expressions evaluating to tuples
     - `height_scale_factor`: literal, expression or absent (unscaled)
     - `info`: (nested) dictionary of literals or expressions; entries

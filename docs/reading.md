@@ -97,7 +97,7 @@ none is selected, typically the first channel with height information.
 | `data_unit` | unit of the data values; for height channels the length unit |
 | `height_scale_factor` | factor applied to the raw values, `None` if not stored in the file |
 | `is_periodic`, `is_uniform`, `has_undefined_data` | as stored in the file (may be `None` if unknown) |
-| `data_kind` | `DataKind` of the values (`HEIGHT`, `PHASE`, `AMPLITUDE`, `VOLTAGE`, ...) |
+| `data_kind` | `DataKind` of the values (`HEIGHT`, `PHASE`, `AMPLITUDE`, `VOLTAGE`, ...); if the reader does not set it, it is inferred from `data_unit` and the channel name (`data_kind_from_unit`) |
 | `is_height_channel` | `data_kind == DataKind.HEIGHT` |
 | `height_index` | position among the height channels, `None` for other channels |
 | `info` | metadata found in the file, see [topographies](topographies.md) |
@@ -168,7 +168,7 @@ reader.channel_id_to_height_index("Height#2")   # 1
 ```python
 reader.topography(channel_index=None, physical_sizes=None,
                   height_scale_factor=None, unit=None, info={},
-                  periodic=False, subdomain_locations=None,
+                  periodic=None, subdomain_locations=None,
                   nb_subdomain_grid_pts=None)
 
 read_topography(fn, format=None, communicator=None, **kwargs)
@@ -203,11 +203,9 @@ topography = read_topography("example-2d.npy", physical_sizes=(10.0, 10.0),
 ```
 
 Periodicity affects the windowing in spectral analysis (see
-[spectral analysis](spectral.md)). The default of `periodic` depends on the
-reader: readers of formats that store periodicity (e.g. NetCDF) have the
-default `None` and then take it from the file; the others default to
-`False`. `ChannelInfo.topography` always passes `periodic=False` unless
-`periodic` is given.
+[spectral analysis](spectral.md)). Without `periodic`, readers of formats that
+store periodicity (e.g. NetCDF) take it from the file; for all other formats
+the topography is nonperiodic. `ChannelInfo.topography` behaves the same.
 
 ## MPI-parallel reading
 
@@ -250,7 +248,7 @@ Uniform topographies and line scans have methods that write them to a file:
 | `to_netcdf(fobj, format="NETCDF3_64BIT_OFFSET")` | NetCDF | heights, mask of undefined data, physical sizes, unit, periodicity and `info`; also nonuniform line scans; parallel for domain-decomposed topographies |
 | `to_x3p(fobj, dtype="D", manufacturer="SurfaceTopography", model="Python Library", version=None)` | X3P | two-dimensional maps; converted to m; undefined data marked invalid |
 | `to_gwy(fobj, name="Topography")` | Gwyddion | two-dimensional maps; converted to m; undefined data as mask |
-| `to_matrix(fname)` | plain text | heights only |
+| `to_matrix(fname)` | plain text | heights, physical sizes and unit |
 | `to_dzi(name, root_directory=".", tile_size=256, overlap=1, format="jpg", meta_format="xml", cmap=None, **kwargs)` | Deep Zoom Image | image pyramid for web viewers |
 
 NPY files are written with `SurfaceTopography.IO.NPY.save_npy(fn, topography)`,
@@ -282,11 +280,12 @@ the heights to $2^{32}$ or $2^{16}$ levels between the minimum and maximum
 height. Lateral sizes and heights are converted to meters, the unit of the
 X3P format.
 
-**Text matrix.** `to_matrix` writes the heights with `numpy.savetxt`: row $i$
-of the file contains $h_{i0}, h_{i1}, \dots$, i.e. rows run along the first
-axis $x$. The [plain text reader](formats.md#topography-files) interprets
-rows as $y$, so reading the file back yields the transposed map. The file
-contains no physical sizes and no unit.
+**Text matrix.** `to_matrix` writes the heights with `numpy.savetxt` in the
+layout of the [plain text reader](formats.md#topography-files): row $j$ of
+the file contains $h_{0j}, h_{1j}, \dots$, i.e. the heights along $x$ at one
+$y$-position (line scans: one height per row). The header lines `# Width`,
+`# Height` and `# Value units` contain the physical sizes and the unit;
+undefined data is written as NaN.
 
 **Deep Zoom Image.** `to_dzi` writes the metadata file `name.xml` (or
 `name.json` with `meta_format="json"`) and the directory `name_files` with

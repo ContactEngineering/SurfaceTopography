@@ -393,3 +393,21 @@ def test_ibw_undefined_data():
     t = IBWReader(f).topography()
     assert t.has_undefined_data
     assert t.heights().mask[1, 0]
+
+
+def test_ibw_ampere_channels_are_currents(file_format_examples, monkeypatch):
+    # IBW files use 'A' for the ampere: such channels hold currents, not
+    # heights in ångström
+    import SurfaceTopography.IO.IBW as IBW
+    from SurfaceTopography.IO.Reader import DataKind
+    asylum_channel_unit = IBW._asylum_channel_unit
+
+    def unit_with_current(title, note):
+        return "A" if title.startswith("ZSensor") else asylum_channel_unit(title, note)
+
+    monkeypatch.setattr(IBW, "_asylum_channel_unit", unit_with_current)
+    reader = open_topography(os.path.join(file_format_examples, 'ibw-1.ibw'))
+    kinds = {ch.name: ch.data_kind for ch in reader.channels}
+    assert kinds["ZSensorRetrace"] == DataKind.CURRENT
+    assert kinds["HeightRetrace"] == DataKind.HEIGHT
+    assert reader.channels[[ch.name for ch in reader.channels].index("ZSensorRetrace")].height_index is None

@@ -229,7 +229,7 @@ expressions over the parsed metadata. The keys are
 | `name`, `dim`, `unit`, `periodic`, `uniform` | channel properties; `dim` 1 yields a line scan |
 | `nb_grid_pts`, `physical_sizes` | tuples, $(N_x, N_y)$ and $(L_x, L_y)$ |
 | `height_scale_factor` | factor applied to the raw data; absent means unscaled |
-| `data_kind`, `data_unit` | for channels that do not contain heights (e.g. `"phase"`) |
+| `data_kind`, `data_unit` | for channels that do not contain heights (e.g. `"phase"`); without `data_kind`, the kind is inferred from `data_unit` and `name` |
 | `info` | (nested) metadata; `None` entries are omitted |
 | `data` | context path to the lazy array of the channel |
 | `mask` | `{"source": ..., "rule": ...}`; the rule sees the source array as `V` and is true for undefined pixels |

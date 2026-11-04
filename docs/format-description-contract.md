@@ -400,8 +400,10 @@ context:
   a single entry and the data array has shape `(nx,)`.
 - Channels that do not contain heights declare `data_kind` (one of `height`,
   `voltage`, `current`, `phase`, `amplitude`, `error`, `deflection`,
-  `friction`, `other`; default `height`) and may declare `data_unit`, the unit
-  of the data values (`unit` remains the lateral unit).
+  `friction`, `other`) and may declare `data_unit`, the unit of the data
+  values (`unit` remains the lateral unit). Without `data_kind`, the kind is
+  inferred from `data_unit` and the channel name; without either, it is
+  `height`.
 - `mask` is optional; where present, true marks an **undefined** pixel. The
   rule sees the source array as `val` and the metadata as context. Engines map
   undefined pixels to their native representation (masked arrays in numpy, NaN

@@ -381,3 +381,18 @@ def test_zon_layout_equivalence(file_format_examples):
     np.testing.assert_allclose(
         heights * reader.channels[0].height_scale_factor, reference
     )
+
+
+@pytest.mark.parametrize("document", [
+    {"kind": "nonexistent"},
+    {"kind": "call", "name": "nonexistent_function", "args": []},
+    {"kind": "binop", "op": "**", "args": [{"kind": "lit", "value": 1}, {"kind": "lit", "value": 2}]},
+    {"kind": "unop", "op": "~", "arg": {"kind": "lit", "value": 1}},
+    "not a node",
+])
+def test_unknown_nodes_raise_unsupported_schema(document):
+    # Documents using expression features this engine does not implement
+    # are rejected as unsupported schema (format description contract)
+    from SurfaceTopography.Exceptions import UnsupportedSchema
+    with pytest.raises(UnsupportedSchema):
+        from_dict(document)

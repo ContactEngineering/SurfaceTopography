@@ -45,6 +45,7 @@ from ..Support.UnitConversion import (
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
 from .common import OpenFromAny
 from .Reader import ChannelInfo, ReaderBase
+from .Text import AscReader
 
 _log = logging.getLogger(__name__)
 
@@ -198,6 +199,13 @@ def read_text_header_dektak(fobj, unit, height_scale_factor):
     return sep, usecols, 0, unit, height_scale_factor, info
 
 
+# Physical sizes of a height matrix in the header (written by `to_matrix` and
+# by Gwyddion's ASCII matrix export in all its languages)
+_matrix_size_header = re.compile(
+    rf"#\s*(?:{AscReader._gwy_width_labels}|{AscReader._gwy_height_labels})\s*:"
+)
+
+
 def read_text_header_comments(fobj, unit, height_scale_factor):
     """
     Read comment header (lines starting with '#'). The XYZ text export of
@@ -239,6 +247,14 @@ def read_text_header_comments(fobj, unit, height_scale_factor):
     position = fobj.tell()
     line = fobj.readline()
     while line.startswith("#"):
+        if _matrix_size_header.match(line) is not None:
+            # Physical sizes in the header identify a height matrix (e.g.
+            # written by `to_matrix` or Gwyddion's ASCII matrix export); a
+            # matrix with two or three columns would otherwise be read as
+            # coordinate data.
+            raise FileFormatMismatch(
+                "The header specifies the size of a height matrix."
+            )
         match = re.match(r"#\s*Lateral units:\s*(\S+)", line)
         if match is not None:
             lateral_unit = mangle_length_unit_utf8(match.group(1))
