@@ -16,10 +16,10 @@ Style for this changelog (keep to it so entries stay uniform):
 Change log for SurfaceTopography
 ================================
 
-v1.27.1 (not yet released)
+v1.27.1 (04Nov26)
 --------------------------
 
-- ENH: Conformance goldens record each channel's kind of data and the unit of its
+- MAINT: Conformance goldens record each channel's kind of data and the unit of its
   values; the format description contract specifies how the kind is inferred
 
 v1.27.0 (04Nov26)
