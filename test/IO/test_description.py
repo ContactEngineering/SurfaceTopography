@@ -54,8 +54,12 @@ from SurfaceTopography.IO.description import (
     reader_description,
     reader_from_dict,
 )
-from SurfaceTopography.IO.export import _EXPORTED_READERS, exported_reader_classes
-from SurfaceTopography.IO.Reader import MagicMatch
+from SurfaceTopography.IO.export import (
+    _EXPORTED_READERS,
+    exported_reader_classes,
+    golden_document,
+)
+from SurfaceTopography.IO.Reader import DataKind, MagicMatch
 
 pytestmark = serial_only
 
@@ -143,6 +147,8 @@ def test_generic_reader_equivalence(reader_and_fixtures, file_format_examples):
                 a.physical_sizes, g.physical_sizes, err_msg=fixture
             )
             assert a.unit == g.unit, fixture
+            assert a.data_kind == g.data_kind, fixture
+            assert a.data_unit == g.data_unit, fixture
             if a.height_scale_factor is None:
                 assert g.height_scale_factor is None, fixture
             else:
@@ -225,3 +231,43 @@ def test_validation_error_is_corrupt_file():
     rehydrated reader does.
     """
     assert issubclass(ValidationError, CorruptFile)
+
+
+def test_golden_records_data_kind_and_unit(reader_and_fixtures, file_format_examples):
+    """
+    Goldens record each channel's kind of data and the unit of its values;
+    a height channel's values are in its (lateral) unit unless the binding
+    says otherwise.
+    """
+    reader_class, fixtures = reader_and_fixtures
+    for fixture in fixtures:
+        document = golden_document(
+            reader_class, os.path.join(file_format_examples, fixture), fixture
+        )
+        for channel in document["channels"]:
+            assert channel["data_kind"] in [kind.value for kind in DataKind]
+            if channel["data_kind"] == DataKind.HEIGHT.value:
+                assert channel["data_unit"] == channel["unit"], fixture
+
+
+def test_golden_of_non_height_channels(file_format_examples):
+    """
+    MI deflection and friction channels hold voltages: the golden reports
+    the lateral unit as `unit` and the voltage as `data_unit`.
+    """
+    document = golden_document(
+        _READER_CLASSES["mi"],
+        os.path.join(file_format_examples, "mi-1.mi"),
+        "mi-1.mi",
+    )
+    kinds = [
+        (c["name"], c["unit"], c["data_kind"], c["data_unit"])
+        for c in document["channels"]
+    ]
+    assert kinds[0][2] == "height"
+    assert kinds[0][1] == kinds[0][3]
+    for name, unit, data_kind, data_unit in kinds[1:]:
+        assert unit == "m", name
+        assert data_unit == "V", name
+        assert data_kind in ("deflection", "friction", "voltage"), name
+

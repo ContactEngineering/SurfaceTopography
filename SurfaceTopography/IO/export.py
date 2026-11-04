@@ -179,6 +179,8 @@ def _golden_channel(reader, index):
         "nb_grid_pts": [nx, ny],
         "physical_sizes": [float(s) for s in topography.physical_sizes],
         "unit": topography.unit,
+        "data_kind": channel.data_kind.value,
+        "data_unit": channel.data_unit,
         "nb_undefined": int(np.ma.count_masked(heights)),
         "probe_pixels": [
             {
