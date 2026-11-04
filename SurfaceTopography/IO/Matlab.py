@@ -68,21 +68,31 @@ def _is_2d_array(shape):
 _MI_COMPRESSED = 15
 
 
+# Size of the header of version 5 (and later) MAT-files
+_MAT5_HEADER_SIZE = 128
+
+
 def _check_mat5_size(f):
     """
-    Raise `CorruptFile` if a top-level data element of a version 5 MAT-file
-    extends beyond the end of the file (scipy raises OSError then). The file
-    consists of a 128-byte header and data elements with an 8-byte tag
-    (data type, number of bytes); elements are padded to 8 bytes, except
-    compressed ones.
+    Raise `CorruptFile` if a version 5 MAT-file ends within its header or if
+    a top-level data element extends beyond the end of the file (scipy
+    raises IndexError or OSError then). The file consists of a 128-byte
+    header and data elements with an 8-byte tag (data type, number of
+    bytes). The data of an element is padded to a multiple of 8 bytes,
+    except for compressed elements, which are not padded, so that the
+    elements after a compressed one may start at unaligned offsets.
     """
-    header = f.read(128)
+    header = f.read(_MAT5_HEADER_SIZE)
     f.seek(0)
-    if len(header) < 128 or not header.startswith(b"MATLAB") or header[126:128] not in (b"IM", b"MI"):
-        return  # Not a version 5 MAT-file; scipy reports this
+    if not header.startswith(b"MATLAB"):
+        return  # Not a MAT-file of version 5 or later; scipy reports this
+    if len(header) < _MAT5_HEADER_SIZE:
+        raise CorruptFile("The file ended within the MAT-file header; it is probably truncated.")
+    if header[126:128] not in (b"IM", b"MI"):
+        return  # Unknown byte order indicator; scipy reports this
     byte_order = "<" if header[126:128] == b"IM" else ">"
     size = stream_size(f)
-    offset = 128
+    offset = _MAT5_HEADER_SIZE
     while offset < size:
         f.seek(offset)
         tag = f.read(8)
@@ -94,8 +104,8 @@ def _check_mat5_size(f):
             offset += 8
             continue
         end = offset + 8 + nb_bytes
-        check_stream_size(f, end)
-        offset = end if data_type == _MI_COMPRESSED else end + (-end % 8)
+        check_stream_size(f, end, size=size)
+        offset = end if data_type == _MI_COMPRESSED else end + (-nb_bytes % 8)
     f.seek(0)
 
 
@@ -159,6 +169,9 @@ sizes. These need to be manually provided by the user.
         shape of the HDF5 dataset is the transpose of the MATLAB shape.
         """
         header = []
+        # The HDF5 data follows the 512-byte user block with the MATLAB header
+        if stream_size(f) < 512 + 8:
+            raise CorruptFile("The file ended within the MAT-file header; it is probably truncated.")
         check_hdf5_size(f)
         try:
             h5 = h5py.File(f, 'r')

@@ -120,3 +120,56 @@ def test_truncated_mat73(tmp_path, fraction):
     data = open(fn, 'rb').read()
     with pytest.raises(CorruptFile):
         MatReader(io.BytesIO(data[:int(len(data) * fraction)]))
+
+
+@pytest.mark.parametrize("nb_bytes", [6, 19, 50, 100, 127])
+def test_truncated_mat5_header(nb_bytes):
+    # A version 5 file that ends within its 128-byte header raised IndexError
+    # or TypeError from scipy
+    from SurfaceTopography.Exceptions import CorruptFile
+    buf = io.BytesIO()
+    scipy.io.savemat(buf, dict(heights=np.arange(12.).reshape(3, 4)))
+    with pytest.raises(CorruptFile):
+        MatReader(io.BytesIO(buf.getvalue()[:nb_bytes]))
+
+
+@pytest.mark.parametrize("nb_bytes", [6, 19, 50, 127, 128, 300, 519])
+def test_truncated_mat73_header(tmp_path, nb_bytes):
+    # A version 7.3 file that ends within its 512-byte user block or the
+    # HDF5 signature
+    from SurfaceTopography.Exceptions import CorruptFile
+    fn = str(tmp_path / 'v73.mat')
+    _write_mat73(fn, np.arange(12.).reshape(3, 4))
+    data = open(fn, 'rb').read()
+    with pytest.raises(CorruptFile):
+        MatReader(io.BytesIO(data[:nb_bytes]))
+
+
+def test_mixed_compression():
+    # Compressed data elements are not padded to 8 bytes, so the elements
+    # after a compressed one can start at unaligned offsets; the padding of
+    # uncompressed elements counts from their own size
+    a = None
+    for seed in range(100):
+        a = np.random.default_rng(seed).random((3, 5))
+        buf = io.BytesIO()
+        scipy.io.savemat(buf, dict(a=a), do_compression=True)
+        compressed = buf.getvalue()
+        nb_bytes = int.from_bytes(compressed[132:136], 'little')
+        if nb_bytes % 8 != 0:
+            break
+    assert nb_bytes % 8 != 0
+    b = np.ones((2, 3))
+    c = np.zeros((4, 4))
+    buf = io.BytesIO()
+    scipy.io.savemat(buf, dict(b=b, c=c), do_compression=False)
+    uncompressed = buf.getvalue()
+    # Header, compressed element 'a' and uncompressed elements 'b' and 'c'
+    mixed = compressed[:128 + 8 + nb_bytes] + uncompressed[128:]
+    assert sorted(k for k in scipy.io.loadmat(io.BytesIO(mixed)) if not k.startswith('__')) == ['a', 'b', 'c']
+
+    reader = MatReader(io.BytesIO(mixed))
+    assert sorted(ch.name for ch in reader.channels) == ['a', 'b', 'c']
+    for ch, heights in zip(sorted(reader.channels, key=lambda ch: ch.name), [a, b, c]):
+        np.testing.assert_allclose(reader.topography(channel_index=ch.index, physical_sizes=(1., 1.)).heights(),
+                                   heights)
