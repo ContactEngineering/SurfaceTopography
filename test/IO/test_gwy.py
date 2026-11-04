@@ -233,3 +233,32 @@ def test_write_gwy_1d_raises():
     finally:
         if os.path.exists(fname):
             os.unlink(fname)
+
+
+def test_read_gzip_stream(file_format_examples):
+    # Determining the size of a gzip stream decompresses the whole file; it
+    # is done once per parsing session, not for every object and array
+    import gzip
+    import io
+
+    class CountingGzipFile(gzip.GzipFile):
+        nb_seeks_to_end = 0
+
+        def seek(self, offset, whence=io.SEEK_SET):
+            if whence == io.SEEK_END:
+                self.nb_seeks_to_end += 1
+            return super().seek(offset, whence)
+
+    fn = os.path.join(file_format_examples, "gwy-2.gwy")
+    expected = GWYReader(fn).topography()
+    buf = io.BytesIO()
+    with gzip.GzipFile(fileobj=buf, mode="wb") as g:
+        g.write(open(fn, "rb").read())
+    f = CountingGzipFile(fileobj=io.BytesIO(buf.getvalue()), mode="rb")
+
+    reader = GWYReader(f)
+    assert f.nb_seeks_to_end == 1
+    t = reader.topography()
+    assert f.nb_seeks_to_end == 2
+    np.testing.assert_allclose(t.heights(), expected.heights())
+    assert t.physical_sizes == expected.physical_sizes

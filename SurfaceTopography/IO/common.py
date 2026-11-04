@@ -42,12 +42,15 @@ def stream_size(fobj):
     return size
 
 
-def check_stream_size(fobj, expected_size):
+def check_stream_size(fobj, expected_size, size=None):
     """
     Raise `CorruptFile` if the stream is shorter than `expected_size` bytes,
-    i.e. if the file is truncated.
+    i.e. if the file is truncated. Pass the total `size` of the stream (from
+    `stream_size`) when checking repeatedly: determining it seeks to the end
+    of the stream, which decompresses the whole file for a gzip stream.
     """
-    size = stream_size(fobj)
+    if size is None:
+        size = stream_size(fobj)
     if size < expected_size:
         from ..Exceptions import CorruptFile
         raise CorruptFile(
