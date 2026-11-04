@@ -16,7 +16,7 @@ Style for this changelog (keep to it so entries stay uniform):
 Change log for SurfaceTopography
 ================================
 
-v1.28.0 (04Nov26)
+v1.27.0 (04Nov26)
 -----------------
 
 - BUG: Profile PSD of nonperiodic maps windowed the profiles radially instead of
@@ -86,10 +86,6 @@ v1.28.0 (04Nov26)
   outside the heights instead of silently truncating them
 - BUG: Truncated files of all formats raise a corrupt-file error; for IBW, GWY, MAT, HDF5,
   NetCDF, EZD/NID, HGT, OPDx, XYZ/CSV and TIFF-based (e.g. JPK) files they raised various other errors
-
-v1.27.0 (28Oct26)
------------------
-
 - BUILD: MPI and muGrid are optional; the default install runs serially, install the `mpi`
   extra for domain-decomposed topographies
 - BUG: Areal rms height of domain-decomposed (MPI-parallel) topographies was computed per process
