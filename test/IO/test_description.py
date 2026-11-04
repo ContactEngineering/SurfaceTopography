@@ -270,4 +270,3 @@ def test_golden_of_non_height_channels(file_format_examples):
         assert unit == "m", name
         assert data_unit == "V", name
         assert data_kind in ("deflection", "friction", "voltage"), name
-
