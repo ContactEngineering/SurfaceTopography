@@ -23,6 +23,7 @@
 # SOFTWARE.
 #
 
+import os
 import tempfile
 
 import numpy as np
@@ -202,3 +203,43 @@ def test_netcdf_without_heights(tmp_path):
         v[...] = np.arange(12).reshape(1, 1, 3, 4)
     with pytest.raises(FileFormatMismatch):
         NCReader(fn)
+
+
+@pytest.mark.parametrize("version", [1, 2])
+@pytest.mark.parametrize("nb_record_variables", [0, 1, 2])
+@pytest.mark.parametrize("record_type", ["i1", "i2", "f8"])
+def test_netcdf3_data_end_netcdf_c(tmp_path, version, nb_record_variables, record_type):
+    # The NetCDF C library rounds `vsize` up to four bytes also for a single
+    # record variable, whose records are stored without padding
+    netCDF4 = pytest.importorskip("netCDF4")
+    from SurfaceTopography.IO.NC import _netcdf3_data_end
+    fn = str(tmp_path / "records.nc")
+    with netCDF4.Dataset(fn, "w", format="NETCDF3_CLASSIC" if version == 1 else "NETCDF3_64BIT_OFFSET") as nc:
+        nc.createDimension("t", None)
+        nc.createDimension("x", 5)
+        nc.createVariable("heights", "f8", ("x",))[:] = np.arange(5.)
+        for i in range(nb_record_variables):
+            nc.createVariable(f"r{i}", record_type if i == 0 else "f8", ("t", "x"))[:] = np.ones((3, 5))
+    size = os.path.getsize(fn)
+    with open(fn, "rb") as f:
+        # Padding after the last values need not be present
+        assert size - 4 < _netcdf3_data_end(f) <= size
+    if nb_record_variables > 0:
+        NCReader(fn)  # Complete files are not rejected
+
+
+@pytest.mark.parametrize("version", [1, 2])
+@pytest.mark.parametrize("nb_record_variables", [0, 1, 2])
+def test_netcdf3_data_end(tmp_path, version, nb_record_variables):
+    # The end of the data computed from the header is the size of complete
+    # files, also with variables along the unlimited (record) dimension
+    from SurfaceTopography.IO.NC import _netcdf3_data_end
+    fn = str(tmp_path / "records.nc")
+    with netcdf_file(fn, "w", version=version) as nc:
+        nc.createDimension("t", None)
+        nc.createDimension("x", 5)
+        nc.createVariable("heights", "f8", ("x",))[:] = np.arange(5.)
+        for i in range(nb_record_variables):
+            nc.createVariable(f"r{i}", "i2" if i == 0 else "f8", ("t", "x"))[:] = np.ones((3, 5))
+    with open(fn, "rb") as f:
+        assert _netcdf3_data_end(f) == os.path.getsize(fn)

@@ -27,10 +27,13 @@
 #
 
 import datetime
+import io
 import os
 import struct
+import zipfile
 
 import numpy as np
+import pytest
 from NuMPI.Testing.Fixtures import serial_only
 
 from SurfaceTopography import read_topography
@@ -324,3 +327,41 @@ def test_opdx_multiple_height_channels(tmp_path):
     np.testing.assert_allclose(t.heights(), data1.T * 2e-3)
     t = r.topography(channel_index=1)
     np.testing.assert_allclose(t.heights(), data2.T * 1e-3)
+
+
+class _StrictStream(io.BytesIO):
+    """Stream that rejects numpy integers as arguments of read and seek."""
+
+    def read(self, n=-1):
+        assert type(n) is int, f"read() called with {type(n).__name__}"
+        return super().read(n)
+
+    def seek(self, offset, whence=io.SEEK_SET):
+        assert type(offset) is int, f"seek() called with {type(offset).__name__}"
+        return super().seek(offset, whence)
+
+
+@pytest.mark.parametrize("fn", ["opdx-1.opdx", "opdx-2.opdx", "opdx-3.opdx", "opdx-4.opdx"])
+def test_stream_arguments_are_python_ints(file_format_examples, fn):
+    # numpy integers passed to read or seek leak into the position
+    # bookkeeping of zipfile.ZipExtFile; the unsigned arithmetic then wraps
+    # when seeking backwards (e.g. for the size check of truncated files)
+    # and files in containers became unreadable on Python < 3.12
+    data = open(os.path.join(file_format_examples, fn), "rb").read()
+    reader = OPDxReader(_StrictStream(data))
+    for ch in reader.channels:
+        reader.topography(channel_index=ch.index)
+
+
+def test_read_from_zip_container(file_format_examples, tmp_path):
+    fn = os.path.join(file_format_examples, "opdx-1.opdx")
+    expected = OPDxReader(fn).topography()
+    container = tmp_path / "container.zip"
+    with zipfile.ZipFile(container, "w") as z:
+        z.write(fn, "opdx-1.opdx")
+    with zipfile.ZipFile(container) as z:
+        with z.open("opdx-1.opdx") as f:
+            reader = OPDxReader(f)
+            t = reader.topography()
+    np.testing.assert_allclose(t.heights(), expected.heights())
+    assert t.physical_sizes == expected.physical_sizes

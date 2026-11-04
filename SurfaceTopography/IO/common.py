@@ -33,6 +33,78 @@ CHANNEL_NAME_INFO_KEY = 'channel_name'
 
 ###
 
+def stream_size(fobj):
+    """Total size of a seekable stream in bytes; the position is kept."""
+    position = fobj.tell()
+    fobj.seek(0, io.SEEK_END)
+    size = fobj.tell()
+    fobj.seek(position)
+    return size
+
+
+def check_stream_size(fobj, expected_size, size=None):
+    """
+    Raise `CorruptFile` if the stream is shorter than `expected_size` bytes,
+    i.e. if the file is truncated. Pass the total `size` of the stream (from
+    `stream_size`) when checking repeatedly: determining it seeks to the end
+    of the stream, which decompresses the whole file for a gzip stream.
+    """
+    if size is None:
+        size = stream_size(fobj)
+    if size < expected_size:
+        from ..Exceptions import CorruptFile
+        raise CorruptFile(
+            f"The file has {size} bytes, but its header describes {expected_size} bytes; it is "
+            f"probably truncated."
+        )
+
+
+_HDF5_SIGNATURE = b"\x89HDF\r\n\x1a\n"
+
+
+def check_hdf5_size(fobj):
+    """
+    Raise `CorruptFile` if an HDF5 file is shorter than the end-of-file
+    address stored in its superblock, i.e. if it is truncated. The
+    superblock is searched at offset 0 and at 512, 1024, 2048, ... bytes
+    (after a user block, e.g. of MAT-files). Streams without HDF5 signature
+    are ignored.
+    """
+    size = stream_size(fobj)
+    location = 0
+    while location + 8 <= size:
+        fobj.seek(location)
+        if fobj.read(8) == _HDF5_SIGNATURE:
+            break
+        location = 512 if location == 0 else 2 * location
+    else:
+        fobj.seek(0)
+        return
+    superblock = fobj.read(56)
+    fobj.seek(0)
+    from ..Exceptions import CorruptFile
+    # Version and size of offsets (byte 1 for versions 2/3, byte 5 for 0/1)
+    if len(superblock) < 6:
+        raise CorruptFile("The file ended within the HDF5 superblock; it is probably truncated.")
+    version = superblock[0]
+    if version in (0, 1):
+        size_of_offsets = superblock[5]
+        # Base address, free-space info, end-of-file address, driver info
+        first_address = 16 if version == 0 else 20
+    else:
+        size_of_offsets = superblock[1]
+        # Base address, superblock extension, end-of-file address
+        first_address = 4
+    if len(superblock) < first_address + 3 * size_of_offsets:
+        raise CorruptFile("The file ended within the HDF5 superblock; it is probably truncated.")
+    addresses = [int.from_bytes(superblock[first_address + i * size_of_offsets:
+                                           first_address + (i + 1) * size_of_offsets], "little")
+                 for i in range(3)]
+    # The end-of-file address is absolute, i.e. it includes a user block
+    _, _, end_of_file_address = addresses
+    check_stream_size(fobj, end_of_file_address)
+
+
 def is_binary_stream(fobj):
     """Check whether fobj is a binary stream"""
     return isinstance(fobj, io.BytesIO) or \

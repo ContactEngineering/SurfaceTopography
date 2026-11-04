@@ -35,7 +35,7 @@ from struct import calcsize, pack, unpack
 
 import numpy as np
 
-from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile
+from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..HeightContainer import UniformTopographyInterface
 from ..Support.UnitConversion import (
     get_unit_conversion_factor,
@@ -43,12 +43,19 @@ from ..Support.UnitConversion import (
     mangle_length_unit_utf8,
 )
 from ..UniformLineScanAndTopography import Topography
-from .common import OpenFromAny
+from .common import OpenFromAny, check_stream_size, stream_size
 from .Reader import ChannelInfo, MagicMatch, ReaderBase
 
 
 def _read_null_terminated_string(f):
-    return b"".join(iter(lambda: f.read(1), b"\x00")).decode("utf-8")
+    characters = []
+    while (character := f.read(1)) != b"\x00":
+        if character == b"":
+            # Without this check, reading at the end of a truncated file
+            # would loop forever
+            raise CorruptFile("The file ended within a string; it is probably truncated.")
+        characters += [character]
+    return b"".join(characters).decode("utf-8")
 
 
 def _gwy_read_atomic(f, atomic_type):
@@ -69,10 +76,16 @@ _gwy_atomic_readers = {
 }
 
 
-def _gwy_read_array(f, atomic_type, skip_arrays=False):
+def _gwy_read_array(f, atomic_type, skip_arrays=False, size=None):
+    """
+    Read an array of atomic values. `size` is the total size of the stream;
+    it is determined once per file and passed to all readers, because
+    determining it is expensive for compressed streams.
+    """
     offset = f.tell()
     (nb_items,) = unpack("<L", f.read(4))
     type = np.dtype(atomic_type)
+    check_stream_size(f, f.tell() + nb_items * type.itemsize, size=size)
     if skip_arrays:
         # Skip reading this data
         f.seek(type.itemsize * nb_items, os.SEEK_CUR)
@@ -98,7 +111,7 @@ _gwy_array_readers = {
 }
 
 
-def _gwy_read_component(f, skip_arrays=False):
+def _gwy_read_component(f, skip_arrays=False, size=None):
     """
     Read a single component from a GWY file.
 
@@ -109,6 +122,9 @@ def _gwy_read_component(f, skip_arrays=False):
     skip_arrays : bool, optional
         Skip reading arrays to avoid reading image data.
         (Default: False)
+    size : int, optional
+        Total size of the stream in bytes, for detecting truncated files.
+        (Default: determined from the stream)
 
     Returns
     -------
@@ -117,10 +133,10 @@ def _gwy_read_component(f, skip_arrays=False):
     """
     name = _read_null_terminated_string(f)
     type = f.read(1).decode("ascii")
-    return {name: _gwy_readers[type](f, skip_arrays=skip_arrays)}
+    return {name: _gwy_readers[type](f, skip_arrays=skip_arrays, size=size)}
 
 
-def _gwy_read_object(f, skip_arrays=False):
+def _gwy_read_object(f, skip_arrays=False, size=None):
     """
     Read a single object from a GWY file.
 
@@ -131,24 +147,30 @@ def _gwy_read_object(f, skip_arrays=False):
     skip_arrays : bool, optional
         Skip reading arrays to avoid reading image data.
         (Default: False)
+    size : int, optional
+        Total size of the stream in bytes, for detecting truncated files.
+        (Default: determined from the stream)
 
     Returns
     -------
     data : dict
         Dictionary containing the decoded data.
     """
+    if size is None:
+        size = stream_size(f)
     name = _read_null_terminated_string(f)
-    (size,) = unpack("<L", f.read(4))
+    (object_size,) = unpack("<L", f.read(4))
     start = f.tell()
+    check_stream_size(f, start + object_size, size=size)
     data = {}
-    while f.tell() < start + size:
-        data.update(_gwy_read_component(f, skip_arrays=skip_arrays))
+    while f.tell() < start + object_size:
+        data.update(_gwy_read_component(f, skip_arrays=skip_arrays, size=size))
     return {name: data}
 
 
-def _gwy_read_object_array(f, skip_arrays=False):
+def _gwy_read_object_array(f, skip_arrays=False, size=None):
     (nb_items,) = unpack("<L", f.read(4))
-    return [_gwy_read_object(f, skip_arrays=skip_arrays) for i in range(nb_items)]
+    return [_gwy_read_object(f, skip_arrays=skip_arrays, size=size) for i in range(nb_items)]
 
 
 _gwy_readers = {
@@ -242,8 +264,9 @@ software [Gwyddion](http://gwyddion.net/).
                     "File magic does not match. This is not Gwyddion file."
                 )
 
-            # Read native metadata dictionary
-            gwy = _gwy_read_object(f, skip_arrays=True)
+            # Read native metadata dictionary; the size of the stream is
+            # determined once here (it is expensive for compressed streams)
+            gwy = _gwy_read_object(f, skip_arrays=True, size=stream_size(f))
             self._metadata = gwy["GwyContainer"]
 
             # Construct channels
@@ -348,14 +371,15 @@ software [Gwyddion](http://gwyddion.net/).
         channel = self._channels[gwy_index]
         with OpenFromAny(self.file_path, "rb") as f:
             nx, ny = channel.nb_grid_pts
+            size = stream_size(f)
             f.seek(channel.tags["data"]["offset"])
             height_data = (
-                _gwy_read_array(f, channel.tags["data"]["type"]).reshape((ny, nx)).T
+                _gwy_read_array(f, channel.tags["data"]["type"], size=size).reshape((ny, nx)).T
             )
             if gwy_index in self._masks:
                 f.seek(self._masks[gwy_index]["offset"])
                 mask_data = (
-                    _gwy_read_array(f, self._masks[gwy_index]["type"])
+                    _gwy_read_array(f, self._masks[gwy_index]["type"], size=size)
                     .reshape((ny, nx))
                     .T
                 )

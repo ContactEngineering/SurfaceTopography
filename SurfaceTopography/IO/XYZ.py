@@ -43,7 +43,7 @@ from ..Support.UnitConversion import (
     mangle_length_unit_utf8,
 )
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
-from .common import OpenFromAny
+from .common import OpenFromAny, stream_size
 from .Reader import ChannelInfo, ReaderBase
 from .Text import AscReader
 
@@ -276,6 +276,15 @@ def read_text_header_comments(fobj, unit, height_scale_factor):
     return None, None, 0, unit, height_scale_factor, {}
 
 
+def _all_numbers(fields):
+    """Whether all fields of a line are numbers."""
+    try:
+        [float(field) for field in fields]
+    except ValueError:
+        return False
+    return True
+
+
 def read_csv(fobj, sep=None, usecols=None, skiprows=0):
     """
     Simple reader for tabular data in C(omma) S(eparated) V(alue) format. The
@@ -312,6 +321,8 @@ def read_csv(fobj, sep=None, usecols=None, skiprows=0):
         min_cols = max(usecols)  # We need at least this many columns
     nb_lines = 0
     while line:
+        # The last line of a truncated file has no line break
+        incomplete_line = not line.endswith(("\n", "\r"))
         line = line.strip()
         if len(line) > 0:  # We ignore empty lines
             line = re.split(sep, line)
@@ -323,6 +334,14 @@ def read_csv(fobj, sep=None, usecols=None, skiprows=0):
             elif nb_cols < min_cols:
                 raise ValueError(
                     f"Too few columns in line {nb_lines}: expected {min_cols} but found {nb_cols}."
+                )
+            # Only the fields that are read must be numbers; e.g. Dektak CSV
+            # files have trailing empty fields
+            read_fields = line if usecols is None else line[:len(usecols)]
+            if incomplete_line and nb_lines > 0 and (len(line) != nb_cols or not _all_numbers(read_fields)):
+                raise CorruptFile(
+                    f"The last line {nb_lines} is incomplete: expected {nb_cols} numbers but found "
+                    f"{line}. The file is probably truncated."
                 )
             if len(line) != nb_cols:
                 raise ValueError(
@@ -511,6 +530,10 @@ The reader supports parsing HFM and Dektak header information.
         header_parser = None  # We don't parse any headers by default
         with OpenFromAny(self._file_path, mode="rb") as fobj:
             first_line = fobj.read(maxmagic)
+            # UTF-16 text has an even number of bytes; an odd number means
+            # that the file ends within a character
+            if first_line.startswith((b"\xff\xfe", b"\xfe\xff")) and stream_size(fobj) % 2 == 1:
+                raise CorruptFile("The UTF-16 encoded file ends within a character; it is probably truncated.")
             for magic, parser in _text_header_parsers.items():
                 if first_line.startswith(magic):
                     encoding, header_parser = parser

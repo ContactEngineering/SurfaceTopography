@@ -34,7 +34,7 @@ import numpy as np
 from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..Support.UnitConversion import get_unit_conversion_factor, is_length_unit
 from ..UniformLineScanAndTopography import Topography
-from .common import OpenFromAny
+from .common import OpenFromAny, check_stream_size
 from .Reader import ChannelInfo, ReaderBase
 
 ###
@@ -247,6 +247,8 @@ data blocks.
             offset = channel.tags["offset"]
             dtype = channel.tags["dtype"]
 
+            # The header describes the position of the data of each channel
+            check_stream_size(fobj, self._start_of_data + offset + nx * ny * dtype.itemsize)
             fobj.seek(self._start_of_data + offset)
             rawdata = fobj.read(nx * ny * dtype.itemsize)
             # The data is stored line by line, i.e. the buffer has C-order

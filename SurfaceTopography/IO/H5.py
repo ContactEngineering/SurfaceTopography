@@ -26,6 +26,7 @@
 import h5py
 
 from ..UniformLineScanAndTopography import Topography
+from .common import OpenFromAny, check_hdf5_size
 from .Reader import ChannelInfo, MagicMatch, ReaderBase
 
 
@@ -60,6 +61,9 @@ The original contact mechanics challenge data can be downloaded
         return MagicMatch.NO
 
     def __init__(self, fobj):
+        # h5py raises OSError for truncated files
+        with OpenFromAny(fobj, 'rb') as f:
+            check_hdf5_size(f)
         self._h5 = h5py.File(fobj, 'r')
         self._channels = []
         channel_index = 0

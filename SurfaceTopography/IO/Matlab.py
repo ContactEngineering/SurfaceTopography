@@ -24,13 +24,15 @@
 # SOFTWARE.
 #
 
+import struct
+
 import h5py
 import numpy as np
 from scipy.io import loadmat, whosmat
 
-from ..Exceptions import FileFormatMismatch
+from ..Exceptions import CorruptFile, FileFormatMismatch
 from ..UniformLineScanAndTopography import Topography
-from .common import OpenFromAny
+from .common import OpenFromAny, check_hdf5_size, check_stream_size, stream_size
 from .Reader import ReaderBase, ChannelInfo
 
 # MATLAB classes that hold numerical data that can be interpreted as heights.
@@ -60,6 +62,51 @@ def _is_2d_array(shape):
     except (TypeError, ValueError):
         return False
     return nx > 0 and ny > 0
+
+
+# Data type of compressed data elements of version 5 MAT-files
+_MI_COMPRESSED = 15
+
+
+# Size of the header of version 5 (and later) MAT-files
+_MAT5_HEADER_SIZE = 128
+
+
+def _check_mat5_size(f):
+    """
+    Raise `CorruptFile` if a version 5 MAT-file ends within its header or if
+    a top-level data element extends beyond the end of the file (scipy
+    raises IndexError or OSError then). The file consists of a 128-byte
+    header and data elements with an 8-byte tag (data type, number of
+    bytes). The data of an element is padded to a multiple of 8 bytes,
+    except for compressed elements, which are not padded, so that the
+    elements after a compressed one may start at unaligned offsets.
+    """
+    header = f.read(_MAT5_HEADER_SIZE)
+    f.seek(0)
+    if not header.startswith(b"MATLAB"):
+        return  # Not a MAT-file of version 5 or later; scipy reports this
+    if len(header) < _MAT5_HEADER_SIZE:
+        raise CorruptFile("The file ended within the MAT-file header; it is probably truncated.")
+    if header[126:128] not in (b"IM", b"MI"):
+        return  # Unknown byte order indicator; scipy reports this
+    byte_order = "<" if header[126:128] == b"IM" else ">"
+    size = stream_size(f)
+    offset = _MAT5_HEADER_SIZE
+    while offset < size:
+        f.seek(offset)
+        tag = f.read(8)
+        if len(tag) < 8:
+            raise CorruptFile("The file ended within the tag of a data element; it is probably truncated.")
+        data_type, nb_bytes = struct.unpack(byte_order + "II", tag)
+        if data_type >> 16:
+            # Small data element: the data is stored within the tag
+            offset += 8
+            continue
+        end = offset + 8 + nb_bytes
+        check_stream_size(f, end, size=size)
+        offset = end if data_type == _MI_COMPRESSED else end + (-nb_bytes % 8)
+    f.seek(0)
 
 
 class MatReader(ReaderBase):
@@ -98,6 +145,7 @@ sizes. These need to be manually provided by the user.
             if self._hdf5:
                 header = self._whosmat_hdf5(f)
             else:
+                _check_mat5_size(f)
                 header = whosmat(f)  # Only read header
         for name, shape, data_class in header:
             if data_class not in _NUMERIC_MATLAB_CLASSES or not _is_2d_array(shape):
@@ -121,6 +169,10 @@ sizes. These need to be manually provided by the user.
         shape of the HDF5 dataset is the transpose of the MATLAB shape.
         """
         header = []
+        # The HDF5 data follows the 512-byte user block with the MATLAB header
+        if stream_size(f) < 512 + 8:
+            raise CorruptFile("The file ended within the MAT-file header; it is probably truncated.")
+        check_hdf5_size(f)
         try:
             h5 = h5py.File(f, 'r')
         except OSError:

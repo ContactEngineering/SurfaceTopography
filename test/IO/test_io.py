@@ -970,18 +970,39 @@ def test_open_non_parallel_format_with_parallel_communicator(file_format_example
 
 
 def _truncation_examples():
-    # Example files of the declarative readers and the plain text reader
-    from SurfaceTopography.IO.Reader import DeclarativeReaderBase
-    from SurfaceTopography.IO.Text import AscReader
+    # All example files whose format is detected
     examples = []
     for fn in text_example_file_list + binary_example_file_list:
         try:
-            reader_class = SurfaceTopography.IO.lookup_reader_by_format[detect_format(fn)]
+            detect_format(fn)
         except Exception:
             continue
-        if issubclass(reader_class, (DeclarativeReaderBase, AscReader)):
-            examples += [fn]
+        examples += [fn]
     return examples
+
+
+@pytest.mark.parametrize("nb_bytes", range(8, 64))
+def test_hdf5_truncated_in_superblock(file_format_examples, nb_bytes):
+    # Files that end right after the signature or within the superblock
+    from SurfaceTopography.Exceptions import CorruptFile
+    from SurfaceTopography.IO.common import check_hdf5_size
+    data = open(os.path.join(file_format_examples, "multiple_data_sets.h5"), "rb").read()
+    with pytest.raises(CorruptFile):
+        check_hdf5_size(io.BytesIO(data[:nb_bytes]))
+
+
+@pytest.mark.parametrize("fn", [fn for fn in text_example_file_list if detect_format(fn) == "xyz"])
+def test_text_file_without_final_line_break(fn):
+    # Complete text files whose last line has no line break (and e.g.
+    # trailing empty fields, as in Dektak CSV files) are not truncated
+    data = open(fn, "rb").read()
+    complete = open_topography(fn).topography()
+    if data.startswith((b"\xff\xfe", b"\xfe\xff")):  # UTF-16 with byte order mark
+        data = data.decode("utf-16").rstrip("\r\n").encode("utf-16")
+    else:
+        data = data.rstrip(b"\r\n")
+    reader = open_topography(io.BytesIO(data), format="xyz")
+    np.testing.assert_allclose(reader.topography().heights(), complete.heights())
 
 
 @pytest.mark.parametrize("fn", _truncation_examples())
@@ -996,7 +1017,8 @@ def test_truncated_file_raises_corrupt_file(fn, fraction):
     stream = io.BytesIO(data[: int(len(data) * fraction)])
     try:
         reader = open_topography(stream, format=fmt)
-        ch = reader.default_channel
-        reader.topography(physical_sizes=None if ch.physical_sizes is not None else (1.0,) * ch.dim)
+        for ch in reader.channels:
+            reader.topography(channel_index=ch.index,
+                              physical_sizes=None if ch.physical_sizes is not None else (1.0,) * ch.dim)
     except (ReadFileError, CannotPerformAnalysisError):
         pass

@@ -35,6 +35,7 @@ import defusedxml.ElementTree as ElementTree
 import numpy as np
 
 from ..Exceptions import CorruptFile, FileFormatMismatch
+from .common import check_stream_size
 from .expr import Expr
 
 
@@ -1433,7 +1434,13 @@ class _TIFFPageProxy:
         from tifffile import TiffFile
 
         with TiffFile(stream_obj) as tiff_file:
-            arr = tiff_file.pages[self._page_index].asarray()
+            page = tiff_file.pages[self._page_index]
+            # tifffile raises a generic ValueError if the image data lies
+            # (partly) beyond the end of a truncated file
+            end_of_data = max((offset + count for offset, count in zip(page.dataoffsets, page.databytecounts)),
+                              default=0)
+            check_stream_size(stream_obj, end_of_data)
+            arr = page.asarray()
         if isinstance(self._conversion_fun, Expr):
             return self._conversion_fun.evaluate(self._context, arr)
         return self._conversion_fun(arr)
