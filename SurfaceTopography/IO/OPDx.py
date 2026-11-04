@@ -339,11 +339,9 @@ stylus profilometers.
                 continue
             if isinstance(value, DektakUnit):
                 value = {"value": float(value.value), "unit": value.symbol}
-            elif isinstance(value, np.generic):
-                value = value.item()
             elif isinstance(value, list):
                 value = [str(v) for v in value]
-            elif not isinstance(value, str):
+            elif not isinstance(value, (bool, int, float, str)):
                 # Timestamps, type ids and data references
                 continue
             metadata[key[len("/MetaData/"):]] = value
@@ -584,10 +582,16 @@ def _read_string(stream):
 
 
 def _read_scalar(stream, dtype):
+    """
+    Read a single value and return it as a Python scalar. Numpy scalars must
+    not be passed to the stream: an unsigned numpy length given to `read`
+    leaks into the position bookkeeping of `zipfile.ZipExtFile`, whose
+    arithmetic then wraps around when seeking backwards.
+    """
     dtype = np.dtype(dtype)
     buffer = stream.read(dtype.itemsize)
     if buffer:
-        return np.frombuffer(buffer, dtype=dtype, count=1)[0]
+        return np.frombuffer(buffer, dtype=dtype, count=1)[0].item()
     else:
         return None
 
@@ -602,8 +606,7 @@ def _read_varlen(stream):
         L = _read_scalar(stream, "<u4")
     else:
         raise ValueError(f"Don't know how to read a variable length of size {lenlen}.")
-    # numpy-2: Cast to int because otherwise arithmetics will overflow
-    return int(L)
+    return L
 
 
 def _read_string_list(stream):
