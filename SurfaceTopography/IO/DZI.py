@@ -60,6 +60,7 @@ def write_dzi(
     meta_format: str = "xml",
     colorbar_title=None,
     cmap=None,
+    nc_version: int = 1,
     **kwargs,
 ):
     """
@@ -69,10 +70,14 @@ def write_dzi(
 
     Additional keyword parameters are passed to Pillow's `save` function.
 
+    Undefined points (masked entries or NaN in `data`) are written as NaN to
+    'npy' and 'nc' tiles and rendered in the color map's "bad" color in
+    image tiles. They are ignored when determining the data range.
+
     Parameters
     ----------
     data : np.ndarray
-        Two-dimensional array containing the data.
+        Two-dimensional array containing the data. May be a masked array.
     name : str
         Name of the exported file. This is used as a prefix. The output filter
         creates the file `name`.xml that contains the metadata and a directory
@@ -102,12 +107,25 @@ def write_dzi(
     cmap : str or colormap, optional
         Color map for rendering the topography. Ignored if format is 'npy' or
         'nc'. (Default: None)
+    nc_version : int, optional
+        Version of the NetCDF tile format, recorded as `FormatVersion` in the
+        descriptor. Version 1 stores float64 data rescaled to [0, 1] using
+        the `ColorbarRange` of the descriptor. Version 2 stores float32 data
+        `v = (h - add_offset) / scale_factor` in [-0.5, 0.5], with
+        `add_offset = (max + min) / 2` and `scale_factor = max - min`;
+        both are written as CF attributes of `heights` in every tile and to
+        `Encoding` in the descriptor. Ignored unless format is 'nc'.
+        (Default: 1)
 
     Returns
     -------
     manifest : list of str
         List with names of files created during write operation
     """
+    if format != "nc":
+        nc_version = None
+    elif nc_version not in (1, 2):
+        raise ValueError(f"Unknown NetCDF tile format version {nc_version}.")
 
     def write_data(fn, subdata, pixel_physical_sizes, physical_offsets):
         if format == "npy":
@@ -121,7 +139,14 @@ def write_dzi(
             nc = netcdf_file(fn, "w")
             nc.createDimension("x", nx)
             nc.createDimension("y", ny)
-            heights_var = nc.createVariable("heights", "f8", ("x", "y"))
+            if nc_version == 2:
+                heights_var = nc.createVariable("heights", "f4", ("x", "y"))
+                # Attributes must be float64; scipy writes Python floats as
+                # float32, and CF decoding returns the attributes' type
+                heights_var.scale_factor = np.float64(height_scale)
+                heights_var.add_offset = np.float64(height_offset)
+            else:
+                heights_var = nc.createVariable("heights", "f8", ("x", "y"))
             heights_var[...] = subdata
             heights_var.unit = mangle_length_unit_ascii(unit)
             x_var = nc.createVariable("x", "f8", ("x",))
@@ -149,14 +174,17 @@ def write_dzi(
     pixels_per_meter_width = width / (fac * sx)
     pixels_per_meter_height = height / (fac * sy)
 
-    # Get heights and rescale to interval 0, 1
-    mx, mn = data.max(), data.min()
-    if mx > mn:
-        data = (data - mn) / (mx - mn)
-    else:
-        # A perfectly flat topography would otherwise divide by zero and
-        # produce an all-NaN image pyramid
-        data = np.zeros_like(data)
+    # Undefined points are carried through as NaN; the color map renders
+    # them in its "bad" color, just like masked entries
+    data = np.ma.filled(np.ma.asarray(data, dtype=float), np.nan)
+
+    # Rescale heights to [0, 1], or to [-0.5, 0.5] for NetCDF version 2
+    mx, mn = np.nanmax(data), np.nanmin(data)
+    # A perfectly flat topography would otherwise divide by zero and produce
+    # an all-NaN pyramid
+    height_scale = mx - mn if mx > mn else 1
+    height_offset = (mx + mn) / 2 if nc_version == 2 else mn
+    data = (data - height_offset) / height_scale
 
     # Write configuration file
     if meta_format == "xml":
@@ -171,6 +199,8 @@ def write_dzi(
         )
         if colorbar_title is not None:
             root.set("ColorbarTitle", colorbar_title)
+        if nc_version is not None:
+            root.set("FormatVersion", str(nc_version))
         ET.SubElement(root, "Size", Width=str(width), Height=str(height))
         ET.SubElement(
             root,
@@ -179,6 +209,13 @@ def write_dzi(
             Height=str(pixels_per_meter_height),
         )
         ET.SubElement(root, "ColorbarRange", Minimum=str(mn), Maximum=str(mx))
+        if nc_version == 2:
+            ET.SubElement(
+                root,
+                "Encoding",
+                ScaleFactor=str(height_scale),
+                AddOffset=str(height_offset),
+            )
         os.makedirs(root_directory, exist_ok=True)
         ET.ElementTree(root).write(fn, encoding="utf-8", xml_declaration=True)
     elif meta_format == "json":
@@ -199,6 +236,17 @@ def write_dzi(
             }
             if colorbar_title is not None:
                 image_dict.update({"ColorbarTitle": colorbar_title})
+            if nc_version is not None:
+                image_dict.update({"FormatVersion": nc_version})
+            if nc_version == 2:
+                image_dict.update(
+                    {
+                        "Encoding": {
+                            "ScaleFactor": height_scale,
+                            "AddOffset": height_offset,
+                        }
+                    }
+                )
             json.dump({"Image": image_dict}, f, cls=ExtendedJSONEncoder)
     else:
         raise ValueError(f"Unknown metadata format {meta_format}.")
@@ -264,6 +312,7 @@ def write_topography_dzi(
     format: str = "jpg",
     meta_format: str = "xml",
     cmap=None,
+    nc_version: int = 1,
     **kwargs,
 ):
     """
@@ -299,6 +348,9 @@ def write_topography_dzi(
     cmap : str or colormap, optional
         Color map for rendering the topography. Ignored if format is 'npy' or
         'nc'. (Default: None)
+    nc_version : int, optional
+        Version of the NetCDF tile format, see :func:`write_dzi`. Ignored
+        unless format is 'nc'. (Default: 1)
 
     Returns
     -------
@@ -322,6 +374,7 @@ def write_topography_dzi(
         meta_format=meta_format,
         colorbar_title=f"Height ({ideal_height_unit})",
         cmap=cmap,
+        nc_version=nc_version,
         **kwargs,
     )
 
