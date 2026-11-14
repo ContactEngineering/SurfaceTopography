@@ -70,7 +70,7 @@ def write_dzi(
     cmap=None,
     nc_version: int = 1,
     detrend_mode: str = None,
-    downsample: str = "nearest",
+    downsample: str = "mean",
     **kwargs,
 ):
     """
@@ -131,12 +131,14 @@ def write_dzi(
         `Detrend` in the descriptor if given. (Default: None)
     downsample : str, optional
         How coarse levels are obtained, recorded as `Downsample` in the
-        descriptor. 'nearest' takes every n-th point, so each coarse value is
-        a measured value. 'mean' averages the defined points of each n x n
-        block, which avoids aliasing in overviews of maps with fine
-        structure; a block without defined points is undefined. In both
-        cases a coarse value is located at the first point of its block.
-        (Default: 'nearest')
+        descriptor. 'mean' averages the defined points of each n x n block,
+        which avoids aliasing in overviews of maps with fine structure; a
+        block without defined points is undefined. Blocks at the right and
+        top edge are truncated by the image boundary and average fewer
+        points. 'nearest' takes every n-th point, so each coarse value is a
+        measured value. In both cases a coarse value is located at the first
+        point of its block, so that tiles stay on a regular grid.
+        (Default: 'mean')
 
     Returns
     -------
@@ -349,7 +351,7 @@ def write_topography_dzi(
     meta_format: str = "xml",
     cmap=None,
     nc_version: int = 1,
-    downsample: str = "nearest",
+    downsample: str = "mean",
     **kwargs,
 ):
     """
@@ -392,8 +394,8 @@ def write_topography_dzi(
         Version of the NetCDF tile format, see :func:`write_dzi`. Ignored
         unless format is 'nc'. (Default: 1)
     downsample : str, optional
-        How coarse levels are obtained, 'nearest' or 'mean', see
-        :func:`write_dzi`. (Default: 'nearest')
+        How coarse levels are obtained, 'mean' or 'nearest', see
+        :func:`write_dzi`. (Default: 'mean')
 
     Returns
     -------

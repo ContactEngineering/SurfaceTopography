@@ -483,6 +483,8 @@ def test_undefined_points_are_nan(format, masked):
             overlap=overlap,
             format=format,
             meta_format="json",
+            # Coarse levels sample the mask; averaging is tested separately
+            downsample="nearest",
         )
         with open(f"{d}/undefined.json", "r") as f:
             meta = json.load(f)["Image"]
@@ -572,6 +574,7 @@ def test_netcdf_version2_roundtrip(meta_format, offset):
             format="nc",
             meta_format=meta_format,
             nc_version=2,
+            downsample="nearest",
         )
         assert manifest == generate_manifest(
             "v2",
@@ -683,6 +686,7 @@ def test_overlap(overlap, nb_grid_pts):
             overlap=overlap,
             format="nc",
             meta_format="json",
+            downsample="nearest",
         )
         with open(f"{d}/overlap.json", "r") as f:
             assert json.load(f)["Image"]["Overlap"] == overlap
@@ -843,12 +847,12 @@ def test_downsample_coordinates():
 def test_downsample_default_and_image():
     h = np.random.default_rng(0).normal(size=(100, 80))
     with tempfile.TemporaryDirectory() as d:
-        write_dzi(h, "nearest", (1, 1), "um", root_directory=d)
-        root = ET.parse(open(f"{d}/nearest.xml")).getroot()
-        assert root.attrib["Downsample"] == "nearest"
+        write_dzi(h, "default", (1, 1), "um", root_directory=d)
+        root = ET.parse(open(f"{d}/default.xml")).getroot()
+        assert root.attrib["Downsample"] == "mean"
         manifest = write_dzi(
-            h, "mean", (1, 1), "um", root_directory=d, format="png",
-            downsample="mean",
+            h, "nearest", (1, 1), "um", root_directory=d, format="png",
+            downsample="nearest",
         )
         assert all(os.path.exists(fn) for fn in manifest)
     with pytest.raises(ValueError):
