@@ -534,8 +534,20 @@ def test_netcdf_default_version():
 
 
 def test_netcdf_unknown_version():
-    with pytest.raises(ValueError):
-        write_dzi(np.zeros((4, 4)), "v3", (1, 1), "um", format="nc", nc_version=3)
+    with tempfile.TemporaryDirectory() as d:
+        with pytest.raises(ValueError):
+            write_dzi(
+                np.zeros((4, 4)), "v3", (1, 1), "um", root_directory=d,
+                format="nc", nc_version=3,
+            )
+        # The version is ignored for other formats
+        for format in ["png", "npy"]:
+            write_dzi(
+                np.zeros((4, 4)), format, (1, 1), "um", root_directory=d,
+                format=format, nc_version=3,
+            )
+            root = ET.parse(open(f"{d}/{format}.xml")).getroot()
+            assert "FormatVersion" not in root.attrib
 
 
 @pytest.mark.parametrize("meta_format", ["xml", "json"])

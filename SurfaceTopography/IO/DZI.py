@@ -143,9 +143,10 @@ def write_dzi(
     manifest : list of str
         List with names of files created during write operation
     """
-    if nc_version not in (1, 2):
+    if format != "nc":
+        nc_version = None
+    elif nc_version not in (1, 2):
         raise ValueError(f"Unknown NetCDF tile format version {nc_version}.")
-    nc_version = nc_version if format == "nc" else None
     if downsample not in ("nearest", "mean"):
         raise ValueError(f"Unknown downsampling method {downsample}.")
 
