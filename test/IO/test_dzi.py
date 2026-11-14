@@ -648,3 +648,59 @@ def test_netcdf_version2_decoding():
         np.testing.assert_allclose(
             tile.heights(), expected, rtol=0, atol=scale_factor * 2**-24
         )
+
+
+@pytest.mark.parametrize("overlap", [0, 1, 2])
+@pytest.mark.parametrize(
+    "nb_grid_pts",
+    [(256, 128), (300, 200), (65, 1)],  # Multiple of tile size or not
+)
+def test_overlap(overlap, nb_grid_pts):
+    nx, ny = nb_grid_pts
+    sx, sy = 3.0, 2.0
+    tile_size = 64
+    h = np.random.default_rng(0).normal(size=(nx, ny))
+    with tempfile.TemporaryDirectory() as d:
+        manifest = write_dzi(
+            h,
+            "overlap",
+            (sx, sy),
+            "um",
+            root_directory=d,
+            tile_size=tile_size,
+            overlap=overlap,
+            format="nc",
+            meta_format="json",
+        )
+        with open(f"{d}/overlap.json", "r") as f:
+            assert json.load(f)["Image"]["Overlap"] == overlap
+
+        # The overlap does not change the list of files
+        assert manifest == generate_manifest(
+            "overlap",
+            (nx, ny),
+            root_directory=d,
+            tile_size=tile_size,
+            format="nc",
+            meta_format="json",
+        )
+
+        expected_tiles = list(_tiles((nx, ny), tile_size, overlap))
+        assert len(manifest) == len(expected_tiles) + 1
+        for level, column, row, stride, (i0, i1), (j0, j1) in expected_tiles:
+            fn = f"{d}/overlap_files/{level}/{column}_{row}.nc"
+            with netcdf_file(fn, "r", mmap=False) as nc:
+                heights = nc.variables["heights"][...].copy()
+                x = nc.variables["x"][...].copy()
+                y = nc.variables["y"][...].copy()
+            assert heights.shape == (i1 - i0, j1 - j0)
+            np.testing.assert_allclose(
+                heights,
+                ((h - h.min()) / (h.max() - h.min()))[::stride, ::stride][
+                    i0:i1, j0:j1
+                ],
+            )
+            # Coordinates are those of the full-resolution points sampled at
+            # this level, at tile borders and at the image edge alike
+            np.testing.assert_allclose(x, np.arange(i0, i1) * stride * sx / nx)
+            np.testing.assert_allclose(y, np.arange(j0, j1) * stride * sy / ny)

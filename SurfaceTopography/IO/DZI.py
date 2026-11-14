@@ -390,6 +390,9 @@ def generate_manifest(
     Generate the file manifest, i.e. the list of files, that would be generated when
     writing the DZI.
 
+    There is no `overlap` argument: the overlap changes the extent of each
+    tile, but not the number of tiles and hence not the list of files.
+
     Parameters
     ----------
     name : str
