@@ -122,9 +122,10 @@ def write_dzi(
     manifest : list of str
         List with names of files created during write operation
     """
-    if nc_version not in (1, 2):
+    if format != "nc":
+        nc_version = None
+    elif nc_version not in (1, 2):
         raise ValueError(f"Unknown NetCDF tile format version {nc_version}.")
-    nc_version = nc_version if format == "nc" else None
 
     def write_data(fn, subdata, pixel_physical_sizes, physical_offsets):
         if format == "npy":
