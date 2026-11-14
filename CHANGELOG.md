@@ -16,6 +16,21 @@ Style for this changelog (keep to it so entries stay uniform):
 Change log for SurfaceTopography
 ================================
 
+v1.28.0 (not yet released)
+--------------------------
+
+- API: Coarse levels of DZI pyramids average the data instead of taking every n-th point,
+  which avoids aliasing in overviews; sampling remains available as an option
+- ENH: DZI NetCDF tile format version 2 (opt-in) stores float32 heights with CF scale and
+  offset, so generic NetCDF tools decode tiles to physical heights; tiles are half as large
+- ENH: DZI descriptors record the NetCDF tile format version, how the data was detrended
+  and how coarse levels were obtained
+- BUG: Masked points in DZI NetCDF and NumPy tiles held arbitrary values; undefined points
+  are now NaN in these tiles and no longer affect the data range
+- BUG: DZI export failed for masked data in NumPy format, and NaN in the data made the
+  whole pyramid undefined
+- CI: macOS arm64 wheels are built on macOS 15 runners; they still support macOS 14
+
 v1.27.1 (04Nov26)
 --------------------------
 
