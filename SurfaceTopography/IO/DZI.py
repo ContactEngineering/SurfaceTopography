@@ -49,6 +49,13 @@ from ..Support.UnitConversion import (
 from ..Uniform.Detrending import DetrendedUniformTopography
 
 
+def _coarsen(a):
+    """Sum 2x2 blocks of `a`; a trailing odd row or column is summed alone"""
+    nx, ny = a.shape
+    a = np.pad(a, ((0, nx % 2), (0, ny % 2)))
+    return a.reshape(a.shape[0] // 2, 2, a.shape[1] // 2, 2).sum(axis=(1, 3))
+
+
 def write_dzi(
     data: np.ndarray,
     name: str,
@@ -63,6 +70,7 @@ def write_dzi(
     cmap=None,
     nc_version: int = 1,
     detrend_mode: str = None,
+    downsample: str = "mean",
     **kwargs,
 ):
     """
@@ -121,6 +129,16 @@ def write_dzi(
     detrend_mode : str, optional
         How the data was detrended, e.g. 'height' or 'curvature'. Recorded as
         `Detrend` in the descriptor if given. (Default: None)
+    downsample : str, optional
+        How coarse levels are obtained, recorded as `Downsample` in the
+        descriptor. 'mean' averages the defined points of each n x n block,
+        which avoids aliasing in overviews of maps with fine structure; a
+        block without defined points is undefined. Blocks at the right and
+        top edge are truncated by the image boundary and average fewer
+        points. 'nearest' takes every n-th point, so each coarse value is a
+        measured value. In both cases a coarse value is located at the first
+        point of its block, so that tiles stay on a regular grid.
+        (Default: 'mean')
 
     Returns
     -------
@@ -131,6 +149,8 @@ def write_dzi(
         nc_version = None
     elif nc_version not in (1, 2):
         raise ValueError(f"Unknown NetCDF tile format version {nc_version}.")
+    if downsample not in ("nearest", "mean"):
+        raise ValueError(f"Unknown downsampling method {downsample}.")
 
     def write_data(fn, subdata, pixel_physical_sizes, physical_offsets):
         if format == "npy":
@@ -208,6 +228,7 @@ def write_dzi(
             root.set("FormatVersion", str(nc_version))
         if detrend_mode is not None:
             root.set("Detrend", detrend_mode)
+        root.set("Downsample", downsample)
         ET.SubElement(root, "Size", Width=str(width), Height=str(height))
         ET.SubElement(
             root,
@@ -247,6 +268,7 @@ def write_dzi(
                 image_dict.update({"FormatVersion": nc_version})
             if detrend_mode is not None:
                 image_dict.update({"Detrend": detrend_mode})
+            image_dict.update({"Downsample": downsample})
             if nc_version == 2:
                 image_dict.update(
                     {
@@ -268,6 +290,12 @@ def write_dzi(
     root_directory = os.path.join(root_directory, name + "_files")
     os.makedirs(root_directory, exist_ok=True)
     scale_factor = 1
+    level_data = data
+    if downsample == "mean":
+        # Sums and counts of defined points within the block of each point
+        defined = np.isfinite(data)
+        sums = np.where(defined, data, 0)
+        counts = defined.astype(np.int32)
     for level in range(max_level, -1, -1):
         level_root_directory = os.path.join(root_directory, str(level))
         os.makedirs(level_root_directory, exist_ok=True)
@@ -281,33 +309,34 @@ def write_dzi(
                 # File name for this tile
                 fn = os.path.join(level_root_directory, f"{column}_{row}.{format}")
 
-                # Determine image section of this tile
-                left = (column * tile_size - overlap) * scale_factor
-                bottom = (row * tile_size - overlap) * scale_factor
-
-                right = ((column + 1) * tile_size + overlap) * scale_factor
-                top = ((row + 1) * tile_size + overlap) * scale_factor
-
-                if left < 0:
-                    left = 0
-                if bottom < 0:
-                    bottom = 0
-                if right > full_width:
-                    right = full_width
-                if top > full_height:
-                    top = full_height
+                # Determine image section of this tile on the grid of this
+                # level
+                left = max(column * tile_size - overlap, 0)
+                bottom = max(row * tile_size - overlap, 0)
+                right = min((column + 1) * tile_size + overlap, width)
+                top = min((row + 1) * tile_size + overlap, height)
 
                 write_data(
                     fn,
-                    data[left:right:scale_factor, bottom:top:scale_factor],
+                    level_data[left:right, bottom:top],
                     (sx / full_width * scale_factor, sy / full_height * scale_factor),
-                    (left / full_width * sx, bottom / full_height * sy),
+                    (
+                        left * scale_factor / full_width * sx,
+                        bottom * scale_factor / full_height * sy,
+                    ),
                 )
                 manifest += [fn]
 
         width = math.ceil(width / 2)
         height = math.ceil(height / 2)
         scale_factor *= 2
+        if downsample == "mean":
+            sums, counts = _coarsen(sums), _coarsen(counts)
+            level_data = np.divide(
+                sums, counts, out=np.full(sums.shape, np.nan), where=counts > 0
+            )
+        else:
+            level_data = data[::scale_factor, ::scale_factor]
 
     return manifest
 
@@ -322,6 +351,7 @@ def write_topography_dzi(
     meta_format: str = "xml",
     cmap=None,
     nc_version: int = 1,
+    downsample: str = "mean",
     **kwargs,
 ):
     """
@@ -363,6 +393,9 @@ def write_topography_dzi(
     nc_version : int, optional
         Version of the NetCDF tile format, see :func:`write_dzi`. Ignored
         unless format is 'nc'. (Default: 1)
+    downsample : str, optional
+        How coarse levels are obtained, 'mean' or 'nearest', see
+        :func:`write_dzi`. (Default: 'mean')
 
     Returns
     -------
@@ -393,6 +426,7 @@ def write_topography_dzi(
         cmap=cmap,
         nc_version=nc_version,
         detrend_mode=detrend_mode,
+        downsample=downsample,
         **kwargs,
     )
 
