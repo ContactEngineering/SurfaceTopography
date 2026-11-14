@@ -743,3 +743,101 @@ def test_detrend_mode_write_dzi():
         )
         root = ET.parse(open(f"{d}/detrended.xml")).getroot()
         assert root.attrib["Detrend"] == "curvature"
+
+
+def _block_mean(h, stride):
+    """Reference: mean of the defined points in each stride x stride block"""
+    nx, ny = h.shape
+    mx, my = -(-nx // stride), -(-ny // stride)
+    result = np.full((mx, my), np.nan)
+    for i in range(mx):
+        for j in range(my):
+            block = h[i * stride:(i + 1) * stride, j * stride:(j + 1) * stride]
+            if np.isfinite(block).any():
+                result[i, j] = np.nanmean(block)
+    return result
+
+
+@pytest.mark.parametrize("meta_format", ["xml", "json"])
+@pytest.mark.parametrize("nb_grid_pts", [(256, 128), (300, 200), (65, 1)])
+def test_downsample_mean(meta_format, nb_grid_pts):
+    nx, ny = nb_grid_pts
+    tile_size, overlap = 64, 1
+    h = np.random.default_rng(0).normal(size=(nx, ny))
+    # Undefined points, including entire blocks at coarse levels
+    h[:8, :] = np.nan
+    h[40, 0] = np.nan
+    with tempfile.TemporaryDirectory() as d:
+        manifest = write_dzi(
+            h,
+            "mean",
+            (3, 2),
+            "um",
+            root_directory=d,
+            tile_size=tile_size,
+            overlap=overlap,
+            format="npy",
+            meta_format=meta_format,
+            downsample="mean",
+        )
+        if meta_format == "xml":
+            meta = ET.parse(open(f"{d}/mean.xml")).getroot().attrib
+        else:
+            with open(f"{d}/mean.json", "r") as f:
+                meta = json.load(f)["Image"]
+        assert meta["Downsample"] == "mean"
+        assert manifest == generate_manifest(
+            "mean",
+            (nx, ny),
+            root_directory=d,
+            tile_size=tile_size,
+            format="npy",
+            meta_format=meta_format,
+        )
+
+        normalized = (h - np.nanmin(h)) / (np.nanmax(h) - np.nanmin(h))
+        expected = {}
+        for level, column, row, stride, (i0, i1), (j0, j1) in _tiles(
+            (nx, ny), tile_size, overlap
+        ):
+            if stride not in expected:
+                expected[stride] = _block_mean(normalized, stride)
+            tile = np.load(f"{d}/mean_files/{level}/{column}_{row}.npy")
+            np.testing.assert_allclose(tile, expected[stride][i0:i1, j0:j1])
+
+
+def test_downsample_coordinates():
+    nx, ny = 300, 200
+    h = np.random.default_rng(0).normal(size=(nx, ny))
+    with tempfile.TemporaryDirectory() as d:
+        for downsample in ["nearest", "mean"]:
+            write_dzi(
+                h, downsample, (3, 2), "um", root_directory=d, tile_size=64,
+                format="nc", downsample=downsample,
+            )
+        for level in range(10):
+            with (
+                netcdf_file(f"{d}/nearest_files/{level}/0_0.nc", "r") as nearest,
+                netcdf_file(f"{d}/mean_files/{level}/0_0.nc", "r") as mean,
+            ):
+                np.testing.assert_array_equal(
+                    nearest.variables["x"][...], mean.variables["x"][...]
+                )
+                np.testing.assert_array_equal(
+                    nearest.variables["y"][...], mean.variables["y"][...]
+                )
+
+
+def test_downsample_default_and_image():
+    h = np.random.default_rng(0).normal(size=(100, 80))
+    with tempfile.TemporaryDirectory() as d:
+        write_dzi(h, "nearest", (1, 1), "um", root_directory=d)
+        root = ET.parse(open(f"{d}/nearest.xml")).getroot()
+        assert root.attrib["Downsample"] == "nearest"
+        manifest = write_dzi(
+            h, "mean", (1, 1), "um", root_directory=d, format="png",
+            downsample="mean",
+        )
+        assert all(os.path.exists(fn) for fn in manifest)
+    with pytest.raises(ValueError):
+        write_dzi(h, "unknown", (1, 1), "um", downsample="median")
