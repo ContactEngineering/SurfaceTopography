@@ -857,3 +857,28 @@ def test_downsample_default_and_image():
         assert all(os.path.exists(fn) for fn in manifest)
     with pytest.raises(ValueError):
         write_dzi(h, "unknown", (1, 1), "um", downsample="median")
+
+
+@pytest.mark.parametrize("meta_format", ["xml", "json"])
+@pytest.mark.parametrize("nc_version", [1, 2])
+def test_unit(meta_format, nc_version):
+    t = fourier_synthesis((100, 80), (1, 1), 0.8, rms_slope=0.1, unit="mm")
+    with tempfile.TemporaryDirectory() as d:
+        t.to_dzi(
+            "unit", d, format="nc", meta_format=meta_format, nc_version=nc_version
+        )
+        if meta_format == "xml":
+            meta = ET.parse(open(f"{d}/unit.xml")).getroot().attrib
+        else:
+            with open(f"{d}/unit.json", "r") as f:
+                meta = json.load(f)["Image"]
+        with netcdf_file(f"{d}/unit_files/0/0_0.nc", "r", mmap=False) as nc:
+            tile_unit = nc.variables["heights"].unit.decode()
+    # The descriptor carries the unit of the heights in the tiles
+    assert meta["Unit"] == tile_unit
+
+
+def test_unit_mangled():
+    with tempfile.TemporaryDirectory() as d:
+        write_dzi(np.zeros((4, 4)), "micro", (1, 1), "µm", root_directory=d)
+        assert ET.parse(open(f"{d}/micro.xml")).getroot().attrib["Unit"] == "um"

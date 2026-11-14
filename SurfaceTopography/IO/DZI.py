@@ -95,7 +95,8 @@ def write_dzi(
     physical_sizes : tuple of floats
         Linear physical sizes of the two-dimensional array.
     unit : str
-        Length units of physical sizes.
+        Length units of physical sizes and of the data. Recorded as `Unit` in
+        the descriptor.
     root_directory : str, optional
         Root directory where to place `name`.xml and `name`_files.
         (Default: '.')
@@ -219,6 +220,7 @@ def write_dzi(
             TileSize=str(tile_size),
             Overlap=str(overlap),
             Format=format,
+            Unit=mangle_length_unit_ascii(unit),
             Colormap=cmap.name,
             xmlns="http://schemas.microsoft.com/deepzoom/2008",
         )
@@ -252,6 +254,7 @@ def write_dzi(
             image_dict = {
                 "xmlns": "http://schemas.microsoft.com/deepzoom/2008",
                 "Format": format,
+                "Unit": mangle_length_unit_ascii(unit),
                 "Overlap": overlap,
                 "TileSize": tile_size,
                 "Size": {"Width": width, "Height": height},

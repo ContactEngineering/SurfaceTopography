@@ -16,6 +16,12 @@ Style for this changelog (keep to it so entries stay uniform):
 Change log for SurfaceTopography
 ================================
 
+v1.29.0 (not yet released)
+--------------------------
+
+- ENH: DZI descriptors record the unit of the height values, so readers can label values
+  without parsing the color bar title or fetching a tile
+
 v1.28.0 (14Nov26)
 -----------------
 
