@@ -16,8 +16,8 @@ Style for this changelog (keep to it so entries stay uniform):
 Change log for SurfaceTopography
 ================================
 
-v1.28.0 (not yet released)
---------------------------
+v1.28.0 (14Nov26)
+-----------------
 
 - API: Coarse levels of DZI pyramids average the data instead of taking every n-th point,
   which avoids aliasing in overviews; sampling remains available as an option
