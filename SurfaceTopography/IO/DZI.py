@@ -46,6 +46,7 @@ from ..Support.UnitConversion import (
     mangle_length_unit_ascii,
     suggest_length_unit_for_data,
 )
+from ..Uniform.Detrending import DetrendedUniformTopography
 
 
 def write_dzi(
@@ -61,6 +62,7 @@ def write_dzi(
     colorbar_title=None,
     cmap=None,
     nc_version: int = 1,
+    detrend_mode: str = None,
     **kwargs,
 ):
     """
@@ -116,6 +118,9 @@ def write_dzi(
         both are written as CF attributes of `heights` in every tile and to
         `Encoding` in the descriptor. Ignored unless format is 'nc'.
         (Default: 1)
+    detrend_mode : str, optional
+        How the data was detrended, e.g. 'height' or 'curvature'. Recorded as
+        `Detrend` in the descriptor if given. (Default: None)
 
     Returns
     -------
@@ -200,6 +205,8 @@ def write_dzi(
             root.set("ColorbarTitle", colorbar_title)
         if nc_version is not None:
             root.set("FormatVersion", str(nc_version))
+        if detrend_mode is not None:
+            root.set("Detrend", detrend_mode)
         ET.SubElement(root, "Size", Width=str(width), Height=str(height))
         ET.SubElement(
             root,
@@ -237,6 +244,8 @@ def write_dzi(
                 image_dict.update({"ColorbarTitle": colorbar_title})
             if nc_version is not None:
                 image_dict.update({"FormatVersion": nc_version})
+            if detrend_mode is not None:
+                image_dict.update({"Detrend": detrend_mode})
             if nc_version == 2:
                 image_dict.update(
                     {
@@ -321,6 +330,9 @@ def write_topography_dzi(
 
     Additional keyword parameters are passed to Pillow's `save` function.
 
+    If the pipeline of the topography contains a detrending step, its
+    `detrend_mode` is recorded as `Detrend` in the descriptor.
+
     Parameters
     ----------
     self : :obj:`Topography`
@@ -361,6 +373,11 @@ def write_topography_dzi(
         "linear", self.heights(), self.unit
     )
     t = self.to_unit(ideal_height_unit)
+    # The last detrending step in the pipeline determines the exported data
+    detrend_mode = None
+    for stage in self.pipeline():
+        if isinstance(stage, DetrendedUniformTopography):
+            detrend_mode = stage.detrend_mode
     return write_dzi(
         t.heights(),
         name,
@@ -374,6 +391,7 @@ def write_topography_dzi(
         colorbar_title=f"Height ({ideal_height_unit})",
         cmap=cmap,
         nc_version=nc_version,
+        detrend_mode=detrend_mode,
         **kwargs,
     )
 
