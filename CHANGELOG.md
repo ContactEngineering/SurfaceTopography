@@ -23,8 +23,8 @@ v1.28.0 (14Nov26)
   which avoids aliasing in overviews; sampling remains available as an option
 - ENH: DZI NetCDF tile format version 2 (opt-in) stores float32 heights with CF scale and
   offset, so generic NetCDF tools decode tiles to physical heights; tiles are half as large
-- ENH: DZI descriptors record the NetCDF tile format version, how the data was detrended
-  and how coarse levels were obtained
+- ENH: DZI descriptors record the height unit, the NetCDF tile format version, how the data
+  was detrended and how coarse levels were obtained
 - BUG: Masked points in DZI NetCDF and NumPy tiles held arbitrary values; undefined points
   are now NaN in these tiles and no longer affect the data range
 - BUG: DZI export failed for masked data in NumPy format, and NaN in the data made the
