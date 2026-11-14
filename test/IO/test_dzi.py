@@ -716,3 +716,42 @@ def test_overlap(overlap, nb_grid_pts):
             # this level, at tile borders and at the image edge alike
             np.testing.assert_allclose(x, np.arange(i0, i1) * stride * sx / nx)
             np.testing.assert_allclose(y, np.arange(j0, j1) * stride * sy / ny)
+
+
+@pytest.mark.parametrize("meta_format", ["xml", "json"])
+@pytest.mark.parametrize(
+    "detrend_modes", [[], ["height"], ["curvature"], ["height", "center"]]
+)
+def test_detrend_mode(meta_format, detrend_modes):
+    t = fourier_synthesis((100, 80), (1, 1), 0.8, rms_slope=0.1, unit="mm")
+    for detrend_mode in detrend_modes:
+        t = t.detrend(detrend_mode=detrend_mode)
+    # A decorator after the detrending step does not hide it
+    t = t.scale(2)
+    with tempfile.TemporaryDirectory() as d:
+        t.to_dzi("detrended", d, meta_format=meta_format)
+        if meta_format == "xml":
+            meta = ET.parse(open(f"{d}/detrended.xml")).getroot().attrib
+        else:
+            with open(f"{d}/detrended.json", "r") as f:
+                meta = json.load(f)["Image"]
+    if detrend_modes:
+        assert meta["Detrend"] == detrend_modes[-1]
+    else:
+        assert "Detrend" not in meta
+
+
+def test_detrend_mode_write_dzi():
+    with tempfile.TemporaryDirectory() as d:
+        write_dzi(np.zeros((4, 4)), "plain", (1, 1), "um", root_directory=d)
+        assert "Detrend" not in ET.parse(open(f"{d}/plain.xml")).getroot().attrib
+        write_dzi(
+            np.zeros((4, 4)),
+            "detrended",
+            (1, 1),
+            "um",
+            root_directory=d,
+            detrend_mode="curvature",
+        )
+        root = ET.parse(open(f"{d}/detrended.xml")).getroot()
+        assert root.attrib["Detrend"] == "curvature"
