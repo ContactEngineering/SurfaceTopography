@@ -75,7 +75,9 @@ mpi = [
 ]
 test = [
     "pytest",
-    "pytest-cov"
+    "pytest-cov",
+    # Checks that DZI NetCDF tiles decode with generic NetCDF tools
+    "xarray"
 ]
 
 [project.urls]
