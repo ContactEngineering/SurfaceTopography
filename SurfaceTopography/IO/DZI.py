@@ -344,6 +344,20 @@ def write_dzi(
     return manifest
 
 
+def _export_unit_and_detrend(topography):
+    """
+    Topography converted to a unit suited to its heights, that unit, and the
+    detrend mode of the last detrending step in its pipeline (or None)
+    """
+    unit = suggest_length_unit_for_data("linear", topography.heights(), topography.unit)
+    # The last detrending step in the pipeline determines the exported data
+    detrend_mode = None
+    for stage in topography.pipeline():
+        if isinstance(stage, DetrendedUniformTopography):
+            detrend_mode = stage.detrend_mode
+    return topography.to_unit(unit), unit, detrend_mode
+
+
 def write_topography_dzi(
     self: UniformTopographyInterface,
     name: str,
@@ -405,16 +419,7 @@ def write_topography_dzi(
     filenames : list of str
         List with names of files created during write operation
     """
-    # Get reasonable unit
-    ideal_height_unit = suggest_length_unit_for_data(
-        "linear", self.heights(), self.unit
-    )
-    t = self.to_unit(ideal_height_unit)
-    # The last detrending step in the pipeline determines the exported data
-    detrend_mode = None
-    for stage in self.pipeline():
-        if isinstance(stage, DetrendedUniformTopography):
-            detrend_mode = stage.detrend_mode
+    t, ideal_height_unit, detrend_mode = _export_unit_and_detrend(self)
     return write_dzi(
         t.heights(),
         name,

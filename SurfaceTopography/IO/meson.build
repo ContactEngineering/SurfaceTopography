@@ -48,6 +48,7 @@ python_sources = [
     'WSXM.py',
     'X3P.py',
     'XYZ.py',
+    'ZarrPyramid.py',
     'ZMG.py',
     'ZON.py'
 ]

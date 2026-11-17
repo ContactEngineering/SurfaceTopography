@@ -6,7 +6,7 @@
 pip install SurfaceTopography
 ```
 
-SurfaceTopography requires Python 3.10 or later. Binary wheels are built for
+SurfaceTopography requires Python 3.11 or later. Binary wheels are built for
 Linux (x86_64, aarch64), macOS (arm64) and Windows (AMD64, ARM64); on other
 platforms pip compiles the package from the source distribution (see
 [below](#building-from-source)).
@@ -21,7 +21,8 @@ and others, see `pyproject.toml`).
 | Extra | Installs | Needed for |
 |-------|----------|------------|
 | `mpi` | NuMPI's `mpi` and `fft` extras (mpi4py, muGrid >= 1.6.0) and netCDF4 | [domain-decomposed topographies](topographies.md#mpi-parallel-topographies) and parallel NetCDF I/O under `mpirun` |
-| `test` | pytest, pytest-cov | running the [test suite](testing.md) |
+| `zarr` | zarr >= 3.0 | [zoomable pyramids](reading.md#writing-files) (`to_zarr_pyramid`) |
+| `test` | pytest, pytest-cov, xarray, zarr | running the [test suite](testing.md) |
 
 ```bash
 pip install SurfaceTopography[mpi]

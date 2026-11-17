@@ -31,8 +31,9 @@ import os
 import struct
 import zipfile
 
-# Registers DZI writers with Topography class
+# Registers DZI and zoomable pyramid writers with Topography class
 import SurfaceTopography.IO.DZI  # noqa: F401
+import SurfaceTopography.IO.ZarrPyramid  # noqa: F401
 
 from ..Exceptions import UnknownFileFormat  # noqa: F401
 from ..Exceptions import (  # noqa: F401

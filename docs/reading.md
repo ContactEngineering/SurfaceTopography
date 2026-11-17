@@ -250,6 +250,7 @@ Uniform topographies and line scans have methods that write them to a file:
 | `to_gwy(fobj, name="Topography")` | Gwyddion | two-dimensional maps; converted to m; undefined data as mask |
 | `to_matrix(fname)` | plain text | heights, physical sizes and unit |
 | `to_dzi(name, root_directory=".", tile_size=256, overlap=1, format="jpg", meta_format="xml", cmap=None, **kwargs)` | Deep Zoom Image | image pyramid for web viewers |
+| `to_zarr_pyramid(fobj, tile_size=256, shard_tiles=16, downsample="mean", compression_level=6, cmap=None)` | zipped OME-Zarr (`.ozx`) | height pyramid for web viewers in a single file; requires the `zarr` extra |
 
 NPY files are written with `SurfaceTopography.IO.NPY.save_npy(fn, topography)`,
 which writes in parallel for domain-decomposed topographies.
@@ -267,6 +268,7 @@ topography.to_gwy("topography.gwy")
 topography.to_matrix("topography.txt")
 save_npy("topography.npy", topography)
 files = topography.to_dzi("topography", root_directory="dzi")
+topography.to_zarr_pyramid("topography.ozx")
 ```
 
 NetCDF is the format that preserves all metadata of a topography; reading the
@@ -295,3 +297,26 @@ mapped to colors with the colormap `cmap`. With `format="npy"` or
 `format="nc"`, the tiles contain the raw heights instead of images. Further
 keyword arguments are passed to Pillow's `save`. The method returns the list
 of files written.
+
+**Zoomable pyramid in a single file.** `to_zarr_pyramid` writes the heights
+at full resolution and at successively halved resolutions, down to a single
+tile, into one file: a [Zarr v3](https://zarr-specs.readthedocs.io/) hierarchy
+with [OME-Zarr 0.5](https://ngff.openmicroscopy.org/0.5/) multiscales metadata,
+zipped as recommended by
+[RFC-9](https://ngff.openmicroscopy.org/rfc/9/). Level `"0"` is the full
+resolution; coarse levels hold block means (`downsample="mean"`) or every
+n-th point (`"nearest"`). The arrays have dimensions $(y, x)$ and are stored
+as float32 `v = (h - add_offset) / scale_factor` with CF attributes
+`scale_factor`, `add_offset` and `units`. Chunks of `tile_size` points are
+grouped into shards, so that a web viewer can fetch any tile with an HTTP
+range request from a single URL. The method requires
+[zarr](https://zarr.readthedocs.io/), installed with
+`pip install SurfaceTopography[zarr]`, which also opens the file:
+
+```python
+import zarr
+
+with zarr.storage.ZipStore("topography.ozx", mode="r") as store:
+    level = zarr.open_group(store, mode="r")["0"]
+    heights = level.attrs["add_offset"] + level.attrs["scale_factor"] * level[...]
+```
