@@ -73,11 +73,16 @@ mpi = [
     "muGrid>=1.6.0",
     "netCDF4"
 ]
+# Zoomable pyramids in a single file (zipped OME-Zarr)
+zarr = [
+    "zarr>=3.0"
+]
 test = [
     "pytest",
     "pytest-cov",
     # Checks that DZI NetCDF tiles decode with generic NetCDF tools
-    "xarray"
+    "xarray",
+    "zarr>=3.0"
 ]
 
 [project.urls]

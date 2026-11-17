@@ -136,4 +136,5 @@ Uniform topographies can be written to the following formats; see
 | `to_gwy` | Gwyddion (two-dimensional maps) | `gwy` |
 | `to_matrix` | plain text matrix of heights | `asc` |
 | `to_dzi` | Deep Zoom Image (tiled images for web viewers) | — |
+| `to_zarr_pyramid` | zipped OME-Zarr height pyramid for web viewers (single file) | — |
 | `SurfaceTopography.IO.NPY.save_npy` | NPY (parallel) | `npy` |
