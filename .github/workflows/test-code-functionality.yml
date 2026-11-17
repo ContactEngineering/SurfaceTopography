@@ -23,7 +23,7 @@ jobs:
         # 'no': core install, without mpi4py and muGrid
         # 'yes': mpi extra, with mpi4py and muGrid compiled against OpenMPI
         mpi: ['no', 'yes']
-        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        python-version: ['3.11', '3.12', '3.13', '3.14']
 
     steps:
       - uses: actions/checkout@v7

@@ -6,7 +6,7 @@
 pip install SurfaceTopography
 ```
 
-SurfaceTopography requires Python 3.10 or later. Binary wheels are built for
+SurfaceTopography requires Python 3.11 or later. Binary wheels are built for
 Linux (x86_64, aarch64), macOS (arm64) and Windows (AMD64, ARM64); on other
 platforms pip compiles the package from the source distribution (see
 [below](#building-from-source)).

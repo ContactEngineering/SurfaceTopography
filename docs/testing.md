@@ -22,7 +22,7 @@ Tests use communicators of size 1 and 4; tests for other sizes are skipped.
 To run more processes than your computer has cores, add `--oversubscribe`
 (OpenMPI), e.g. `mpirun --oversubscribe -n 10 python3 -m pytest`.
 
-CI runs the suite for Python 3.10 to 3.14, serially without mpi4py and muGrid,
+CI runs the suite for Python 3.11 to 3.14, serially without mpi4py and muGrid,
 and with the `mpi` extra (compiled against OpenMPI) on 1 and 4 processes.
 
 ## Fixtures

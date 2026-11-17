@@ -41,7 +41,7 @@ keywords = [
     # Data types
     "height-map", "surface-profile", "line-scan", "SRTM"
 ]
-requires-python = ">=3.10.0"
+requires-python = ">=3.11.0"
 dynamic = ["version"]
 dependencies = [
     "numpy>=2.0.0",
@@ -94,7 +94,7 @@ allow-windows-internal-shared-libs = true
 
 [tool.black]
 line-length = 88
-target-version = ["py310", "py311", "py312", "py313", "py314"]
+target-version = ["py311", "py312", "py313", "py314"]
 
 [tool.isort]
 profile = "black"
